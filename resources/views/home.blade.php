@@ -3,7 +3,7 @@
         <img src="{{ asset('assets/icon.png') }}" class="img-fluid mb-2" style="max-width:150px;"></img>
         <h1 class="fw-bold mb-0">Selamat Datang</h1>
         <div class="mb-1">
-            <h2 class="mb-0 fw-semibold">Admin Panel Resmi <b>SAKEDAP</b></h2>
+            <h2 class="mb-0 fw-semibold">Pelaksana Serah Panel Resmi <b>SAKEDAP</b></h2>
             <h3 class="fw-semibold">
                 <b>S</b>istem
                 <b>AK</b>ses
