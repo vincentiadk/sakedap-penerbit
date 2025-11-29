@@ -21,13 +21,18 @@
                                         <div class="fw-bold border-bottom d-none d-xl-block pb-2 mb-2">Main Menu</div>
                                         <div style="max-height:60vh; overflow-y:auto; overflow-x:hidden;">
                                             <ul class="nav nav-pills flex-xl-column flex-nowrap text-nowrap justify-content-center wmin-xl-300" role="tablist">
-                                                //
+                                                <li class="nav-item" role="presentation">
+                                                    <a href="{{ url('dashboard') }}" class="nav-link rounded {{ Request::segment(1) == 'dashboard' ? 'active' : '' }}">
+                                                        <i class="ph-chart-pie me-2"></i>
+                                                        Dasboard
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
 									</div>
 								</div>
 								<div class="tab-content flex-xl-1 main-menu-sub">
-                                    //
+                                    {{--  --}}
 								</div>
 							</div>
 						</div>

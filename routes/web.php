@@ -32,4 +32,13 @@ Route::middleware('authentication')->group(function () {
             ]
         ]);
     });
+
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/', 'DashboardController@index');
+        Route::get('data-media-type', 'DashboardController@dataMediaType');
+        Route::get('data-worksheet', 'DashboardController@dataWorksheet');
+        Route::get('data-collection-status', 'DashboardController@dataCollectionStatus');
+        Route::get('data-total-works', 'DashboardController@dataTotalWorks');
+        Route::get('data-activity', 'DashboardController@dataActivity');
+    });
 });
