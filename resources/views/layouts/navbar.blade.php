@@ -33,12 +33,27 @@
                                                         Permintaan File
                                                     </a>
                                                 </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <a href="#menu-digital-storage-handover" class="nav-link rounded {{ Request::segment(1) == 'digital-storage-handover' ? 'active' : '' }}" data-bs-toggle="tab" aria-selected="{{ Request::segment(1) == 'digital-storage-handover' ? 'true' : 'false' }}" role="tab">
+                                                        <i class="ph-monitor-play me-2"></i>
+                                                        Serah Simpan Digital
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
 									</div>
 								</div>
 								<div class="tab-content flex-xl-1 main-menu-sub">
-                                    {{--  --}}
+                                    <div class="tab-pane dropdown-scrollable-xl fade p-3 {{ Request::segment(1) == 'digital-storage-handover' ? 'show active' : '' }}" id="menu-digital-storage-handover" role="tabpanel">
+                                        <div class="row" style="max-height:65vh; overflow-y:auto; overflow-x:hidden;">
+                                            <div class="col-md-12">
+                                                <div class="alert alert-info text-center fw-semibold">Sub Menu</div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <a href="{{ url('digital-storage-handover/single-upload') }}" class="dropdown-item rounded pb-0 {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload' ? 'active' : '' }}">Unggah Tunggal</a>
+                                            </div>
+                                        </div>
+                                    </div>
 								</div>
 							</div>
 						</div>

@@ -60,4 +60,13 @@ Route::middleware('authentication')->group(function () {
         Route::get('datatable', 'RequestFileController@datatable');
         Route::post('create-data', 'RequestFileController@createData');
     });
+
+    Route::prefix('digital-storage-handover')->namespace('DigitalStorageHandover')->group(function () {
+        Route::prefix('single-upload')->group(function () {
+            Route::get('/', 'SingleUploadController@index');
+            Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');
+            Route::get('catalog-parent', 'SingleUploadController@catalogParent');
+            Route::post('submitted', 'SingleUploadController@submitted');
+        });
+    });
 });
