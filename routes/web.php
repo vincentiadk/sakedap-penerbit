@@ -68,6 +68,12 @@ Route::middleware('authentication')->group(function () {
     });
 
     Route::prefix('digital-storage-handover')->namespace('DigitalStorageHandover')->group(function () {
+        Route::prefix('draft')->group(function () {
+            Route::get('/', 'DraftController@index');
+            Route::get('datatable', 'DraftController@datatable');
+            Route::match(['get', 'post'], 'detail/{id}', 'DraftController@detail');
+        });
+
         Route::prefix('single-upload')->group(function () {
             Route::get('/', 'SingleUploadController@index');
             Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');
