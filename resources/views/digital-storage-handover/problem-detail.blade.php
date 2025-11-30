@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Serah Simpan Digital - Koleksi Draft - <span class="fw-normal">Detail</span>
+                Serah Simpan Digital - Koleksi Bermasalah - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
@@ -12,7 +12,7 @@
                         <i class="ph-books me-1"></i>
                         Histori E-Collection
                     </button>
-                    <a href="{{ url('digital-storage-handover/draft') }}" class="btn btn-primary">
+                    <a href="{{ url('digital-storage-handover/problem') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -386,6 +386,10 @@
     <div class="card">
         <div class="card-body">
             <div class="text-end">
+                <button type="button" class="btn btn-teal" onclick="submitted(3)">
+                    <i class="ph-paperclip me-1"></i>
+                    Simpan
+                </button>
                 <button type="button" class="btn btn-warning" onclick="submitted(4)">
                     <i class="ph-floppy-disk me-1"></i>
                     Simpan Draft
@@ -964,7 +968,7 @@
 
     function submitted(param) {
         $.ajax({
-            url: '{{ url("digital-storage-handover/draft/detail/$collection->ID") }}?param=' + param,
+            url: '{{ url("digital-storage-handover/problem/detail/$collection->ID") }}?param=' + param,
             type: 'POST',
             dataType: 'JSON',
             data: new FormData($('#form-data')[0]),
@@ -995,7 +999,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("digital-storage-handover/draft") }}';
+                            location.href = '{{ url("digital-storage-handover/problem") }}';
                         }
                     });
                 } else if(response.code == 400) {

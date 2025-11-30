@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
-class DraftController extends Controller
+class ProblemController extends Controller
 {
     private $worksheetCategory;
 
@@ -24,7 +24,7 @@ class DraftController extends Controller
         return view('layouts.index', [
             'data' => [
                 'worksheet' => QueryAPI::get("select * from worksheets where category is not null") ?? [],
-                'content' => 'digital-storage-handover.draft',
+                'content' => 'digital-storage-handover.problem',
                 'plugins' => [
                     'datatable',
                     'daterangepicker',
@@ -42,7 +42,9 @@ class DraftController extends Controller
             'e_collections.title',
             'worksheets.name',
             'e_collections.code',
-            'e_collections.updated_at',
+            null,
+            'e_collections.problem',
+            'e_collections.rejected_at',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -56,7 +58,7 @@ class DraftController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "(e_collections.status = '4' and e_collections.deleted_at is null)";
+        $whereCondition[] = "(e_collections.status = '3' and e_collections.deleted_at is null)";
         $whereCondition[] = "e_collections.penerbit_id = " . session('id');
         $whereCondition[] = "worksheets.category = '" . $this->worksheetCategory . "'";
 
@@ -120,7 +122,7 @@ class DraftController extends Controller
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
-                (status = '4' and deleted_at is null) and
+                (status = '3' and deleted_at is null) and
                 penerbit_id = " . session('id') . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
@@ -166,10 +168,34 @@ class DraftController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('digital-storage-handover/draft/detail/' . $val->ID) . '" class="btn btn-primary btn-sm">
+                    <a href="' . url('digital-storage-handover/problem/detail/' . $val->ID) . '" class="btn btn-primary btn-sm">
                         <i class="ph-info me-1"></i>
                         Detail
                     </a>
+                ';
+
+                $listProblem = '';
+                $dataProblem = QueryAPI::get("
+                    select
+                        e_problems.name as name_problem
+                    from
+                        e_collection_problems
+                    join
+                        e_problems on e_problems.id = e_collection_problems.problem_id
+                    where
+                        e_collection_problems.collection_id = $val->ID
+                ");
+
+                if ($dataProblem) {
+                    foreach ($dataProblem as $dp) {
+                        $listProblem .= '<li>' . $dp->NAME_PROBLEM . '</li>';
+                    }
+                }
+
+                $listProblem = '
+                    <ul class="p-0 mb-0 ps-2">
+                        ' . $listProblem . '
+                    </ul>
                 ';
 
                 $data[] = [
@@ -178,7 +204,9 @@ class DraftController extends Controller
                     ($val->TITLE ?? $val->TITLE_ORI),
                     $val->NAME_WORKSHEET,
                     $val->CODE,
-                    Carbon::parse($val->UPDATED_AT)->isoFormat('dddd, D MMMM Y'),
+                    $listProblem,
+                    $val->PROBLEM,
+                    Carbon::parse($val->REJECTED_AT)->isoFormat('dddd, D MMMM Y'),
                 ];
 
                 $start++;
@@ -244,7 +272,7 @@ class DraftController extends Controller
             where
                 ec.id = $id and
                 ec.deleted_at is null and
-                ec.status = '4' and
+                ec.status = '3' and
                 w.category = '" . $this->worksheetCategory . "' and
                 ec.penerbit_id = " . session('id') . "
         ";
@@ -442,7 +470,7 @@ class DraftController extends Controller
                 'collectionContributor' => explode(';', ($collection->AUTHOR ?? '')),
                 'collectionProblemHistory' => $collectionProblemHistory,
                 'physicalDescription' => json_decode($collection->PHYSICAL_DESCRIPTION ?? ''),
-                'content' => 'digital-storage-handover.draft-detail',
+                'content' => 'digital-storage-handover.problem-detail',
                 'plugins' => [
                     'select2',
                     'daterangepicker',

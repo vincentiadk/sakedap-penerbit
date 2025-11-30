@@ -51,6 +51,7 @@
                                             </div>
                                             <div class="col-md-2">
                                                 <a href="{{ url('digital-storage-handover/draft') }}" class="dropdown-item rounded pb-0 {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'draft' ? 'active' : '' }}">Koleksi Draft</a>
+                                                <a href="{{ url('digital-storage-handover/problem') }}" class="dropdown-item rounded pb-0 {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'problem' ? 'active' : '' }}">Koleksi Bermasalah</a>
                                                 <a href="{{ url('digital-storage-handover/single-upload') }}" class="dropdown-item rounded pb-0 {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload' ? 'active' : '' }}">Unggah Tunggal</a>
                                                 <a href="{{ url('digital-storage-handover/bulk-upload') }}" class="dropdown-item rounded pb-0 {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'bulk-upload' ? 'active' : '' }}">Unggah Banyak</a>
                                             </div>
