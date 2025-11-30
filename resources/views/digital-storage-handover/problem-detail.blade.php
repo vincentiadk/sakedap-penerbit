@@ -26,7 +26,7 @@
         <ul class="mb-0" id="validation-data"></ul>
     </div>
     <form id="form-data">
-        <div class="card" id="scrollspy-history-problem">
+        <div class="card">
             <div class="card-header d-flex align-items-center">
                 <h6 class="mb-0">Histori Masalah</h6>
                 <div class="ms-auto">
@@ -154,7 +154,7 @@
                                     Tidak Ada
                                 </label>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="...................." {{ $collection->QRCBN ? '' : 'disabled' }}>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="...................." {{ $collection->QRCBN ? '' : 'disabled' }}>
                         </div>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
                                     Tidak Ada
                                 </label>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" placeholder="...................." {{ $collection->SERIES ? '' : 'checked' }}>
+                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="...................." {{ $collection->SERIES ? '' : 'checked' }}>
                         </div>
                     </div>
                 </div>
@@ -440,9 +440,6 @@
             tags: true,
             tokenSeparators: [';']
         });
-
-        lookupCatalogParent('#catalog_title', '#catalog_id');
-        chooseWorksheet();
     });
 
     $(document).ready(function() {

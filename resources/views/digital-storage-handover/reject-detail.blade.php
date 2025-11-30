@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Serah Simpan Digital - Koleksi Draft - <span class="fw-normal">Detail</span>
+                Serah Simpan Digital - Koleksi Ditolak - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
@@ -12,7 +12,7 @@
                         <i class="ph-books me-1"></i>
                         Histori E-Collection
                     </button>
-                    <a href="{{ url('digital-storage-handover/draft') }}" class="btn btn-primary">
+                    <a href="{{ url('digital-storage-handover/reject') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -66,6 +66,14 @@
         </div>
         <div class="card">
             <div class="card-header">
+                <h5 class="hstack gap-2 mb-0">Alasan Ditolak</h5>
+            </div>
+            <div class="card-body">
+                {{ $collection->REJECT }}
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
                 <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
             </div>
             <div class="card-body">
@@ -91,20 +99,20 @@
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Edisi</label>
                         <div class="col-md-10">
-                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="....................">
+                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="...................." disabled>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Tanggal Terbit Edisi <span class="text-danger fw-bold">*</span></label>
                         <div class="col-md-10">
-                            <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" readonly>
+                            <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" disabled>
                         </div>
                     </div>
                 @endif
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Media <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id">
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" disabled>
                             <option value=""></option>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
@@ -115,7 +123,7 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Judul <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="....................">
+                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="...................." disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -137,7 +145,7 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Kota <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select" name="city_id" id="city_id">
+                        <select class="form-select" name="city_id" id="city_id" disabled>
                             @if($collection->NAMAKAB)
                                 <option value="{{ $collection->CITY_ID }}" selected>{{ $collection->NAMAPROPINSI }} -> {{ $collection->NAMAKAB }}</option>
                             @endif
@@ -150,11 +158,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true) : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }}>
+                                    <input type="checkbox" class="form-check-input mt-0 me-1" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true) : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }} disabled>
                                     Tidak Ada
                                 </label>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="...................." {{ $collection->QRCBN ? '' : 'disabled' }}>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="...................." disabled>
                         </div>
                     </div>
                 </div>
@@ -164,18 +172,18 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true) : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }}>
+                                    <input type="checkbox" class="form-check-input mt-0 me-1" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true) : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }} disabled>
                                     Tidak Ada
                                 </label>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="...................." {{ $collection->SERIES ? '' : 'checked' }}>
+                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="...................." disabled>
                         </div>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Kala Terbit</label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada">
+                        <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada" disabled>
                             <option value=""></option>
                             <option value="1" {{ $collection->SERIAL == 1 ? 'selected' : '' }}>Harian</option>
                             <option value="2" {{ $collection->SERIAL == 2 ? 'selected' : '' }}>Mingguan</option>
@@ -192,19 +200,19 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Waktu Terbit</label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" readonly>
+                        <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Preview</label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="cth : 1-5 / 00:01-00:20">
+                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="cth : 1-5 / 00:01-00:20" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Akses <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="access" id="access" data-placeholder="Pilih">
+                        <select class="form-select select2-basic" name="access" id="access" data-placeholder="Pilih" disabled>
                             <option value=""></option>
                             <option value="1" {{ $collection->AKSES == 1 ? 'selected' : '' }}>Akses full file berwatermak secara online</option>
                             <option value="2" {{ $collection->AKSES == 2 ? 'selected' : '' }}>Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</option>
@@ -216,7 +224,7 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Mata Uang</label>
                     <div class="col-md-10">
-                        <select class="form-select" name="currency" id="currency">
+                        <select class="form-select" name="currency" id="currency" disabled>
                             <option value="{{ $collection->CURRENCY }}" selected>{{ $collection->CURRENCY }}</option>
                         </select>
                     </div>
@@ -224,13 +232,13 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Harga</label>
                     <div class="col-md-10">
-                        <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="....................">
+                        <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="...................." disabled>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Jilid</label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="....................">
+                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="...................." disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -238,28 +246,28 @@
                     <div class="col-md-10">
                         <div class="input-group">
                             <span class="input-group-text">Total Halaman / Durasi</span>
-                            <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="....................">
-                            <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]">
+                            <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="...................." disabled>
+                            <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" disabled>
                                 <option value="Halaman" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Halaman' ? 'selected' : '') : '' }}>Halaman</option>
                                 <option value="Menit" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Menit' ? 'selected' : '') : '' }}>Menit</option>
                                 <option value="Jam" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Jam' ? 'selected' : '') : '' }}>Jam</option>
                             </select>
                             <span class="input-group-text">Ilustrasi</span>
-                            <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="...................." autocomplete="off">
+                            <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="...................." autocomplete="off" disabled>
                             <datalist id="suggestion-physical-description-ill">
                                 <option value="Tidak Ada">Tidak Ada</option>
                                 <option value="Ada (Berwarna)">Ada (Berwarna)</option>
                                 <option value="Ada (Tidak Berwarna)">Ada (Tidak Berwarna)</option>
                             </datalist>
                             <span class="input-group-text">Ukuran / Dimensi</span>
-                            <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="....................">
+                            <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="...................." disabled>
                         </div>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Sinopsis</label>
                     <div class="col-md-10">
-                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="....................">{{ $collection->DESCRIPTION }}</textarea>
+                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="...................." disabled>{{ $collection->DESCRIPTION }}</textarea>
                     </div>
                 </div>
             </div>
@@ -269,7 +277,7 @@
                 <h5 class="hstack gap-2 mb-0">Kategori</h5>
             </div>
             <div class="card-body">
-                <select class="form-select select2-basic" name="category[]" id="category" data-placeholder="Pilih" multiple>
+                <select class="form-select select2-basic" name="category[]" id="category" data-placeholder="Pilih" multiple disabled>
                     <option value=""></option>
                     @foreach($category as $c)
                         <option value="{{ $c->ID }}" {{ in_array($c->ID, $collectionCategory ?? []) ? 'selected' : '' }}>{{ $c->NAME }}</option>
@@ -299,12 +307,6 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="fw-bold border-bottom pb-2 mb-2">Cover</div>
-                        <div class="form-group">
-                            <div class="input-group">
-                                <span class="input-group-text">Upload Ulang</span>
-                                <input type="file" class="form-control" name="file_cover" id="file_cover">
-                            </div>
-                        </div>
                         <div class="alert alert-info mb-2">
                             <div><b>Hash :</b> {{ $collection->HASH_CATALOGCOVERS ?? '' }}</div>
                             <div><b>Mime Type :</b> {{ $collection->MIME_CATALOGCOVERS ?? '' }}</div>
@@ -315,12 +317,6 @@
                     </div>
                     <div class="col-md-6">
                         <div class="fw-bold border-bottom pb-2 mb-2">Konten</div>
-                        <div class="form-group">
-                            <div class="input-group">
-                                <span class="input-group-text">Upload Ulang</span>
-                                <input type="file" class="form-control" name="file_content" id="file_content">
-                            </div>
-                        </div>
                         <div class="alert alert-info mb-2">
                             <div><b>Hash :</b> {{ $collection->HASH_CATALOGFILES ?? '' }}</div>
                             <div><b>Mime Type :</b> {{ $collection->MIME_CATALOGFILES ?? '' }}</div>
@@ -383,20 +379,6 @@
             </div>
         </div>
     </form>
-    <div class="card">
-        <div class="card-body">
-            <div class="text-end">
-                <button type="button" class="btn btn-warning" onclick="submitted(4)">
-                    <i class="ph-floppy-disk me-1"></i>
-                    Simpan Draft
-                </button>
-                <button type="button" class="btn btn-primary" onclick="submitted(1)">
-                    <i class="ph-check me-1"></i>
-                    Simpan & Ajukan
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -406,31 +388,6 @@
     let audioAnimFrame = null;
 
     $(function() {
-        datePickerSingle('.date-picker-single');
-
-        select2Serverside('#city_id', 'location', {
-            for: 'city',
-            province_id: '{{ session("province_id") }}',
-        }, {
-            minimumInputLength: 0
-        });
-
-        select2Serverside('#currency', 'currency');
-
-        dragAndDropFile('#file_cover', {
-            maxFileCount: 1,
-            autoReplace: true,
-            allowedFileExtensions: ['jpg', 'jpeg', 'png'],
-            maxFileSize: 2048,
-        });
-
-        dragAndDropFile('#file_content', {
-            maxFileCount: 1,
-            autoReplace: true,
-            allowedFileExtensions: ['pdf', 'epub', 'mp3', 'mp4', 'wav'],
-            maxFileSize: 204800,
-        });
-
         $('#author').select2({
             multiple: true,
             tags: true,
@@ -943,75 +900,5 @@
         });
 
         loopAnimation();
-    }
-
-    function clearValidation() {
-        $('#validation-element').addClass('d-none');
-        $('#validation-data').html('');
-    }
-
-    function showValidation(data) {
-        $('#validation-element').removeClass('d-none');
-        $('#validation-data').html('');
-
-        $.each(data, function(index, value) {
-            $('#validation-data').append('<li>' + value + '</li>');
-        });
-    }
-
-    function submitted(param) {
-        $.ajax({
-            url: '{{ url("digital-storage-handover/draft/detail/$collection->ID") }}?param=' + param,
-            type: 'POST',
-            dataType: 'JSON',
-            data: new FormData($('#form-data')[0]),
-            contentType: false,
-            processData: false,
-            cache: false,
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            beforeSend: function() {
-                onLoading('show', 'body');
-                clearValidation();
-            },
-            success: function(response) {
-                onLoading('close', 'body');
-
-                if(response.code == 200) {
-                    swalInit.fire({
-                        title: 'Berhasil',
-                        text: response.message,
-                        icon: 'success',
-                        showDenyButton: false,
-                        showCancelButton: false,
-                        confirmButtonText: 'Oke',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            onLoading('show', 'body');
-
-                            location.href = '{{ url("digital-storage-handover/draft") }}';
-                        }
-                    });
-                } else if(response.code == 400) {
-                    onLoading('close', 'body');
-                    $('.btn-to-top button').click();
-                    showValidation(response.error);
-                } else {
-                    swalInit.fire({
-                        title: 'Oops ...',
-                        text: response.message,
-                        icon: 'info',
-                        showCloseButton: true
-                    });
-                }
-            },
-            error: function(response) {
-                onLoading('close', 'body');
-                responseError(response);
-            }
-        });
     }
 </script>

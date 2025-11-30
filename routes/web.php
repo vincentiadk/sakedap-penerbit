@@ -74,6 +74,12 @@ Route::middleware('authentication')->group(function () {
             Route::match(['get', 'post'], 'detail/{id}', 'DraftController@detail');
         });
 
+        Route::prefix('reject')->group(function () {
+            Route::get('/', 'RejectController@index');
+            Route::get('datatable', 'RejectController@datatable');
+            Route::get('detail/{id}', 'RejectController@detail');
+        });
+
         Route::prefix('problem')->group(function () {
             Route::get('/', 'ProblemController@index');
             Route::get('datatable', 'ProblemController@datatable');
