@@ -78,14 +78,12 @@ class BulkJob implements ShouldQueue
             $paramId = data_get($request, 'id');
             $paramType = data_get($request, 'type');
 
-            $executor = null;
             $catalog = null;
             $catalogSql = '';
             $worksheetId = null;
 
             if ($paramType === 'bulk_non_serial') {
                 $worksheetId = 20;
-                $executor = QueryAPI::get("select * from penerbit where id = {$paramId}", true);
             } else if ($paramType === 'bulk_serial') {
                 $worksheetId = 142;
                 $catalogSql = "
@@ -141,9 +139,9 @@ class BulkJob implements ShouldQueue
                     }
 
                     $parentId = optional($catalog)->EDEPOSIT_COL_ID ?? 0;
-                    $executorId = optional($catalog)->PENERBIT_ID ?? optional($executor)->ID ?? 0;
+                    $executorId = data_get($request, 'executor_id');
                     $cityId = optional($catalog)->CITY_ID ?? 0;
-                    $copyrightId = optional($catalog)->PENERBIT_ID ?? optional($executor)->ID ?? 0;
+                    $copyrightId = $executorId;
                     $titleOri = optional($catalog)->TITLE ?? $title ?? '';
                     $album = optional($catalog)->ALBUM ?? '';
                     $seriesData = optional($catalog)->SERIES ?? $series ?? '';
@@ -196,7 +194,7 @@ class BulkJob implements ShouldQueue
                         'sync' => 0,
                         'manual' => 1,
                         'akses' => $access,
-                        'status' => 1,
+                        'status' => 4,
                         'created_by' => $userId,
                         'updated_by' => $userId,
                         'price' => str_replace([',', '.'], '', $price),
@@ -322,7 +320,7 @@ class BulkJob implements ShouldQueue
                     'hash' => md5($file['hash_prefix'] . $collectionData->SLUG),
                     'mime' => $mimeType,
                     'filesize' => $fileSize,
-                    'method' => 7,
+                    'method' => 6,
                     'iszip' => false,
                     'file' => $fileStream,
                     'filename' => basename($file['filePath']),

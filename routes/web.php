@@ -25,6 +25,12 @@ Route::middleware('authentication')->group(function () {
         Route::get('logout', 'AuthController@logout');
     });
 
+    Route::prefix('datatable-serverside')->group(function () {
+        Route::get('catalog', 'DataTableServersideController@catalog');
+        Route::get('catalog-parent', 'DataTableServersideController@catalogParent');
+        Route::get('catalog-history', 'DataTableServersideController@catalogHistory');
+    });
+
     Route::prefix('select2-serverside')->group(function () {
         Route::get('branch', 'Select2ServersideController@branch');
         Route::get('executor', 'Select2ServersideController@executor');
@@ -67,6 +73,13 @@ Route::middleware('authentication')->group(function () {
             Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');
             Route::get('catalog-parent', 'SingleUploadController@catalogParent');
             Route::post('submitted', 'SingleUploadController@submitted');
+        });
+
+        Route::prefix('bulk-upload')->group(function () {
+            Route::get('/', 'BulkUploadController@index');
+            Route::get('datatable-bulk', 'BulkUploadController@datatableBulk');
+            Route::get('detail-bulk', 'BulkUploadController@detailBulk');
+            Route::post('submitted', 'BulkUploadController@submitted');
         });
     });
 });
