@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Serah Simpan Digital - Koleksi Ditolak - <span class="fw-normal">Detail</span>
+                Serah Simpan Digital - Koleksi Ditinjau - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
@@ -12,7 +12,7 @@
                         <i class="ph-books me-1"></i>
                         Histori E-Collection
                     </button>
-                    <a href="{{ url('digital-storage-handover/reject') }}" class="btn btn-primary">
+                    <a href="{{ url('digital-storage-handover/review') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -62,14 +62,6 @@
                         @endif
                     </tbody>
                 </table>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Alasan Ditolak</h5>
-            </div>
-            <div class="card-body">
-                {{ $collection->REJECT }}
             </div>
         </div>
         <div class="card">

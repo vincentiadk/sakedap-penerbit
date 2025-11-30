@@ -86,6 +86,12 @@ Route::middleware('authentication')->group(function () {
             Route::match(['get', 'post'], 'detail/{id}', 'ProblemController@detail');
         });
 
+        Route::prefix('review')->group(function () {
+            Route::get('/', 'ReviewController@index');
+            Route::get('datatable', 'ReviewController@datatable');
+            Route::get('detail/{id}', 'ReviewController@detail');
+        });
+
         Route::prefix('single-upload')->group(function () {
             Route::get('/', 'SingleUploadController@index');
             Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');

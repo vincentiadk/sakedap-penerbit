@@ -89,7 +89,7 @@ class ProblemController extends Controller
             $startDate = Carbon::parse($explodeDate[0])->format('Y-m-d');
             $endDate = Carbon::parse($explodeDate[1])->format('Y-m-d');
 
-            $whereCondition[] = "(e_collections.updated_at >= to_date('$startDate', 'YYYY-MM-DD') and e_collections.updated_at < to_date('$endDate', 'YYYY-MM-DD') + 1)";
+            $whereCondition[] = "(e_collections.rejected_at >= to_date('$startDate', 'YYYY-MM-DD') and e_collections.rejected_at < to_date('$endDate', 'YYYY-MM-DD') + 1)";
         }
 
         if ($search) {

@@ -8,7 +8,7 @@ use App\Helpers\QueryAPI;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-class RejectController extends Controller
+class ReviewController extends Controller
 {
     private $worksheetCategory;
 
@@ -22,7 +22,7 @@ class RejectController extends Controller
         return view('layouts.index', [
             'data' => [
                 'worksheet' => QueryAPI::get("select * from worksheets where category is not null") ?? [],
-                'content' => 'digital-storage-handover.reject',
+                'content' => 'digital-storage-handover.review',
                 'plugins' => [
                     'datatable',
                     'daterangepicker',
@@ -40,8 +40,7 @@ class RejectController extends Controller
             'e_collections.title',
             'worksheets.name',
             'e_collections.code',
-            'e_collections.reject',
-            'e_collections.rejected_at',
+            'e_collections.updated_at',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -55,7 +54,7 @@ class RejectController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "(e_collections.status = '5' and e_collections.deleted_at is null)";
+        $whereCondition[] = "(e_collections.status = '1' and e_collections.deleted_at is null)";
         $whereCondition[] = "e_collections.penerbit_id = " . session('id');
         $whereCondition[] = "worksheets.category = '" . $this->worksheetCategory . "'";
 
@@ -86,7 +85,7 @@ class RejectController extends Controller
             $startDate = Carbon::parse($explodeDate[0])->format('Y-m-d');
             $endDate = Carbon::parse($explodeDate[1])->format('Y-m-d');
 
-            $whereCondition[] = "(e_collections.rejected_at >= to_date('$startDate', 'YYYY-MM-DD') and e_collections.rejected_at < to_date('$endDate', 'YYYY-MM-DD') + 1)";
+            $whereCondition[] = "(e_collections.updated_at >= to_date('$startDate', 'YYYY-MM-DD') and e_collections.updated_at < to_date('$endDate', 'YYYY-MM-DD') + 1)";
         }
 
         if ($search) {
@@ -119,7 +118,7 @@ class RejectController extends Controller
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
-                (status = '5' and deleted_at is null) and
+                (status = '1' and deleted_at is null) and
                 penerbit_id = " . session('id') . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
@@ -165,7 +164,7 @@ class RejectController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('digital-storage-handover/reject/detail/' . $val->ID) . '" class="btn btn-primary btn-sm">
+                    <a href="' . url('digital-storage-handover/review/detail/' . $val->ID) . '" class="btn btn-primary btn-sm">
                         <i class="ph-info me-1"></i>
                         Detail
                     </a>
@@ -177,8 +176,7 @@ class RejectController extends Controller
                     ($val->TITLE ?? $val->TITLE_ORI),
                     $val->NAME_WORKSHEET,
                     $val->CODE,
-                    $val->REJECT,
-                    Carbon::parse($val->REJECTED_AT)->isoFormat('dddd, D MMMM Y'),
+                    Carbon::parse($val->UPDATED_AT)->isoFormat('dddd, D MMMM Y'),
                 ];
 
                 $start++;
@@ -244,7 +242,7 @@ class RejectController extends Controller
             where
                 ec.id = $id and
                 ec.deleted_at is null and
-                ec.status = '5' and
+                ec.status = '1' and
                 w.category = '" . $this->worksheetCategory . "' and
                 ec.penerbit_id = " . session('id') . "
         ";
@@ -292,7 +290,7 @@ class RejectController extends Controller
                 'collectionContributor' => explode(';', ($collection->AUTHOR ?? '')),
                 'collectionProblemHistory' => $collectionProblemHistory,
                 'physicalDescription' => json_decode($collection->PHYSICAL_DESCRIPTION ?? ''),
-                'content' => 'digital-storage-handover.reject-detail',
+                'content' => 'digital-storage-handover.review-detail',
                 'plugins' => [
                     'select2',
                     'daterangepicker',
