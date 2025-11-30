@@ -25,6 +25,19 @@ Route::middleware('authentication')->group(function () {
         Route::get('logout', 'AuthController@logout');
     });
 
+    Route::prefix('select2-serverside')->group(function () {
+        Route::get('branch', 'Select2ServersideController@branch');
+        Route::get('executor', 'Select2ServersideController@executor');
+        Route::get('location', 'Select2ServersideController@location');
+        Route::get('collection-parent', 'Select2ServersideController@collectionParent');
+        Route::get('problem', 'Select2ServersideController@problem');
+        Route::get('catalog', 'Select2ServersideController@catalog');
+        Route::get('currency', 'Select2ServersideController@currency');
+        Route::get('promotion', 'Select2ServersideController@promotion');
+        Route::get('news-category', 'Select2ServersideController@newsCategory');
+        Route::get('news', 'Select2ServersideController@news');
+    });
+
     Route::get('home', function () {
         return view('layouts.index', [
             'data' => [
@@ -40,5 +53,11 @@ Route::middleware('authentication')->group(function () {
         Route::get('data-collection-status', 'DashboardController@dataCollectionStatus');
         Route::get('data-total-works', 'DashboardController@dataTotalWorks');
         Route::get('data-activity', 'DashboardController@dataActivity');
+    });
+
+    Route::prefix('request-file')->group(function () {
+        Route::get('/', 'RequestFileController@index');
+        Route::get('datatable', 'RequestFileController@datatable');
+        Route::post('create-data', 'RequestFileController@createData');
     });
 });

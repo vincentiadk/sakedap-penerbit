@@ -27,6 +27,12 @@
                                                         Dasboard
                                                     </a>
                                                 </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <a href="{{ url('request-file') }}" class="nav-link rounded {{ Request::segment(1) == 'request-file' ? 'active' : '' }}">
+                                                        <i class="ph-file-plus me-2"></i>
+                                                        Permintaan File
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </div>
 									</div>
