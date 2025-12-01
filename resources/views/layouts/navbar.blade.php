@@ -65,6 +65,7 @@
                             <a href="{{ url('digital-storage-handover/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
                             <a href="{{ url('digital-storage-handover/problem') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'problem' ? 'active' : '' }}">Koleksi Bermasalah</a>
                             <a href="{{ url('digital-storage-handover/review') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'review' ? 'active' : '' }}">Koleksi Ditinjau</a>
+                            <a href="{{ url('digital-storage-handover/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'accept' ? 'active' : '' }}">Koleksi Diterima</a>
                             <a href="{{ url('digital-storage-handover/single-upload') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload' ? 'active' : '' }}">Unggah Tunggal</a>
                             <a href="{{ url('digital-storage-handover/bulk-upload') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'bulk-upload' ? 'active' : '' }}">Unggah Banyak</a>
 						</div>

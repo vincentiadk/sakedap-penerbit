@@ -10,6 +10,40 @@ class Main
     const COLLECTION_PRINTED = 'KC';
     const COLLECTION_ANALOG = 'KRA';
     const CACHE_NAME_CONFIG_APP = 'app_configuration';
+    const CONFIG_PARAM = [
+        'EPercobaanLogin',
+        'EPercobaanLoginInterval',
+        'EAesKey',
+        'EAesIV',
+        'EAesInlisKey',
+        'EAesInlisIV',
+        'EIFrameDomain',
+        'EBatasResetPassword',
+        'EBatasFileOriginal',
+        'ETglKepatuhanPenerbit',
+        'ERedisClient',
+        'ERedisHost',
+        'ERedisUsername',
+        'ERedisPassword',
+        'ERedisPort',
+        'ESessionDriver',
+        'ESessionLifeTime',
+        'ESessionEncrypt',
+        'EKatalogCoverMaxUpload',
+        'EKatalogContentMaxUpload',
+        'EBatasSerahKCKR',
+        'EBatasHibah',
+        'EBatasPengambilan',
+        'EWaktuWajibKaryaCetak',
+        'EWaktuWajibKaryaRekam',
+        'EMaksJumlahPembinaan',
+        'ECaptchaSecret',
+        'ECaptchaSite',
+        'EAPIISBNToken',
+        'EAPIISBNBaseUrl',
+        'EAPIRajaOngkirToken',
+        'EAPIRajaOngkirBaseUrl',
+    ];
 
     /**
      * locationById
@@ -336,5 +370,27 @@ class Main
         }
 
         return $text;
+    }
+
+    /**
+     * getBranch
+     *
+     * @param  mixed $provinceId
+     * @return void
+     */
+    public static function getBranch($provinceId = null)
+    {
+        $provinceId = $provinceId ?? session('province_id');
+        $branch = QueryAPI::get("
+            select
+                *
+            from
+                branches
+            where
+                province_id = $provinceId and
+                isprovince = 1
+        ", true);
+
+        return $branch;
     }
 }

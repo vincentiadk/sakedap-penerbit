@@ -92,6 +92,13 @@ Route::middleware('authentication')->group(function () {
             Route::get('detail/{id}', 'ReviewController@detail');
         });
 
+        Route::prefix('accept')->group(function () {
+            Route::get('/', 'AcceptController@index');
+            Route::get('datatable', 'AcceptController@datatable');
+            Route::match(['get', 'post'], 'detail/{id}', 'AcceptController@detail');
+            Route::get('receipt/{id}', 'AcceptController@receipt');
+        });
+
         Route::prefix('single-upload')->group(function () {
             Route::get('/', 'SingleUploadController@index');
             Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');

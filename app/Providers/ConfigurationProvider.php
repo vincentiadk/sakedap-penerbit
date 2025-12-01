@@ -23,7 +23,7 @@ class ConfigurationProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $settings = Cache::rememberForever(Main::CACHE_NAME_CONFIG_APP, function () {
+        $settings = Cache::remember(Main::CACHE_NAME_CONFIG_APP, now()->addHours(12), function () {
             $configParam = array_map(function ($name) {
                 return "'" . $name . "'";
             }, Main::CONFIG_PARAM);
