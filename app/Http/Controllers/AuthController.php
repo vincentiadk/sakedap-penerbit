@@ -7,9 +7,7 @@ use App\Helpers\Main;
 use App\Helpers\QueryAPI;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\RateLimiter;
@@ -338,25 +336,6 @@ class AuthController extends Controller
 
     public function logout()
     {
-        try {
-            Http::timeout(10)
-                ->withOptions([
-                    'verify' => false,
-                ])
-                ->get(config('inlis.base_url') . '/Sakedap_Monitoring/Logout.aspx');
-
-            Http::timeout(10)
-                ->withOptions([
-                    'verify' => false,
-                ])
-                ->get(config('inlis.base_url') . '/Logout.aspx');
-        } catch (\Exception $e) {
-            Log::warning('External logout failed', [
-                'error' => $e->getMessage(),
-                'user_id' => session('id')
-            ]);
-        }
-
         session()->flush();
         session()->regenerate();
 

@@ -3,13 +3,14 @@
 namespace App\Helpers;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class Main
 {
     const COLLECTION_DIGITAL = 'KRD';
     const COLLECTION_PRINTED = 'KC';
     const COLLECTION_ANALOG = 'KRA';
-    const CACHE_NAME_CONFIG_APP = 'app_configuration';
+    const CACHE_NAME_CONFIG_APP = 'app_configuration_ps';
     const CONFIG_PARAM = [
         'EPercobaanLogin',
         'EPercobaanLoginInterval',
@@ -279,6 +280,9 @@ class Main
                     'email' => $user->EMAIL1,
                     'province_id' => $user->PROVINCE_ID ?: 31,
                     'province_name' => $user->NAMAPROPINSI ?: 'DKI Jakarta',
+                    'phone' => $user->TELP1,
+                    'postal_code' => $user->KODEPOS,
+                    'address' => $user->ALAMAT,
                 ]);
 
                 $response = true;
@@ -381,16 +385,84 @@ class Main
     public static function getBranch($provinceId = null)
     {
         $provinceId = $provinceId ?? session('province_id');
+        $cacheKey = 'branch_data_province_' . ($provinceId ?? 'global');
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         $branch = QueryAPI::get("
             select
                 *
             from
-                branches
+                branchs
             where
                 province_id = $provinceId and
                 isprovince = 1
         ", true);
 
+        if ($branch) {
+            Cache::put($cacheKey, $branch, 60 * 60);
+        }
+
         return $branch;
+    }
+
+    /**
+     * mappingETD
+     *
+     * @param  mixed $value
+     * @return void
+     */
+    public static function mappingETD($value)
+    {
+        $etd = trim(strtolower($value));
+
+        if ($etd === '' || $etd === '-' || $etd === null) {
+            return 'Estimasi tidak tersedia';
+        }
+
+        if (preg_match('/(\d+)\s*-\s*(\d+)\s*hour/', $etd, $m)) {
+            return "{$m[1]}–{$m[2]} Jam";
+        }
+
+        if (preg_match('/(\d+)\s*hour/', $etd, $m)) {
+            return "{$m[1]} Jam";
+        }
+
+        if (preg_match('/(\d+)\s*-\s*(\d+)\s*day/', $etd, $m)) {
+            return "{$m[1]}–{$m[2]} Hari";
+        }
+
+        if (preg_match('/(\d+)\s*day/', $etd, $m)) {
+            return "{$m[1]} Hari";
+        }
+
+        return ucwords($etd);
+    }
+
+    /**
+     * formatPhoneKomship
+     *
+     * @param  mixed $phone
+     * @return void
+     */
+    public static function formatPhoneKomship($phone)
+    {
+        $number = preg_replace('/[^0-9]/', '', $phone);
+
+        if (empty($number)) {
+            return '';
+        }
+
+        if (str_starts_with($number, '0')) {
+            $number = substr($number, 1);
+        }
+
+        if (!str_starts_with($number, '62')) {
+            $number = '62' . $number;
+        }
+
+        return $number;
     }
 }

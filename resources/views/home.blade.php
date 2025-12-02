@@ -1,4 +1,4 @@
-<div class="content mt-5">
+<div class="content mt-4">
     <div class="text-center">
         <img src="{{ asset('assets/icon.png') }}" class="img-fluid mb-2" style="max-width:150px;"></img>
         <h1 class="fw-bold mb-0">Selamat Datang</h1>

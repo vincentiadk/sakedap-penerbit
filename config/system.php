@@ -19,4 +19,5 @@ return [
     'max_coaching' => 10,
     'fo_url' => env('FO_URL'),
     'admin_url' => env('ADMIN_URL'),
+    'delivery_method' => 'manual',
 ];

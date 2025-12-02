@@ -45,13 +45,13 @@
 				<ul class="nav gap-1 flex-nowrap flex-lg-wrap">
 					<li class="nav-item">
 						<a href="{{ url('dashboard') }}" class="navbar-nav-link rounded {{ Request::segment(1) == 'dashboard' ? 'active' : '' }}">
-							<i class="ph-chart-pie me-1"></i>
+							<i class="ph-chart-pie me-2"></i>
 							Dashboard
 						</a>
 					</li>
 					<li class="nav-item">
 						<a href="{{ url('dashboard') }}" class="navbar-nav-link rounded {{ Request::segment(1) == 'request-file' ? 'active' : '' }}">
-							<i class="ph-file-plus me-1"></i>
+							<i class="ph-file-plus me-2"></i>
 							Permintaan File
 						</a>
 					</li>
@@ -70,6 +70,15 @@
                             <a href="{{ url('digital-storage-handover/bulk-upload') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'bulk-upload' ? 'active' : '' }}">Unggah Banyak</a>
 						</div>
 					</li>
+                    <li class="nav-item nav-item-dropdown-lg dropdown">
+						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'physical-delivery' ? 'active' : '' }}" data-bs-toggle="dropdown">
+							<i class="ph-archive-box me-2"></i>
+							Pengiriman Fisik
+						</a>
+						<div class="dropdown-menu">
+							<a href="{{ url('physical-delivery/form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'form' ? 'active' : '' }}">Formulir</a>
+						</div>
+					</li>
 					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">
 						<a href="#" class="navbar-nav-link dropdown-toggle rounded" data-bs-toggle="dropdown">
 							<i class="ph-books me-2"></i>
@@ -77,7 +86,7 @@
 						</a>
 						<div class="dropdown-menu dropdown-menu-end">
 							<a href="{{ config('system.fo_url') }}/user-guide" class="dropdown-item rounded">Panduan Pengguna</a>
-							<a href="{{ url('api-documentation') }}" class="dropdown-item rounded">API</a>
+							<a href="{{ url('api-documentation') }}" class="dropdown-item rounded">Akses API</a>
 						</div>
 					</li>
 				</ul>

@@ -113,4 +113,14 @@ Route::middleware('authentication')->group(function () {
             Route::post('submitted', 'BulkUploadController@submitted');
         });
     });
+
+    Route::prefix('physical-delivery')->namespace('PhysicalDelivery')->group(function () {
+        Route::prefix('form')->group(function () {
+            Route::get('/', 'FormController@index');
+            Route::get('search-isbn', 'FormController@searchISBN');
+            Route::get('select-catalog', 'FormController@selectCatalog');
+            Route::get('calculate-cost', 'FormController@calculateCost');
+            Route::post('submitted', 'FormController@submitted');
+        });
+    });
 });
