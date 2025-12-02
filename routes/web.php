@@ -122,5 +122,11 @@ Route::middleware('authentication')->group(function () {
             Route::get('calculate-cost', 'FormController@calculateCost');
             Route::post('submitted', 'FormController@submitted');
         });
+
+        Route::prefix('input-receipt')->group(function () {
+            Route::get('/', 'InputReceiptController@index');
+            Route::get('datatable', 'InputReceiptController@datatable');
+            Route::match(['get', 'post'], 'detail/{id}', 'InputReceiptController@detail');
+        });
     });
 });
