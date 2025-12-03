@@ -161,5 +161,10 @@ Route::middleware('authentication')->group(function () {
             Route::post('grant', 'RejectController@grant');
             Route::post('retur', 'RejectController@retur');
         });
+
+        Route::prefix('grant')->group(function () {
+            Route::get('/', 'GrantController@index');
+            Route::get('datatable', 'GrantController@datatable');
+        });
     });
 });
