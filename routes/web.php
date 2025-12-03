@@ -123,6 +123,12 @@ Route::middleware('authentication')->group(function () {
             Route::post('submitted', 'FormController@submitted');
         });
 
+        Route::prefix('print-label')->group(function () {
+            Route::get('/', 'PrintLabelController@index');
+            Route::get('datatable', 'PrintLabelController@datatable');
+            Route::match(['get', 'post'], 'print/{id}', 'PrintLabelController@print');
+        });
+
         Route::prefix('input-receipt')->group(function () {
             Route::get('/', 'InputReceiptController@index');
             Route::get('datatable', 'InputReceiptController@datatable');

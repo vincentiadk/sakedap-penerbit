@@ -77,6 +77,7 @@
 						</a>
 						<div class="dropdown-menu">
 							<a href="{{ url('physical-delivery/form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'form' ? 'active' : '' }}">Formulir</a>
+							<a href="{{ url('physical-delivery/print-label') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'print-label' ? 'active' : '' }}">Cetak Label</a>
 							<a href="{{ url('physical-delivery/input-receipt') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'input-receipt' ? 'active' : '' }}">Input Resi</a>
 						</div>
 					</li>

@@ -1,0 +1,139 @@
+<div class="page-header page-header-light shadow mb-4">
+    <div class="page-header-content d-lg-flex">
+        <div class="d-flex">
+            <h4 class="page-title mb-0">
+                Pengiriman Fisik - <span class="fw-normal">Cetak Label</span>
+            </h4>
+        </div>
+    </div>
+</div>
+<div class="content pt-0">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="hstack gap-2 mb-0">Filter Data</h5>
+        </div>
+        <div class="card-body">
+            <form id="form-filter">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Tujuan :</label>
+                            <select class="form-select" name="branch_id" id="branch_id">
+                                <option value="">Semua</option>
+                                <option value="37">Perpustakaan Nasional Republik Indonesia</option>
+                                @if(Main::getBranch())
+                                    <option value="{{ Main::getBranch()->ID }}">{{ Main::getBranch()->NAME }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Jenis Tanggal :</label>
+                            <select class="form-select" name="date_type" id="date_type">
+                                <option value="letter_date" selected>Pengiriman</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Tanggal :</label>
+                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer bg-white">
+            <div class="text-end">
+                <a href="{{ url('physical-delivery/print-label') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                    <i class="ph-arrows-clockwise me-1"></i>
+                    Reset Filter
+                </a>
+                <a href="javascript:void(0);" class="btn btn-success" onclick="loadData()">
+                    <i class="ph-magnifying-glass me-1"></i>
+                    Cari Data
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
+                <thead class="text-bg-light">
+                    <tr>
+                        <th class="text-nowrap" rowspan="2">No</th>
+                        <th class="text-nowrap" rowspan="2">Aksi</th>
+                        <th class="text-nowrap" rowspan="2">No Surat</th>
+                        <th class="text-nowrap" rowspan="2">Tanggal</th>
+                        <th class="text-nowrap" rowspan="2">Tujuan</th>
+                        <th class="text-nowrap text-center" colspan="2">Pengiriman</th>
+                    </tr>
+                    <tr>
+                        <th class="text-nowrap text-center">Judul</th>
+                        <th class="text-nowrap text-center">Eksemplar</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        datePickerBasic('#date');
+        loadData();
+    });
+
+    function loadData() {
+        window.gDataTable = $('#datatable-serverside').DataTable({
+            processing: true,
+            serverSide: true,
+            deferRender: true,
+            scrollX: true,
+            destroy: true,
+            order: [[0, 'desc']],
+            ajax: {
+                url: '{{ url("physical-delivery/print-label/datatable") }}',
+                dataType: 'JSON',
+                data: function (d) {
+                    $('#form-filter').serializeArray().forEach(function(item) {
+                        d[item.name] = item.value;
+                    });
+
+                    return d;
+                },
+                beforeSend: function() {
+                    onLoading('show', '#datatable-serverside_wrapper');
+                },
+                error: function(response) {
+                    onLoading('close', '#datatable-serverside_wrapper');
+                    responseError(response);
+                }
+            },
+            columns: [
+                { orderable: true, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
+            ],
+            initComplete: function (settings, json) {
+                var table = this.api();
+                const searchInput = $('div.dataTables_filter input');
+
+                searchInput.off().unbind();
+
+                searchInput.on('keyup', debounce(function () {
+                    table.search(this.value).draw();
+                }, 500));
+            },
+        }).on('draw.dt', function() {
+            onLoading('close', '#datatable-serverside_wrapper');
+        });
+
+        window.gDataTable.columns.adjust().draw();
+    }
+</script>
