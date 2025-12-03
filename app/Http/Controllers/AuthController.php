@@ -334,6 +334,42 @@ class AuthController extends Controller
         }
     }
 
+    public function checkAjaxPassword(Request $request)
+    {
+        $username = session('username');
+        $password = $request->password;
+        $login = QueryAPI::login($username, $password);
+
+        $response = [
+            'code' => 500,
+            'message' => 'Verifikasi ditolak, masukan password yang benar'
+        ];
+
+        if (($login->Status ?? '') == 'Success') {
+            $userId = $login->Data->Id ?? null;
+            $user = QueryAPI::get("
+                select
+                    penerbit.*,
+                    propinsi.namapropinsi as namapropinsi
+                from
+                    penerbit
+                left join
+                    propinsi on propinsi.id = penerbit.province_id
+                where
+                    penerbit.id = $userId
+            ", true);
+
+            if ($user) {
+                $response = [
+                    'code' => 200,
+                    'message' => 'Verifikasi diterima'
+                ];
+            }
+        }
+
+        return response()->json($response);
+    }
+
     public function logout()
     {
         session()->flush();

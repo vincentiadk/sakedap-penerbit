@@ -22,6 +22,7 @@ Route::middleware('authentication')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::match(['get', 'post'], 'change-password', 'AuthController@changePassword');
         Route::match(['get', 'post'], 'profile', 'AuthController@profile');
+        Route::post('check-ajax-password', 'AuthController@checkAjaxPassword');
         Route::get('logout', 'AuthController@logout');
     });
 
@@ -152,6 +153,13 @@ Route::middleware('authentication')->group(function () {
             Route::get('datatable', 'AcceptController@datatable');
             Route::get('detail/{id}', 'AcceptController@detail');
             Route::get('print/{id}', 'AcceptController@print');
+        });
+
+        Route::prefix('reject')->group(function () {
+            Route::get('/', 'RejectController@index');
+            Route::get('datatable', 'RejectController@datatable');
+            Route::post('grant', 'RejectController@grant');
+            Route::post('retur', 'RejectController@retur');
         });
     });
 });
