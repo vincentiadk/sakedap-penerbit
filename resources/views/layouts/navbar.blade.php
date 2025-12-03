@@ -84,6 +84,7 @@
 							<a href="{{ url('physical-delivery/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'accept' ? 'active' : '' }}">Penerimaan</a>
 							<a href="{{ url('physical-delivery/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
 							<a href="{{ url('physical-delivery/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
+							<a href="{{ url('physical-delivery/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
 						</div>
 					</li>
 					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">

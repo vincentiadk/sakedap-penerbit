@@ -183,7 +183,7 @@ class RejectController extends Controller
                 ';
 
                 $inputHidden = '
-                    <input type="hidden" name="data" data-id="' . $val->LETTER_DETAIL_ID . '" data-title="' . $val->TITLE . '" data-executor="' . $val->NAME_PENERBIT . '" data-qty-reject="' . $val->QTY_REJECT . '" data-receipt="' . $val->RECEIPT_NO_LETTER . '">
+                    <input type="hidden" name="data" data-id="' . $val->LETTER_DETAIL_ID . '" data-title="' . $val->TITLE . '" data-qty-reject="' . $val->QTY_REJECT . '" data-receipt="' . $val->RECEIPT_NO_LETTER . '">
                 ';
 
                 $timeAutoGrant = '';

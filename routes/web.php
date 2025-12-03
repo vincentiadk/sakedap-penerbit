@@ -166,5 +166,11 @@ Route::middleware('authentication')->group(function () {
             Route::get('/', 'GrantController@index');
             Route::get('datatable', 'GrantController@datatable');
         });
+
+        Route::prefix('retur')->group(function () {
+            Route::get('/', 'ReturController@index');
+            Route::get('datatable', 'ReturController@datatable');
+            Route::post('grant', 'ReturController@grant');
+        });
     });
 });
