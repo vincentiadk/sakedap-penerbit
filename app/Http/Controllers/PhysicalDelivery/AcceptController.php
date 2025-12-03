@@ -1,0 +1,519 @@
+<?php
+
+namespace App\Http\Controllers\PhysicalDelivery;
+
+use Carbon\Carbon;
+use App\Helpers\Main;
+use App\Helpers\QueryAPI;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+
+class AcceptController extends Controller
+{
+    public function index()
+    {
+        return view('layouts.index', [
+            'data' => [
+                'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
+                'content' => 'physical-delivery.accept',
+                'plugins' => [
+                    'datatable',
+                    'select2',
+                    'daterangepicker',
+                ]
+            ]
+        ]);
+    }
+
+    public function datatable(Request $request)
+    {
+        $column = [
+            'l.letter_id',
+            null,
+            'l.letter_date',
+            'l.accept_date',
+            'l.receipt_no',
+            'jp.name',
+            'b.name',
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            'l.status',
+            'l.proses_by',
+        ];
+
+        $draw = intval($request->draw ?? 0);
+        $start = intval($request->start ?? 0);
+        $length = $start + intval($request->length ?? 0);
+
+        $data = [];
+        $search = strtoupper($request->search['value']);
+
+        $orderBy = '';
+        $order = $request->order;
+
+        $whereClause = '';
+        $whereCondition[] = "l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')";
+        $whereCondition[] = "l.penerbit_id = " . session('id');
+
+        if ($request->receipt_no) {
+            $receiptNo = strtoupper($request->receipt_no);
+            $whereCondition[] = "upper(l.receipt_no) like '%$receiptNo%'";
+        }
+
+        if ($request->delivery_service_id) {
+            $whereCondition[] = "l.jasa_pengiriman_id = $request->delivery_service_id";
+        }
+
+        if ($request->status) {
+            $whereCondition[] = "l.status = '$request->status'";
+        }
+
+        if ($request->branch_id) {
+            $whereCondition[] = "l.branch_id = $request->branch_id";
+        }
+
+        if ($request->date) {
+            $explodeDate = explode(' - ', $request->date);
+            $startDate = Carbon::parse($explodeDate[0])->format('Y-m-d');
+            $endDate = Carbon::parse($explodeDate[1])->format('Y-m-d');
+
+            $whereCondition[] = "(l.$request->date_type >= to_date('$startDate', 'YYYY-MM-DD') and l.$request->date_type < to_date('$endDate', 'YYYY-MM-DD') + 1)";
+        }
+
+        if ($search) {
+            $terms = [];
+
+            foreach ($column as $c) {
+                if ($c) {
+                    $terms[] = "upper($c) like '%$search%'";
+                }
+            }
+
+            $whereCondition[] = '(' . implode(' or ', $terms) . ')';
+        }
+
+        if ($whereCondition) {
+            $whereClause = "where " . implode(' and ', $whereCondition);
+        }
+
+        if ($order) {
+            $orderColumnIndex = $order[0]['column'];
+            $orderDir = $order[0]['dir'];
+            $orderBy = "order by " . $column[$orderColumnIndex] . " $orderDir";
+        }
+
+        $totalData = QueryAPI::get("
+            select
+                count(*) as total
+            from
+                letter
+            where
+                status in ('DITERIMA PENUH', 'DITERIMA PARSIAL') and
+                penerbit_id = " . session('id') . "
+        ", true)->TOTAL ?? 0;
+
+        $totalFiltered = QueryAPI::get("
+            select
+                count(*) as total
+            from
+                letter l
+            left join
+                jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
+            left join
+                branchs b on b.id = l.branch_id
+            $whereClause
+        ", true)->TOTAL ?? 0;
+
+        $queryData = QueryAPI::get("
+            select
+                *
+            from
+                (
+                    select
+                        rownum as rnum,
+                        data.*
+                    from
+                        (
+                            select
+                                l.letter_id,
+                                l.status,
+                                l.receipt_no,
+                                l.proses_by,
+                                l.penerbit_id,
+                                l.accept_date,
+                                l.letter_date,
+                                b.name as name_branch,
+                                jp.name as name_jasa_pengiriman,
+                                coalesce(td.total_eks_receipt, 0) as total_eks_receipt,
+                                coalesce(td.total_title_receipt, 0) as total_title_receipt,
+                                case
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    then coalesce(td.total_eks_delivery, 0)
+                                    else 0
+                                end as total_eks_delivery,
+                                case
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    then coalesce(td.total_title_delivery, 0)
+                                    else 0
+                                end as total_title_delivery,
+                                case
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    then coalesce(td.total_eks_grant, 0)
+                                    else 0
+                                end as total_eks_grant,
+                                case
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    then coalesce(td.total_title_grant, 0)
+                                    else 0
+                                end as total_title_grant
+                            from
+                                letter l
+                            left join
+                                jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
+                            left join
+                                branchs b on b.id = l.branch_id
+                            left join
+                                (
+                                    select
+                                        letter_id,
+                                        sum(copy) as total_eks_delivery,
+                                        sum(quantity) as total_title_delivery,
+                                        sum(case when qty_accept > 0 then qty_accept else 0 end) as total_eks_receipt,
+                                        sum(case when qty_accept > 0 then quantity else 0 end) as total_title_receipt,
+                                        sum(case when qty_hibah > 0 then qty_hibah else 0 end) as total_eks_grant,
+                                        sum(case when qty_hibah > 0 then quantity else 0 end) as total_title_grant
+                                    from
+                                        letter_detail
+                                    group by
+                                        letter_id
+                                ) td on td.letter_id = l.letter_id
+                            $whereClause
+                            $orderBy
+                        ) data
+                )
+            where
+                rnum > $start and rnum <= $length
+        ");
+
+        if ($queryData) {
+            foreach ($queryData as $val) {
+                $action = '
+                    <a href="' . url('physical-delivery/accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
+                        <i class="ph-check me-1"></i>
+                        Detail
+                    </a>
+                    <a href="' . url('physical-delivery/accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
+                        <i class="ph-printer me-1"></i>
+                        Resi Penerimaan
+                    </a>
+                ';
+
+                $data[] = [
+                    $start + 1,
+                    $action,
+                    ($val->LETTER_DATE ?: null) ? Carbon::parse($val->LETTER_DATE)->isoFormat('dddd, D MMMM Y') : '',
+                    ($val->ACCEPT_DATE ?: null) ? Carbon::parse($val->ACCEPT_DATE)->isoFormat('dddd, D MMMM Y') : '',
+                    $val->RECEIPT_NO,
+                    $val->NAME_JASA_PENGIRIMAN,
+                    $val->NAME_BRANCH,
+                    $val->TOTAL_TITLE_DELIVERY,
+                    $val->TOTAL_EKS_DELIVERY,
+                    $val->TOTAL_TITLE_RECEIPT,
+                    $val->TOTAL_EKS_RECEIPT,
+                    $val->TOTAL_TITLE_GRANT,
+                    $val->TOTAL_EKS_GRANT,
+                    $val->STATUS,
+                    $val->PROSES_BY,
+                ];
+
+                $start++;
+            }
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $totalData,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
+    }
+
+    public function detail($id)
+    {
+        $letterSql = "
+            select
+                letter.*,
+                jasa_pengiriman.name as name_jasa_pengiriman,
+                branchs.name as name_branch
+            from
+                letter
+            left join
+                jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
+            left join
+                branchs on branchs.id = letter.branch_id
+            where
+                letter.letter_id = $id and
+                letter.penerbit_id = " . session('id') . " and
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+        ";
+
+        $letter = QueryAPI::get($letterSql, true);
+
+        $letterDetail = QueryAPI::get("
+            select
+                *
+            from
+                letter_detail
+            where
+                letter_id = $id
+        ");
+
+        return view('layouts.index', [
+            'data' => [
+                'letter' => $letter,
+                'letterDetail' => $letterDetail,
+                'content' => 'physical-delivery.accept-detail',
+                'plugins' => [
+                    'select2',
+                    'datatable',
+                    'lightbox',
+                ]
+            ]
+        ]);
+    }
+
+    public function print($id)
+    {
+        if (empty($id)) {
+            abort(404);
+        }
+
+        $pdfPath = $this->generatePDF($id);
+
+        if (!$pdfPath || !file_exists($pdfPath)) {
+            abort(404, 'File PDF tidak ditemukan.');
+        }
+
+        $stream = fopen($pdfPath, 'rb');
+        $filename = basename($pdfPath);
+
+        return response()->stream(function () use ($stream) {
+            fpassthru($stream);
+
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
+    }
+
+    private function generatePDF($letterId)
+    {
+        try {
+            $letter = QueryAPI::get("
+                select
+                    letter.*,
+                    penerbit.name as name_penerbit
+                from
+                    letter
+                left join
+                    penerbit on penerbit.id = letter.penerbit_id
+                where
+                    letter.letter_id = $letterId
+            ", true);
+
+            if (!$letter) {
+                return null;
+            }
+
+            $settings = QueryAPI::get("
+                select
+                    *
+                from
+                    e_settings
+                where
+                    slug = 'ResiPenerimaan' or
+                    (slug in ('Header','Footer') and province_id = " . session('province_id') . ")
+            ");
+
+            $templateEmailContent = null;
+            $templateEmailHeader = null;
+            $templateEmailFooter = null;
+
+            if ($settings) {
+                foreach ($settings as $setting) {
+                    if ($setting->SLUG == 'ResiPenerimaan') $templateEmailContent = $setting;
+                    elseif ($setting->SLUG == 'Header') $templateEmailHeader = $setting;
+                    elseif ($setting->SLUG == 'Footer') $templateEmailFooter = $setting;
+                }
+            }
+
+            $imgHeader = '';
+            $imgFooter = '';
+
+            if ($templateEmailHeader) {
+                $urlHeader = url('stream-file?type=gambar_template&id=' . ($templateEmailHeader->ID ?? '') . '&filename=' . ($templateEmailHeader->CONTENT ?? ''));
+                $imgHeader = Main::base64File($urlHeader);
+            }
+
+            if ($templateEmailFooter) {
+                $urlFooter = url('stream-file?type=gambar_template&id=' . ($templateEmailFooter->ID ?? '') . '&filename=' . ($templateEmailFooter->CONTENT ?? ''));
+                $imgFooter = Main::base64File($urlFooter);
+            }
+
+            $branchId = session('branch_id');
+            $dateNow = date('Y-m-d');
+            $signatureTable = '<br><br><br>';
+
+            $leader = QueryAPI::get("
+                select
+                    *
+                from
+                    penanggung_jawab
+                where
+                    branch_id = $branchId and
+                    (tanggal_awal <= to_date('$dateNow', 'YYYY-MM-DD') and tanggal_akhir >= to_date('$dateNow', 'YYYY-MM-DD') + 1)
+            ", true);
+
+            if ($leader) {
+                $ttdUrl = url('stream-file') . '?type=gambar_ttd&id=' . ($leader->ID ?? '') . '&filename=' . ($leader->TTD_FILE_NAME ?? '');
+                $imgTtd = Main::base64File($ttdUrl) ?: '';
+                $imgTagTtd = (strlen($imgTtd) > 100) ? '<img src="' . $imgTtd . '" height="60" style="height:60px;">' : '<br><br><br>';
+
+                $signatureTable = '
+                    <table border="0" cellspacing="0" cellpadding="0" style="text-align:center; width:100%;">
+                        <tr><td>' . ($leader->JABATAN ?? 'Pejabat') . '</td></tr>
+                        <tr><td style="height:70px;">' . $imgTagTtd . '</td></tr>
+                        <tr><td>' . ($leader->NAMA ?? '') . '</td></tr>
+                        <tr><td style="font-weight:bold;">NIP. ' . ($leader->NIP ?? '-') . '</td></tr>
+                    </table>
+                ';
+            }
+
+            $qrGenerator = new \Milon\Barcode\DNS2D();
+            $qrCodeBody = config('system.fo_url') . '/track-shipment?receipt=' . $letter->RECEIPT_NO;
+            $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
+
+            $dataParseTemplate = [
+                'accepted_date' => Carbon::parse($letter->ACCEPT_DATE)->isoFormat('D MMMM Y'),
+                'letter_no' => $letter->LETTER_NUMBER_UT ?: '-',
+                'publisher_name' => $letter->NAME_PENERBIT,
+                'director' => $signatureTable,
+                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
+                'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
+                'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
+            ];
+
+            $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
+            $finalHtml = '
+                <style>
+                    table {
+                        border-collapse: collapse;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    td {
+                        vertical-align: top;
+                    }
+
+                    body {
+                        font-family: helvetica;
+                        font-size: 10pt;
+                    }
+                </style>
+                <table border="0" cellspacing="0" cellpadding="0" width="100%">
+                    <tr><td>' . $htmlContent . '</td></tr>
+                </table>
+            ';
+
+            $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetMargins(15, 10, 15);
+            $pdf->SetAutoPageBreak(true, 15);
+            $pdf->AddPage();
+
+            $pdf->writeHTML($finalHtml, true, false, true, false, '');
+
+            $collections = QueryAPI::get("
+                select
+                    ld.letter_id,
+                    l.accept_date as accept_date_letter,
+                    ld.title,
+                    ld.jenis_media,
+                    ld.isbn,
+                    case when ld.collection_id LIKE '%,%' and t.lvl > 0 THEN 1 ELSE ld.qty_accept end as qty_accept,
+                    c.noinduk as noinduk_collection, c.mark_province as mark_province_collection
+                from
+                    letter_detail ld
+                left join
+                    letter l on l.letter_id = ld.letter_id
+                cross join
+                    (select level as lvl from dual connect by level <= 1000) t
+                left join
+                    collections c on c.id = to_number(nvl(trim(regexp_substr(ld.collection_id,'[^,]+',1,t.lvl)),'0'))
+                where
+                    ld.letter_id = $letter->LETTER_ID
+                    and ld.qty_accept is not null
+                    and ld.qty_accept > 0
+                    and T.lvl <= regexp_count(nvl(ld.collection_id, 'X'), ',') + 1
+            ");
+
+            $htmlCollections = '
+                <table border="1" cellpadding="4" cellspacing="0" style="font-size:8px; border-collapse:collapse;">
+                    <tr style="background-color:#f0f0f0; font-weight:bold;">
+                        <th width="5%" align="center">No</th>
+                        <th width="15%" align="center">Tgl Terima</th>
+                        <th width="40%" align="center">Judul</th>
+                        <th width="15%" align="center">Jenis</th>
+                        <th width="15%" align="center">ISBN</th>
+                        <th width="10%" align="center">Jml</th>
+                    </tr>
+            ';
+
+            if ($collections) {
+                foreach ($collections as $key => $c) {
+                    $htmlCollections .= '<tr>';
+                    $htmlCollections .= '<td align="center">' . ($key + 1) . '</td>';
+                    $htmlCollections .= '<td align="center">' . date('d-m-Y', strtotime($c->ACCEPT_DATE_LETTER)) . '</td>';
+                    $htmlCollections .= '<td>' . ($c->TITLE ?? '-') . '</td>';
+                    $htmlCollections .= '<td align="center">' . ($c->JENIS_MEDIA ?? '-') . '</td>';
+                    $htmlCollections .= '<td align="center">' . ($c->ISBN ?? '-') . '</td>';
+                    $htmlCollections .= '<td align="center">' . ($c->QTY_ACCEPT ?? '-') . '</td>';
+                    $htmlCollections .= '</tr>';
+                }
+            }
+
+            $htmlCollections .= '</table>';
+
+            $pdf->AddPage();
+            $pdf->writeHTML($htmlCollections, true, false, true, false, '');
+
+            $letterNumber = $letter->LETTER_ID ?? date('YmdHis');
+            $nameExecutor = $letter->NAME_PENERBIT ?? '';
+            $directory = storage_path('app/public/physical-delivery/accept/receipt');
+
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $filename = $directory . '/' . Str::slug('Pengiriman Fisik Koleksi ' . $letterNumber . ' ' . $nameExecutor, '-') . '.pdf';
+            $pdf->Output($filename, 'F');
+
+            return $filename;
+        } catch (\Exception $e) {
+            Log::error('Error generating PDF: ' . $e->getMessage());
+
+            return null;
+        }
+    }
+}

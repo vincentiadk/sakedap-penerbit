@@ -146,5 +146,12 @@ Route::middleware('authentication')->group(function () {
             Route::get('datatable', 'PackageSentController@datatable');
             Route::get('detail/{id}', 'PackageSentController@detail');
         });
+
+        Route::prefix('accept')->group(function () {
+            Route::get('/', 'AcceptController@index');
+            Route::get('datatable', 'AcceptController@datatable');
+            Route::get('detail/{id}', 'AcceptController@detail');
+            Route::get('print/{id}', 'AcceptController@print');
+        });
     });
 });
