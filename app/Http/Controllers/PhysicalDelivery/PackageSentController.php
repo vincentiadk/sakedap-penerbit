@@ -8,14 +8,14 @@ use App\Helpers\RajaOngkir;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-class InDeliveryController extends Controller
+class PackageSentController extends Controller
 {
     public function index()
     {
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.in-delivery',
+                'content' => 'physical-delivery.package-sent',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -30,6 +30,7 @@ class InDeliveryController extends Controller
         $column = [
             'l.letter_id',
             null,
+            'l.status',
             'l.letter_number',
             'l.letter_date',
             'l.receipt_no',
@@ -50,7 +51,7 @@ class InDeliveryController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "l.status in ('DALAM PENGIRIMAN')";
+        $whereCondition[] = "l.status in ('TERKIRIM', 'CEK FISIK')";
         $whereCondition[] = "l.penerbit_id = " . session('id');
 
         if ($request->receipt_no) {
@@ -66,12 +67,16 @@ class InDeliveryController extends Controller
             $whereCondition[] = "l.branch_id = $request->branch_id";
         }
 
+        if ($request->status) {
+            $whereCondition[] = "l.status = $request->status";
+        }
+
         if ($request->date) {
             $explodeDate = explode(' - ', $request->date);
             $startDate = Carbon::parse($explodeDate[0])->format('Y-m-d');
             $endDate = Carbon::parse($explodeDate[1])->format('Y-m-d');
 
-            $whereCondition[] = "(l.$request->date_type >= to_date('$startDate', 'YYYY-MM-DD') and l.$request->date_type < to_date('$endDate', 'YYYY-MM-DD') + 1)";
+            $whereCondition[] = "(l.letter_date >= to_date('$startDate', 'YYYY-MM-DD') and l.letter_date < to_date('$endDate', 'YYYY-MM-DD') + 1)";
         }
 
         if ($search) {
@@ -102,7 +107,7 @@ class InDeliveryController extends Controller
             from
                 letter
             where
-                status in ('DALAM PENGIRIMAN') and
+                status in ('TERKIRIM', 'CEK FISIK') and
                 penerbit_id = " . session('id') . "
         ", true)->TOTAL ?? 0;
 
@@ -133,15 +138,16 @@ class InDeliveryController extends Controller
                                 l.letter_number,
                                 l.letter_date,
                                 l.receipt_no,
+                                l.status,
                                 b.name as name_branch,
                                 jp.name as name_jasa_pengiriman,
                                 case
-                                    when l.status in ('DALAM PENGIRIMAN')
+                                    when l.status in ('TERKIRIM', 'CEK FISIK')
                                     then coalesce(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
-                                    when l.status in ('DALAM PENGIRIMAN')
+                                    when l.status in ('TERKIRIM', 'CEK FISIK')
                                     then coalesce(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery
@@ -173,7 +179,7 @@ class InDeliveryController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('physical-delivery/in-delivery/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
+                    <a href="' . url('physical-delivery/package-sent/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-info me-1"></i>
                         Detail
                     </a>
@@ -182,6 +188,7 @@ class InDeliveryController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->STATUS,
                     $val->LETTER_NUMBER,
                     Carbon::parse($val->LETTER_DATE)->isoFormat('D MMMM Y'),
                     $val->RECEIPT_NO,
@@ -219,7 +226,7 @@ class InDeliveryController extends Controller
                 branchs on branchs.id = letter.branch_id
             where
                 letter.letter_id = $id and
-                letter.status in ('DALAM PENGIRIMAN') and
+                letter.status in ('TERKIRIM', 'CEK FISIK') and
                 penerbit_id = " . session('id') . "
         ";
 
@@ -250,7 +257,7 @@ class InDeliveryController extends Controller
                 'letter' => $letter,
                 'letterDetail' => $letterDetail,
                 'receipt' => $receipt,
-                'content' => 'physical-delivery.in-delivery-detail',
+                'content' => 'physical-delivery.package-sent-detail',
                 'plugins' => [
                     'datatable',
                     'lightbox',

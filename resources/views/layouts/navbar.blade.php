@@ -80,6 +80,7 @@
 							<a href="{{ url('physical-delivery/print-label') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'print-label' ? 'active' : '' }}">Cetak Label</a>
 							<a href="{{ url('physical-delivery/input-receipt') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'input-receipt' ? 'active' : '' }}">Input Resi</a>
 							<a href="{{ url('physical-delivery/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Dalam Pengiriman</a>
+							<a href="{{ url('physical-delivery/package-sent') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'package-sent' ? 'active' : '' }}">Paket Terkirim</a>
 						</div>
 					</li>
 					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">

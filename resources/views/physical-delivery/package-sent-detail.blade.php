@@ -2,13 +2,13 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - Dalam Pengiriman - <span class="fw-normal">Detail</span>
+                Pengiriman Fisik - Paket Terkirim - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
             <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
                 <div class="d-inline-flex mt-3 mt-sm-0">
-                    <a href="{{ url('physical-delivery/in-delivery') }}" class="btn btn-primary">
+                    <a href="{{ url('physical-delivery/package-sent') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>

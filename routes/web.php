@@ -140,5 +140,11 @@ Route::middleware('authentication')->group(function () {
             Route::get('datatable', 'InDeliveryController@datatable');
             Route::get('detail/{id}', 'InDeliveryController@detail');
         });
+
+        Route::prefix('package-sent')->group(function () {
+            Route::get('/', 'PackageSentController@index');
+            Route::get('datatable', 'PackageSentController@datatable');
+            Route::get('detail/{id}', 'PackageSentController@detail');
+        });
     });
 });
