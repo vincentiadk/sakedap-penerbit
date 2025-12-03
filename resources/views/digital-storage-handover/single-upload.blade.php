@@ -455,12 +455,33 @@
                         title: 'Data ditemukan',
                         icon: 'success',
                         showDenyButton: true,
-                        confirmButtonText: 'Otomatis Isi Judul & Pelaksana Serah',
+                        confirmButtonText: 'Otomatis Isi',
                         denyButtonText: 'Hanya Cek Kode'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $('#title').val(response.data.title);
-                            $('#executor_id').html(`<option value="` + response.data.penerbit_id + `">` + response.data.nama_penerbit + `</option>`);
+                            const data = response?.data ?? {};
+
+                            $('#title').val(data.title ?? '');
+                            $('#binding').val(data.keterangan ?? '');
+                            $('input[name="physical_description[paging]"]').val(data.jml_hlm ?? '');
+                            $('select[name="physical_description[paging_flag]"]').val('Halaman');
+                            $('#description').val(data.sinopsis ?? '');
+
+                            if (data.tanggal_terbit) {
+                                $('#publish_time').val(moment(data.tanggal_terbit).format('YYYY/MM/DD'));
+                            }
+
+                            if (data.seri) {
+                                $('#series_checkbox').prop('checked', false);
+                                $('#series').val(data.seri);
+                            }
+
+                            if (data.kepeng) {
+                                const contributors = data.kepeng.split(', ');
+                                const options = contributors.map(val => `<option value="${val}" selected>${val}</option>`).join('');
+
+                                $('#author').append(options);
+                            }
                         }
                     });
                 } else {
