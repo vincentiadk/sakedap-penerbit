@@ -134,5 +134,11 @@ Route::middleware('authentication')->group(function () {
             Route::get('datatable', 'InputReceiptController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'InputReceiptController@detail');
         });
+
+        Route::prefix('in-delivery')->group(function () {
+            Route::get('/', 'InDeliveryController@index');
+            Route::get('datatable', 'InDeliveryController@datatable');
+            Route::get('detail/{id}', 'InDeliveryController@detail');
+        });
     });
 });
