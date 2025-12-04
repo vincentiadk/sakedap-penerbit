@@ -178,7 +178,7 @@ class AuthController extends Controller
 
         if ($request->_token == csrf_token()) {
             $email = $request->email;
-            $checkEmail = QueryAPI::get("select * from users where emailaddress = '$email'", true);
+            $checkEmail = QueryAPI::get("select * from penerbit where email1 = '$email'", true);
             $templateEmail = QueryAPI::get("select * from e_settings where slug = 'ResetPassword'", true);
 
             if ($checkEmail) {
@@ -193,7 +193,7 @@ class AuthController extends Controller
                     try {
                         $tokenUrl = url('reset-password-action?token=' . $createRequest->TOKEN . '&email=' . urlencode($email));
                         $payloadEmail = [
-                            'name' => $checkEmail->FULLNAME,
+                            'name' => $checkEmail->NAME,
                             'email' => $email,
                             'link' => '<a href="' . $tokenUrl . '">' . $tokenUrl . '</a>',
                         ];
@@ -225,7 +225,7 @@ class AuthController extends Controller
         $email = $request->email;
         $token = $request->token;
         $check = QueryAPI::get("select * from e_password_resets where email = '$email' and token = '$token'", true);
-        $user = QueryAPI::get("select * from users where emailaddress = '$email'", true);
+        $user = QueryAPI::get("select * from penerbit where email1 = '$email'", true);
 
         if ($check && $user) {
             $currentTime = strtotime(date('Y-m-d H:i:s'));
@@ -254,67 +254,60 @@ class AuthController extends Controller
                     return redirect()->back()->withErrors($validation);
                 } else {
                     try {
-                        $hash = QueryAPI::hashPassword($request->new_password);
+                        QueryAPI::update('penerbit', $user->ID, [
+                            'isbn_password1' => md5($request->new_password),
+                            'isbn_password2' => Main::AESCrypt($request->new_password, config('inlis.aes_key'), config('inlis.aes_iv')),
+                            'updateby' => $user->ISBN_USER_NAME,
+                            'updatedate' => date('Y-m-d H:i:s'),
+                            'updateterminal' => $request->ip(),
+                        ], false);
 
-                        if ($hash) {
-                            QueryAPI::update('users', $user->ID, [
-                                'password' => $hash->Output,
-                                'updateby' => $user->FULLNAME,
-                                'updatedate' => date('Y-m-d H:i:s'),
-                                'updateterminal' => $request->ip(),
-                            ], false);
+                        $settings = QueryAPI::get("
+                            select
+                                *
+                            from
+                                e_settings
+                            where
+                                slug = 'GantiPassword' or
+                                (
+                                    slug in ('Header','Footer') and
+                                    province_id = " . session('province_id') . "
+                                )
+                        ");
 
-                            $settings = QueryAPI::get("
-                                select
-                                    *
-                                from
-                                    e_settings
-                                where
-                                    slug = 'GantiPassword' or
-                                    (
-                                        slug in ('Header','Footer') and
-                                        province_id = " . session('province_id') . "
-                                    )
-                            ");
+                        $templateEmailContent = null;
+                        $templateEmailHeader = null;
+                        $templateEmailFooter = null;
 
-                            $templateEmailContent = null;
-                            $templateEmailHeader = null;
-                            $templateEmailFooter = null;
-
-                            if ($settings) {
-                                foreach ($settings as $setting) {
-                                    if ($setting->SLUG == 'GantiPassword') {
-                                        $templateEmailContent = $setting;
-                                    } elseif ($setting->SLUG == 'Header') {
-                                        $templateEmailHeader = $setting;
-                                    } elseif ($setting->SLUG == 'Footer') {
-                                        $templateEmailFooter = $setting;
-                                    }
+                        if ($settings) {
+                            foreach ($settings as $setting) {
+                                if ($setting->SLUG == 'GantiPassword') {
+                                    $templateEmailContent = $setting;
+                                } elseif ($setting->SLUG == 'Header') {
+                                    $templateEmailHeader = $setting;
+                                } elseif ($setting->SLUG == 'Footer') {
+                                    $templateEmailFooter = $setting;
                                 }
                             }
-
-                            $bodyEmail = [
-                                'name' => $user->FULLNAME,
-                                'email' => $user->EMAILADDRESS,
-                                'header' => '<img src="' . Main::base64File(url('stream-file?type=gambar_template&id=' . ($templateEmailHeader->ID ?? '') . '&filename=' . ($templateEmailHeader->CONTENT ?? ''))) . '" style="max-width:100%;">',
-                                'footer' => '<img src="' . Main::base64File(url('stream-file?type=gambar_template&id=' . ($templateEmailFooter->ID ?? '') . '&filename=' . ($templateEmailFooter->CONTENT ?? ''))) . '" style="max-width:100%; margin-bottom:10px">',
-                            ];
-
-                            Mail::send([], [], function ($message) use ($bodyEmail, $templateEmailContent) {
-                                $message->to($bodyEmail['email'], $bodyEmail['name'])
-                                    ->subject('Berhasil Reset Password')
-                                    ->from(config('mail.from.address'), config('mail.from.name'))
-                                    ->html(Main::parseTemplateEmail($bodyEmail, $templateEmailContent), 'text/html');
-                            });
-
-                            return redirect('/')->with([
-                                'success' => 'Password berhasil direset'
-                            ]);
-                        } else {
-                            return redirect()->back()->with([
-                                'failed' => 'Gagal mengelola password'
-                            ]);
                         }
+
+                        $bodyEmail = [
+                            'name' => $user->NAME,
+                            'email' => $user->EMAIL1,
+                            'header' => '<img src="' . Main::base64File(url('stream-file?type=gambar_template&id=' . ($templateEmailHeader->ID ?? '') . '&filename=' . ($templateEmailHeader->CONTENT ?? ''))) . '" style="max-width:100%;">',
+                            'footer' => '<img src="' . Main::base64File(url('stream-file?type=gambar_template&id=' . ($templateEmailFooter->ID ?? '') . '&filename=' . ($templateEmailFooter->CONTENT ?? ''))) . '" style="max-width:100%; margin-bottom:10px">',
+                        ];
+
+                        Mail::send([], [], function ($message) use ($bodyEmail, $templateEmailContent) {
+                            $message->to($bodyEmail['email'], $bodyEmail['name'])
+                                ->subject('Berhasil Reset Password')
+                                ->from(config('mail.from.address'), config('mail.from.name'))
+                                ->html(Main::parseTemplateEmail($bodyEmail, $templateEmailContent), 'text/html');
+                        });
+
+                        return redirect('/')->with([
+                            'success' => 'Password berhasil direset'
+                        ]);
                     } catch (\Exception $e) {
                         return redirect()->back()->with([
                             'failed' => $e->getMessage()
