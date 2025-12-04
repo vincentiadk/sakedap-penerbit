@@ -1,4 +1,4 @@
-<div class="content mt-5">
+<div class="content mt-3">
     <div class="row justify-content-center">
         <div class="col-lg-4">
             <form method="POST" id="form-password" autocomplete="off">

@@ -89,23 +89,18 @@ class AuthController extends Controller
                 return redirect()->back()->withErrors($validation);
             } else {
                 try {
-                    $hash = QueryAPI::hashPassword($request->new_password);
+                    $change = QueryAPI::update('penerbit', session('id'), [
+                        'isbn_password1' => md5($request->new_password),
+                        'isbn_password2' => Main::AESCrypt($request->new_password, config('inlis.aes_key'), config('inlis.aes_iv')),
+                        'updateby' => session('username'),
+                        'updatedate' => date('Y-m-d H:i:s'),
+                        'updateterminal' => $request->ip(),
+                    ], false);
 
-                    if ($hash) {
-                        $change = QueryAPI::update('users', session('id'), [
-                            'password' => $hash->Output,
-                            'updateby' => session('username'),
-                            'updatedate' => date('Y-m-d H:i:s'),
-                            'updateterminal' => $request->ip(),
-                        ], false);
-
-                        if ($change) {
-                            $message = ['success' => 'Password berhasil diganti'];
-                        } else {
-                            $message = ['failed' => 'Password gagal diganti'];
-                        }
+                    if ($change) {
+                        $message = ['success' => 'Password berhasil diganti'];
                     } else {
-                        $message = ['failed' => 'Gagal lakukan hash password'];
+                        $message = ['failed' => 'Password gagal diganti'];
                     }
 
                     return redirect('auth/change-password')->with($message);
