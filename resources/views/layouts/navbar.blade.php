@@ -87,6 +87,12 @@
 							<a href="{{ url('physical-delivery/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
 						</div>
 					</li>
+                    <li class="nav-item">
+						<a href="{{ url('bill-isbn') }}" class="navbar-nav-link rounded {{ Request::segment(1) == 'bill-isbn' ? 'active' : '' }}">
+							<i class="ph-cardholder me-2"></i>
+							Tagihan ISBN
+						</a>
+					</li>
 					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">
 						<a href="#" class="navbar-nav-link dropdown-toggle rounded" data-bs-toggle="dropdown">
 							<i class="ph-books me-2"></i>

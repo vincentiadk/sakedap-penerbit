@@ -49,15 +49,19 @@ class ISBN
         if ($query->status() == 200) {
             $response = $query->object();
 
-            if (count($response->data) > 0) {
-                if ($single == true) {
-                    $data = $response->data[0];
-                } else {
-                    $data = $response;
+            if (isset($response->data)) {
+                if (count($response->data) > 0) {
+                    if ($single == true) {
+                        $data = $response->data[0];
+                    } else {
+                        $data = $response;
+                    }
                 }
-
-                Cache::put($cacheKey, $data, static::$cacheTime);
+            } else {
+                $data = $response;
             }
+
+            Cache::put($cacheKey, $data, static::$cacheTime);
         } else {
             Log::channel('isbn-api')->error('Gagal get endpoint', $query->json());
         }

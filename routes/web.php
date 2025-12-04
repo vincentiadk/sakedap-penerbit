@@ -173,4 +173,11 @@ Route::middleware('authentication')->group(function () {
             Route::post('grant', 'ReturController@grant');
         });
     });
+
+
+    Route::prefix('bill-isbn')->group(function () {
+        Route::get('/', 'BillISBNController@index');
+        Route::get('datatable', 'BillISBNController@datatable');
+        Route::get('load-summary', 'BillISBNController@loadSummary');
+    });
 });
