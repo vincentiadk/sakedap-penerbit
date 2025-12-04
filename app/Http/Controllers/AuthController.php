@@ -264,6 +264,7 @@ class AuthController extends Controller
                                 'address' => $executor->ALAMAT,
                                 'api_key' => $executor->X_API_KEY,
                                 'api_status' => $executor->IS_API_ENABLE ?: 0,
+                                'status' => $executor->STATUS ?: 1,
                             ]);
                         }
 

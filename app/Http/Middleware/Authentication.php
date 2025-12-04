@@ -17,8 +17,13 @@ class Authentication
     public function handle(Request $request, Closure $next): Response
     {
         $id = session('id');
+        $status = session('status');
 
         if ($id) {
+            if (in_array($status, [1, 2])) {
+                return redirect('auth/verification');
+            }
+
             return $next($request);
         }
 

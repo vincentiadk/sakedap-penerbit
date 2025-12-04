@@ -377,60 +377,47 @@
         let otpModal = null;
         let otpCountdown = 0;
 
-        // Tracking verifikasi untuk email dan phone
         let verificationStatus = {
             email: { required: false, verified: false },
             phone: { required: false, verified: false }
         };
 
-        // Form submission handler
         $('#profileForm').on('submit', function(e) {
             e.preventDefault();
 
             const currentEmail = $('#email1').val();
             const currentPhone = $('#phone1').val();
 
-            // Reset status verifikasi
             verificationStatus.email.required = currentEmail !== originalEmail;
             verificationStatus.phone.required = currentPhone !== originalPhone;
 
-            // Cek apakah ada yang perlu diverifikasi
             const needsVerification = verificationStatus.email.required || verificationStatus.phone.required;
 
             if (!needsVerification) {
-                // Tidak ada perubahan, langsung submit
                 submitFormDirectly();
+
                 return;
             }
 
-            // Cek apakah semua yang required sudah diverifikasi
-            const allVerified =
-                (!verificationStatus.email.required || verificationStatus.email.verified) &&
-                (!verificationStatus.phone.required || verificationStatus.phone.verified);
+            const allVerified = (!verificationStatus.email.required || verificationStatus.email.verified) && (!verificationStatus.phone.required || verificationStatus.phone.verified);
 
             if (allVerified) {
-                // Semua sudah diverifikasi, langsung submit
                 submitFormDirectly();
+
                 return;
             }
 
-            // Mulai proses verifikasi
             startVerificationProcess(currentEmail, currentPhone);
         });
 
-        // Mulai proses verifikasi bertahap
         function startVerificationProcess(email, phone) {
-            // Verifikasi email dulu jika diperlukan dan belum diverifikasi
             if (verificationStatus.email.required && !verificationStatus.email.verified) {
                 requestOTP('email', email);
-            }
-            // Lalu verifikasi phone jika diperlukan dan belum diverifikasi
-            else if (verificationStatus.phone.required && !verificationStatus.phone.verified) {
+            } else if (verificationStatus.phone.required && !verificationStatus.phone.verified) {
                 requestOTP('phone', phone);
             }
         }
 
-        // Request OTP function
         function requestOTP(type, value) {
             $.ajax({
                 url: '{{ url("auth/send-otp") }}',
@@ -453,6 +440,7 @@
                 },
                 error: function(xhr) {
                     const message = xhr.responseJSON?.message || 'Gagal mengirim OTP';
+
                     showNotification('error', message);
                 },
                 complete: function() {
@@ -461,32 +449,23 @@
             });
         }
 
-        // Show OTP Modal
         function showOTPModal(type, value) {
             $('#otpType').val(type);
             $('#otpValue').val(value);
             $('#otpCode').val('');
 
-            // Update icon based on type
             const iconClass = type === 'email' ? 'ph-envelope-open' : 'ph-device-mobile';
+
             $('#modal_otp .text-center i').removeClass('ph-envelope-open ph-device-mobile').addClass(iconClass);
 
-            // Mask phone number for display
-            const targetText = type === 'email'
-                ? value
-                : value.replace(/(\d{4})(\d+)(\d{4})/, '$1****$3');
+            const targetText = type === 'email' ? value : value.replace(/(\d{4})(\d+)(\d{4})/, '$1****$3');
 
             $('#otpTarget').text(targetText);
 
-            // Update modal title dengan step info
             const stepInfo = getVerificationStepInfo(type);
-            $('#modal_otp .modal-title').html(`
-                <i class="ph-shield-check me-1"></i>
-                Verifikasi OTP
-                ${stepInfo}
-            `);
 
-            // Initialize modal if not exists
+            $('#modal_otp .modal-title').html(`<i class="ph-shield-check me-1"></i> Verifikasi OTP ${stepInfo}`);
+
             if (!otpModal) {
                 otpModal = new bootstrap.Modal(document.getElementById('modal_otp'), {
                     backdrop: 'static',
@@ -498,7 +477,6 @@
             startOTPTimer(60);
         }
 
-        // Get verification step info
         function getVerificationStepInfo(currentType) {
             const needsEmail = verificationStatus.email.required;
             const needsPhone = verificationStatus.phone.required;
@@ -514,34 +492,36 @@
             return '';
         }
 
-        // OTP Timer
         function startOTPTimer(seconds) {
-            // Clear existing timer
             if (otpTimer) {
                 clearInterval(otpTimer);
             }
 
             otpCountdown = seconds;
+
             $('#btnResendOtp').prop('disabled', true);
 
             otpTimer = setInterval(function() {
                 if (otpCountdown <= 0) {
                     clearInterval(otpTimer);
+
                     otpTimer = null;
+
                     $('#otpTimer').html('');
                     $('#btnResendOtp').prop('disabled', false);
+
                     return;
                 }
 
                 const minutes = Math.floor(otpCountdown / 60);
                 const secs = otpCountdown % 60;
+
                 $('#otpTimer').text(`Minta ulang dalam ${minutes}:${secs.toString().padStart(2, '0')}`);
 
                 otpCountdown--;
             }, 1000);
         }
 
-        // Resend OTP button
         $('#btnResendOtp').on('click', function() {
             const type = $('#otpType').val();
             const value = $('#otpValue').val();
@@ -553,7 +533,6 @@
             requestOTP(type, value);
         });
 
-        // OTP verification form
         $('#otpForm').on('submit', function(e) {
             e.preventDefault();
 
@@ -561,9 +540,9 @@
             const type = $('#otpType').val();
             const value = $('#otpValue').val();
 
-            // Validate OTP code
             if (!otpCode || otpCode.length < 4) {
                 showNotification('error', 'Kode OTP tidak valid');
+
                 return;
             }
 
@@ -581,49 +560,45 @@
                 },
                 success: function(response) {
                     if (response.code == 200 || response.code == 201) {
-                        // Clear timer
                         if (otpTimer) {
                             clearInterval(otpTimer);
+
                             otpTimer = null;
                         }
 
-                        // Tandai sebagai verified
                         verificationStatus[type].verified = true;
 
                         const verifiedLabel = type === 'email' ? 'email' : 'nomor telepon';
+
                         showNotification('success', `Verifikasi ${verifiedLabel} berhasil!`);
 
-                        // Hide modal
                         if (otpModal) {
                             otpModal.hide();
                         }
 
-                        // Cek apakah masih ada yang perlu diverifikasi
                         setTimeout(function() {
                             const currentEmail = $('#email1').val();
                             const currentPhone = $('#phone1').val();
 
-                            // Jika phone juga berubah dan belum diverifikasi
                             if (verificationStatus.phone.required && !verificationStatus.phone.verified) {
                                 requestOTP('phone', currentPhone);
-                            }
-                            // Jika email juga berubah dan belum diverifikasi (edge case)
-                            else if (verificationStatus.email.required && !verificationStatus.email.verified) {
+                            } else if (verificationStatus.email.required && !verificationStatus.email.verified) {
                                 requestOTP('email', currentEmail);
-                            }
-                            // Semua sudah diverifikasi, submit form
-                            else {
+                            } else {
                                 submitFormDirectly();
                             }
                         }, 500);
                     } else {
                         showNotification('error', response.message);
+
                         $('#otpCode').val('').focus();
                     }
                 },
                 error: function(xhr) {
                     const message = xhr.responseJSON?.message || 'Verifikasi gagal';
+
                     showNotification('error', message);
+
                     $('#otpCode').val('').focus();
                 },
                 complete: function() {
@@ -632,20 +607,15 @@
             });
         });
 
-        // Submit form directly (bypass OTP check)
         function submitFormDirectly() {
             const form = $('#profileForm')[0];
 
             $('#btnSubmit').prop('disabled', true).html('<i class="ph-spinner spinner me-1"></i>Menyimpan...');
-
-            // Unbind submit handler untuk mencegah loop
             $('#profileForm').off('submit');
 
-            // Use native form submit
             form.submit();
         }
 
-        // Notification helper
         function showNotification(type, message) {
             const icon = type === 'success' ? 'ph-check' : 'ph-x';
 
@@ -658,22 +628,21 @@
             }).show();
         }
 
-        // Input filters - only allow numbers
         $('#phone1, #phone2, #postal_code, #otpCode').on('input', function() {
             const value = $(this).val().replace(/\D/g, '');
+
             $(this).val(value);
         });
 
-        // Cleanup on page unload
         $(window).on('beforeunload', function() {
             if (otpTimer) {
                 clearInterval(otpTimer);
             }
         });
 
-        // Reset verification status ketika user mengubah input setelah sudah diverifikasi
         $('#email1').on('change', function() {
             const currentEmail = $(this).val();
+
             if (currentEmail !== originalEmail) {
                 verificationStatus.email.verified = false;
             }
@@ -681,6 +650,7 @@
 
         $('#phone1').on('change', function() {
             const currentPhone = $(this).val();
+
             if (currentPhone !== originalPhone) {
                 verificationStatus.phone.verified = false;
             }
