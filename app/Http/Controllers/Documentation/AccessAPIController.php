@@ -27,7 +27,7 @@ class AccessAPIController extends Controller
             'updatedate' => date('Y-m-d H:i:s'),
             'updateterminal' => $request->ip(),
             'updateby' => session('username'),
-        ]);
+        ], false);
 
         session(['api_key' => $token]);
 

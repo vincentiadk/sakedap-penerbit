@@ -280,11 +280,10 @@ class DashboardController extends Controller
             from
                 historydata
             where
-                actionby = '$username'
+                actionby = '$username' and
+                rownum <= 10
             order by
                 actiondate desc
-            where
-                rownum <= 10
         ";
 
         $data = QueryAPI::get($query);
