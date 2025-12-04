@@ -19,6 +19,10 @@ Route::get('stream-file', function (Request $request) {
 });
 
 Route::middleware('authentication')->group(function () {
+    Route::prefix('download')->group(function () {
+        Route::get('from-public', 'DownloadController@fromPublic');
+    });
+
     Route::prefix('auth')->group(function () {
         Route::match(['get', 'post'], 'change-password', 'AuthController@changePassword');
         Route::match(['get', 'post'], 'profile', 'AuthController@profile');
@@ -174,10 +178,16 @@ Route::middleware('authentication')->group(function () {
         });
     });
 
-
     Route::prefix('bill-isbn')->group(function () {
         Route::get('/', 'BillISBNController@index');
         Route::get('datatable', 'BillISBNController@datatable');
         Route::get('load-summary', 'BillISBNController@loadSummary');
+    });
+
+    Route::prefix('documentation')->namespace('Documentation')->group(function () {
+        Route::prefix('access-api')->group(function () {
+            Route::get('/', 'AccessAPIController@index');
+            Route::post('generate-new-token', 'AccessAPIController@generateNewToken');
+        });
     });
 });

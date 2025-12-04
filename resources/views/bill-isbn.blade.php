@@ -24,7 +24,7 @@
                 <div class="text-center position-relative mb-2">
                     <i class="ph-barcode ph-2x"></i>
                 </div>
-                <h6 class="mb-2">Total Nomor ISBN Diberikan</h6>
+                <h6 class="mb-2">Nomor ISBN Diberikan</h6>
                 <div class="row justify-content-center">
                     <div class="col-12 text-center">
                         <div class="fs-sm">Total</div>
