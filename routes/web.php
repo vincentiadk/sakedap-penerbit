@@ -24,6 +24,7 @@ Route::middleware('authentication')->group(function () {
     });
 
     Route::prefix('auth')->group(function () {
+        Route::match(['get', 'post'], 'not-verified', 'AuthController@notVerified');
         Route::match(['get', 'post'], 'change-password', 'AuthController@changePassword');
         Route::match(['get', 'post'], 'profile', 'AuthController@profile');
         Route::post('check-ajax-password', 'AuthController@checkAjaxPassword');

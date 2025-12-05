@@ -3,12 +3,22 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\Helpers\QueryAPI;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 class Authentication
 {
+    /**
+     * except
+     *
+     * @var array
+     */
+    protected $except = [
+        'auth/not-verified',
+        'auth/logout',
+    ];
+
     /**
      * Handle an incoming request.
      *
@@ -16,19 +26,39 @@ class Authentication
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $id = session('id');
-        $status = session('status');
-
-        if ($id) {
-            // if (in_array($status, [1, 2])) {
-            //     return redirect('auth/verification');
-            // }
-
+        if ($this->shouldSkipVerification($request)) {
             return $next($request);
         }
 
-        session()->flush();
+        $id = Session::get('id');
+        $status = Session::get('status');
 
-        return redirect('/');
+        if (!$id) {
+            Session::flush();
+            return redirect('/');
+        }
+
+        if (in_array($status, [1, 2])) {
+            return redirect('auth/not-verified');
+        }
+
+        return $next($request);
+    }
+
+    /**
+     * shouldSkipVerification
+     *
+     * @param  mixed $request
+     * @return bool
+     */
+    protected function shouldSkipVerification(Request $request): bool
+    {
+        foreach ($this->except as $except) {
+            if ($request->is($except)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

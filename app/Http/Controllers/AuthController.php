@@ -73,6 +73,158 @@ class AuthController extends Controller
         return view('login');
     }
 
+    public function notVerified(Request $request)
+    {
+        $sqlQuery = "
+            select
+                penerbit.*,
+                propinsi.namapropinsi as namapropinsi,
+                kabupaten.namakab as namakab,
+                kecamatan.namakec as namakec,
+                kelurahan.namakel as namakel,
+                penerbit_kategori.name as name_penerbit_kategori,
+                penerbit_jenis.name as name_penerbit_jenis
+            from
+                penerbit
+            left join
+                penerbit_kategori on penerbit_kategori.id = penerbit.kategori_id
+            left join
+                penerbit_jenis on penerbit_jenis.id = penerbit.jenis_id
+            left join
+                propinsi on propinsi.id = penerbit.province_id
+            left join
+                kabupaten on kabupaten.id = penerbit.city_id
+            left join
+                kecamatan on kecamatan.id = penerbit.district_id
+            left join
+                kelurahan on kelurahan.id = penerbit.village_id
+            where
+                penerbit.id = " . session('id') . "
+        ";
+
+        $executor = QueryAPI::get($sqlQuery, true);
+
+        if ($request->_token == csrf_token()) {
+            $validation = Validator::make($request->all(), [
+                'name' => 'required',
+                'location_id' => 'required',
+                'address' => 'required',
+                'postal_code' => 'required|digits:5',
+                'contact1' => 'required',
+                'email2' => 'nullable|email',
+                'phone2' => 'nullable|string|max:20',
+                'fax1' => 'nullable|string|max:20',
+                'fax2' => 'nullable|string|max:20',
+                'website' => 'nullable|url',
+                'file_deed' => 'nullable|file|mimes:pdf|max:5120',
+                'file_statement' => 'nullable|file|mimes:pdf|max:5120',
+            ], [
+                'name.required' => 'Nama tidak boleh kosong',
+                'location_id.required' => 'Wilayah tidak boleh kosong',
+                'address.required' => 'Alamat tidak boleh kosong',
+                'postal_code.required' => 'Kode pos tidak boleh kosong',
+                'postal_code.digits' => 'Kode pos harus 5 digit',
+                'contact1.required' => 'Nama admin utama tidak boleh kosong',
+                'email2.email' => 'Email alternatif tidak valid',
+                'phone2.max' => 'No telp alternatif maksimal 20 karakter',
+                'fax1.max' => 'No fax utama maksimal 20 karakter',
+                'fax2.max' => 'No fax alternatif maksimal 20 karakter',
+                'website.url' => 'Website tidak valid url',
+                'file_deed.file' => 'File akta tidak valid',
+                'file_deed.file' => 'File akta harus pdf',
+                'file_deed.file' => 'File akta maksimal 5MB',
+                'file_statement.file' => 'File pernyataan tidak valid',
+                'file_statement.file' => 'File pernyataan harus pdf',
+                'file_statement.file' => 'File pernyataan maksimal 5MB',
+            ]);
+
+            if ($validation->fails()) {
+                return redirect()->back()->withErrors($validation);
+            } else {
+                try {
+                    $locationId = $request->location_id;
+                    $location = Main::locationById($locationId, 'village');
+
+                    $change = QueryAPI::update('penerbit', $executor->ID ?? '', [
+                        'name' => $request->name,
+                        'alias' => $request->alias,
+                        'province_id' => $location->PROPINSIID ?? null,
+                        'city_id' => $location->KABUPATENID ?? null,
+                        'district_id' => $location->KECAMATAN_ID ?? null,
+                        'village_id' => $location->ID ?? null,
+                        'alamat' => $request->address,
+                        'kodepos' => $request->postal_code,
+                        'kontak1' => $request->contact1,
+                        'kontak2' => $request->contact2,
+                        'email2' => $request->email2,
+                        'telp2' => $request->phone2,
+                        'fax1' => $request->fax1,
+                        'fax2' => $request->fax2,
+                        'website' => $request->website,
+                        'nama_gedung' => $request->building_name,
+                        'rata_terbitan' => $request->avg_publication,
+                        'lembaga_penaung' => $request->shelter_institution,
+                        'updateby' => session('username'),
+                        'updatedate' => date('Y-m-d H:i:s'),
+                        'updateterminal' => $request->ip(),
+                        'status' => 1,
+                    ], false);
+
+                    if ($change) {
+                        $executor = QueryAPI::get($sqlQuery, true);
+
+                        if ($executor) {
+                            $fileDeed = $request->file('file_deed');
+                            $fileStatement = $request->file('file_statement');
+
+                            if ($fileDeed) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'penerbit_akte_notaris',
+                                    'id' => session('id'),
+                                    'iszip' => false,
+                                    'file' => $fileDeed,
+                                ]);
+                            }
+
+                            if ($fileStatement) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'penerbit_surat_pernyataan',
+                                    'id' => session('id'),
+                                    'iszip' => false,
+                                    'file' => $fileStatement,
+                                ]);
+                            }
+                        }
+
+                        $message = ['success' => 'Data berhasil diajukan kembali'];
+                    } else {
+                        $message = ['failed' => 'Data gagal diajukan'];
+                    }
+
+                    return redirect('auth/not-verified')->with($message);
+                } catch (\Exception $e) {
+                    return redirect()->back()->with([
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+
+        $problemHistory = QueryAPI::get("
+            select
+                *
+            from
+                penerbit_registrasi_masalah
+            where
+                penerbit_id = " . session('id') . "
+        ");
+
+        return view('not-verified', [
+            'executor' => $executor,
+            'problemHistory' => $problemHistory ?? [],
+        ]);
+    }
+
     public function changePassword(Request $request)
     {
         if ($request->_token == csrf_token()) {
@@ -219,7 +371,7 @@ class AuthController extends Controller
                     $locationId = $request->location_id;
                     $location = Main::locationById($locationId, 'village');
 
-                    $change = QueryAPI::update('users', session('id'), [
+                    $change = QueryAPI::update('penerbit', session('id'), [
                         'name' => $request->name,
                         'alias' => $request->alias,
                         'province_id' => $location->PROPINSIID ?? null,

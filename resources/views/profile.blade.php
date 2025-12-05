@@ -44,7 +44,7 @@
                             <div class="col-lg-6">
                                 <div class="mb-3">
                                     <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="name" id="name" value="{{ old('name', $executor->NAME) }}" placeholder="Masukkan nama lengkap penerbit" required>
+                                    <input type="text" class="form-control" name="name" id="name" value="{{ old('name', $executor->NAME) }}" placeholder="Masukkan nama lengkap pelaksana serah" required>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -238,7 +238,7 @@
                                     <label class="form-label">Rata-rata Terbitan per Tahun</label>
                                     <div class="input-group">
                                         <input type="number" class="form-control" name="avg_publication" id="avg_publication" value="{{ old('avg_publication', $executor->RATA_TERBITAN) }}" placeholder="0" min="0">
-                                        <span class="input-group-text">Koleksi Per Tahun</span>
+                                        <span class="input-group-text">Koleksi</span>
                                     </div>
                                 </div>
                             </div>
