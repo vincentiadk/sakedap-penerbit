@@ -286,6 +286,7 @@ class Main
                     'api_key' => $user->X_API_KEY,
                     'api_status' => $user->IS_API_ENABLE ?: 0,
                     'status' => $user->STATUS ?: 1,
+                    'is_isbn' => $user->IS_ISBN ?: 0,
                 ]);
 
                 $response = true;

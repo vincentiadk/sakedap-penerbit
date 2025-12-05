@@ -93,7 +93,7 @@
 							Tagihan ISBN
 						</a>
 					</li>
-					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">
+                    <li class="nav-item">
 						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'documentation' ? 'active' : '' }}" data-bs-toggle="dropdown">
 							<i class="ph-books me-2"></i>
 							Dokumentasi
@@ -102,6 +102,19 @@
 							<a href="{{ config('system.fo_url') }}/user-guide" class="dropdown-item rounded" target="_blank">Panduan Pengguna</a>
 							<a href="{{ url('documentation/access-api') }}" class="dropdown-item rounded {{ Request::segment(1) == 'documentation' && Request::segment(2) == 'access-api' ? 'active' : '' }}">Akses API</a>
 						</div>
+					</li>
+					<li class="nav-item nav-item-dropdown-lg dropdown ms-lg-auto">
+                        @if(session('is_isbn') == 1)
+                            <span class="badge bg-success btn-sm mt-1">
+                                <i class="ph-check-circle me-1"></i>
+                                ISBN : Terhubung
+                            </span>
+                        @else
+                            <a href="{{ config('isbn.base_url') }}bo-penerbit/login" class="badge bg-danger btn-sm mt-1" target="_blank">
+                                <i class="ph-x me-1"></i>
+                                ISBN : Tidak Terhubung
+                            </a>
+                        @endif
 					</li>
 				</ul>
 			</div>

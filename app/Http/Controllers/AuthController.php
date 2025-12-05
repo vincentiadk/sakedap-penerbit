@@ -417,6 +417,7 @@ class AuthController extends Controller
                                 'api_key' => $executor->X_API_KEY,
                                 'api_status' => $executor->IS_API_ENABLE ?: 0,
                                 'status' => $executor->STATUS ?: 1,
+                                'is_isbn' => $executor->IS_ISBN ?: 0,
                             ]);
                         }
 
