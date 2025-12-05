@@ -85,14 +85,16 @@ class DashboardController extends Controller
             return response()->json([]);
         }
 
-        $response = array_map(function ($item) {
-            if ($item->TOTAL > 0) {
-                return [
-                    'name'  => $item->NAME,
+        $response = [];
+
+        foreach ($data as $item) {
+            if (isset($item->TOTAL) && $item->TOTAL > 0) {
+                $response[] = [
+                    'name'  => $item->NAME ?? 'Unknown',
                     'value' => (int) $item->TOTAL
                 ];
             }
-        }, $data);
+        }
 
         return response()->json($response);
     }
@@ -147,12 +149,16 @@ class DashboardController extends Controller
             return response()->json([]);
         }
 
-        $response = array_map(function ($item) {
-            return [
-                'name'  => $item->NAME,
-                'value' => (int) $item->TOTAL
-            ];
-        }, $data);
+        $response = [];
+
+        foreach ($data as $item) {
+            if (isset($item->TOTAL) && $item->TOTAL > 0) {
+                $response[] = [
+                    'name'  => $item->NAME ?? 'Unknown',
+                    'value' => (int) $item->TOTAL
+                ];
+            }
+        }
 
         return response()->json($response);
     }
@@ -217,7 +223,11 @@ class DashboardController extends Controller
         $parts = explode(' - ', $request->date);
 
         if (count($parts) < 2) {
-            return response()->json([]);
+            return response()->json([
+                'TOTAL_DIGITAL' => 0,
+                'TOTAL_ANALOG' => 0,
+                'TOTAL_PRINTED' => 0
+            ]);
         }
 
         try {
@@ -256,9 +266,9 @@ class DashboardController extends Controller
         $data = QueryAPI::get($query, true);
 
         $response = [
-            'total_digital' => (int) ($data->TOTAL_DIGITAL ?? 0),
-            'total_analog'  => (int) ($data->TOTAL_ANALOG ?? 0),
-            'total_printed' => (int) ($data->TOTAL_PRINTED ?? 0),
+            'TOTAL_DIGITAL' => (int) ($data->TOTAL_DIGITAL ?? 0),
+            'TOTAL_ANALOG'  => (int) ($data->TOTAL_ANALOG ?? 0),
+            'TOTAL_PRINTED' => (int) ($data->TOTAL_PRINTED ?? 0),
         ];
 
         return response()->json($response);
@@ -277,13 +287,18 @@ class DashboardController extends Controller
         $query = "
             select
                 *
-            from
-                historydata
+            from (
+                select
+                    *
+                from
+                    historydata
+                where
+                    actionby = '$username'
+                order by
+                    actiondate desc
+            )
             where
-                actionby = '$username' and
                 rownum <= 10
-            order by
-                actiondate desc
         ";
 
         $data = QueryAPI::get($query);

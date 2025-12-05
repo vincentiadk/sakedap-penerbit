@@ -20,9 +20,9 @@ class Authentication
         $status = session('status');
 
         if ($id) {
-            if (in_array($status, [1, 2])) {
-                return redirect('auth/verification');
-            }
+            // if (in_array($status, [1, 2])) {
+            //     return redirect('auth/verification');
+            // }
 
             return $next($request);
         }
