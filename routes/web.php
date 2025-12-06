@@ -107,11 +107,18 @@ Route::middleware('authentication')->group(function () {
             Route::get('receipt/{id}', 'AcceptController@receipt');
         });
 
-        Route::prefix('single-upload')->group(function () {
-            Route::get('/', 'SingleUploadController@index');
-            Route::get('check-isbn-code', 'SingleUploadController@checkISBNCode');
-            Route::get('catalog-parent', 'SingleUploadController@catalogParent');
-            Route::post('submitted', 'SingleUploadController@submitted');
+        Route::prefix('single-upload-isbn')->group(function () {
+            Route::get('/', 'SingleUploadISBNController@index');
+            Route::get('check-isbn-code', 'SingleUploadISBNController@checkISBNCode');
+            Route::get('catalog-parent', 'SingleUploadISBNController@catalogParent');
+            Route::post('submitted', 'SingleUploadISBNController@submitted');
+        });
+
+        Route::prefix('single-upload-non-isbn')->group(function () {
+            Route::get('/', 'SingleUploadNonISBNController@index');
+            Route::get('check-isbn-code', 'SingleUploadNonISBNController@checkISBNCode');
+            Route::get('catalog-parent', 'SingleUploadNonISBNController@catalogParent');
+            Route::post('submitted', 'SingleUploadNonISBNController@submitted');
         });
 
         Route::prefix('bulk-upload')->group(function () {

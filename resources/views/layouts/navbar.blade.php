@@ -66,7 +66,8 @@
                             <a href="{{ url('digital-storage-handover/problem') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'problem' ? 'active' : '' }}">Koleksi Bermasalah</a>
                             <a href="{{ url('digital-storage-handover/review') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'review' ? 'active' : '' }}">Koleksi Ditinjau</a>
                             <a href="{{ url('digital-storage-handover/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'accept' ? 'active' : '' }}">Koleksi Diterima</a>
-                            <a href="{{ url('digital-storage-handover/single-upload') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload' ? 'active' : '' }}">Unggah Tunggal</a>
+                            <a href="{{ url('digital-storage-handover/single-upload-isbn') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload-isbn' ? 'active' : '' }}">Unggah Tunggal ISBN</a>
+                            <a href="{{ url('digital-storage-handover/single-upload-non-isbn') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'single-upload-non-isbn' ? 'active' : '' }}">Unggah Tunggal Non ISBN</a>
                             <a href="{{ url('digital-storage-handover/bulk-upload') }}" class="dropdown-item rounded {{ Request::segment(1) == 'digital-storage-handover' && Request::segment(2) == 'bulk-upload' ? 'active' : '' }}">Unggah Banyak</a>
 						</div>
 					</li>
@@ -93,12 +94,12 @@
 							Tagihan ISBN
 						</a>
 					</li>
-                    <li class="nav-item">
+                    <li class="nav-item nav-item-dropdown-lg dropdown">
 						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'documentation' ? 'active' : '' }}" data-bs-toggle="dropdown">
 							<i class="ph-books me-2"></i>
 							Dokumentasi
 						</a>
-						<div class="dropdown-menu dropdown-menu-end">
+						<div class="dropdown-menu">
 							<a href="{{ config('system.fo_url') }}/user-guide" class="dropdown-item rounded" target="_blank">Panduan Pengguna</a>
 							<a href="{{ url('documentation/access-api') }}" class="dropdown-item rounded {{ Request::segment(1) == 'documentation' && Request::segment(2) == 'access-api' ? 'active' : '' }}">Akses API</a>
 						</div>

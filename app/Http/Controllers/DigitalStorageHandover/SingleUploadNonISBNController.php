@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
-class SingleUploadController extends Controller
+class SingleUploadNonISBNController extends Controller
 {
     private $worksheetCategory;
 
@@ -26,7 +26,7 @@ class SingleUploadController extends Controller
                 'worksheet' => QueryAPI::get("select * from worksheets where category = '$this->worksheetCategory'") ?? [],
                 'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
-                'content' => 'digital-storage-handover.single-upload',
+                'content' => 'digital-storage-handover.single-upload-non-isbn',
                 'plugins' => [
                     'select2',
                     'daterangepicker',

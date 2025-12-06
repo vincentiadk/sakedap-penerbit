@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Serah Simpan Digital - <span class="fw-normal">Unggah Tunggal</span>
+                Serah Simpan Digital - <span class="fw-normal">Unggah Tunggal Non ISBN</span>
             </h4>
         </div>
     </div>
@@ -380,7 +380,7 @@
 
         if($('#catalog_id').val()) {
             $.ajax({
-                url: '{{ url("digital-storage-handover/single-upload/catalog-parent") }}',
+                url: '{{ url("digital-storage-handover/single-upload-non-isbn/catalog-parent") }}',
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
@@ -438,7 +438,7 @@
 
     function checkISBNCode() {
         $.ajax({
-            url: '{{ url("digital-storage-handover/single-upload/check-isbn-code") }}',
+            url: '{{ url("digital-storage-handover/single-upload-non-isbn/check-isbn-code") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
@@ -558,7 +558,7 @@
 
     function submitted() {
         $.ajax({
-            url: '{{ url("digital-storage-handover/single-upload/submitted") }}',
+            url: '{{ url("digital-storage-handover/single-upload-non-isbn/submitted") }}',
             type: 'POST',
             dataType: 'JSON',
             data: new FormData($('#form-data')[0]),
@@ -589,7 +589,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("digital-storage-handover/single-upload") }}';
+                            location.href = '{{ url("digital-storage-handover/single-upload-non-isbn") }}';
                         }
                     });
                 } else if(response.code == 400) {
