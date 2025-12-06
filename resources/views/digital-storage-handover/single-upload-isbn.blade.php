@@ -9,8 +9,14 @@
 </div>
 <div class="content pt-0">
     <div class="card">
-        <div class="card-header">
-            <h5 class="hstack gap-2 mb-0">Upload File Koleksi</h5>
+        <div class="card-header d-flex align-items-center py-0">
+            <h6 class="py-3 mb-0">Upload File Koleksi</h6>
+            <div class="ms-auto my-auto">
+                <a href="{{ asset('assets/Panduan Penggunaan Aplikasi Sakedap - Unggah Buku ISBN.pdf') }}" class="btn btn-teal" target="_blank">
+                    <i class="ph-eye me-1"></i>
+                    Lihat Panduan
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <form id="form-upload">
