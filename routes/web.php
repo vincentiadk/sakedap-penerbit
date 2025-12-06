@@ -109,14 +109,15 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('single-upload-isbn')->group(function () {
             Route::get('/', 'SingleUploadISBNController@index');
-            Route::get('check-isbn-code', 'SingleUploadISBNController@checkISBNCode');
-            Route::get('catalog-parent', 'SingleUploadISBNController@catalogParent');
-            Route::post('submitted', 'SingleUploadISBNController@submitted');
+            Route::get('datatable', 'SingleUploadISBNController@datatable');
+            Route::post('submission', 'SingleUploadISBNController@submission');
+            Route::post('uploaded', 'SingleUploadISBNController@uploaded');
+            Route::match(['get', 'post'], 'update-data/{id}', 'SingleUploadISBNController@updateData');
+            Route::delete('destroy-data', 'SingleUploadISBNController@destroyData');
         });
 
         Route::prefix('single-upload-non-isbn')->group(function () {
             Route::get('/', 'SingleUploadNonISBNController@index');
-            Route::get('check-isbn-code', 'SingleUploadNonISBNController@checkISBNCode');
             Route::get('catalog-parent', 'SingleUploadNonISBNController@catalogParent');
             Route::post('submitted', 'SingleUploadNonISBNController@submitted');
         });

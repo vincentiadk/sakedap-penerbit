@@ -119,8 +119,8 @@ class RejectController extends Controller
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
-                (status = '5' and deleted_at is null) and
-                penerbit_id = " . session('id') . " and
+                (e_collections.status = '5' and e_collections.deleted_at is null) and
+                e_collections.penerbit_id = " . session('id') . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
 

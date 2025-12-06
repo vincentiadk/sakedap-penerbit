@@ -1,0 +1,767 @@
+<?php
+
+namespace App\Http\Controllers\DigitalStorageHandover;
+
+use Carbon\Carbon;
+use App\Helpers\ISBN;
+use App\Helpers\Main;
+use App\Helpers\QueryAPI;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
+
+class SingleUploadISBNController extends Controller
+{
+    private $worksheetCategory;
+
+    public function __construct()
+    {
+        $this->worksheetCategory = Main::COLLECTION_DIGITAL;
+    }
+
+    public function index()
+    {
+        return view('layouts.index', [
+            'data' => [
+                'content' => 'digital-storage-handover.single-upload-isbn',
+                'plugins' => [
+                    'datatable',
+                    'daterangepicker',
+                    'select2',
+                    'fileinput',
+                ]
+            ]
+        ]);
+    }
+
+    public function datatable(Request $request)
+    {
+        $column = [
+            'ec.id',
+            null,
+            'ec.status_upload_isbn',
+            'ec.title',
+            'ec.code',
+            'ec.created_at',
+            'ccr.id',
+            'cfr.id',
+            null,
+            'ec.description',
+            'ec.city_id',
+            'ec.preview',
+            'ec.access',
+        ];
+
+        $draw = intval($request->draw ?? 0);
+        $start = intval($request->start ?? 0);
+        $length = $start + intval($request->length ?? 0);
+
+        $data = [];
+        $search = strtoupper($request->search['value']);
+
+        $orderBy = '';
+        $order = $request->order;
+
+        $whereClause = '';
+        $whereCondition[] = "(ec.status = '4' and ec.deleted_at is null)";
+        $whereCondition[] = "ec.penerbit_id = " . session('id');
+        $whereCondition[] = "ec.code_type = '1'";
+        $whereCondition[] = "ec.code is not null";
+        $whereCondition[] = "w.category = '" . $this->worksheetCategory . "'";
+
+        if ($search) {
+            $terms = [];
+
+            foreach ($column as $c) {
+                if ($c) {
+                    $terms[] = "upper($c) like '%$search%'";
+                }
+            }
+
+            $whereCondition[] = '(' . implode(' or ', $terms) . ')';
+        }
+
+        if ($whereCondition) {
+            $whereClause = "where " . implode(' and ', $whereCondition);
+        }
+
+        if ($order) {
+            $orderColumnIndex = $order[0]['column'];
+            $orderDir = $order[0]['dir'];
+            $orderBy = "order by " . $column[$orderColumnIndex] . " $orderDir";
+        }
+
+        $totalData = QueryAPI::get("
+            select
+                count(*) as total
+            from
+                e_collections
+            left join
+                worksheets on worksheets.id = e_collections.worksheet_id
+            where
+                (e_collections.status = '4' and e_collections.deleted_at is null) and
+                e_collections.penerbit_id = " . session('id') . " and
+                worksheets.category = '" . $this->worksheetCategory . "' and
+                e_collections.code_type = '1' and
+                e_collections.code is not null
+        ", true)->TOTAL ?? 0;
+
+        $totalFiltered = QueryAPI::get("
+            select
+                count(*) as total
+            from
+                e_collections ec
+            left join
+                worksheets w on w.id = ec.worksheet_id
+            left join
+                (
+                    select
+                        cf.e_col_id, cf.id,
+                        row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
+                    from
+                        catalogfiles cf
+                ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
+            left join
+                (
+                    select
+                        cc.e_col_id, cc.id,
+                        row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
+                    from
+                        catalogcovers cc
+                ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
+            $whereClause
+        ", true)->TOTAL ?? 0;
+
+        $queryData = QueryAPI::get("
+            select
+                *
+            from (
+                    select
+                        rownum as rnum,
+                        data.*
+                    from
+                        (
+                            select
+                                ec.*,
+                                ccr.id as id_catalogcovers,
+                                cfr.id as id_catalogfiles
+                            from
+                                e_collections ec
+                            left join
+                                worksheets w on w.id = ec.worksheet_id
+                            left join
+                                (
+                                    select
+                                        cf.e_col_id, cf.id,
+                                        row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
+                                    from
+                                        catalogfiles cf
+                                ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
+                            left join
+                                (
+                                    select
+                                        cc.e_col_id, cc.id,
+                                        row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
+                                    from
+                                        catalogcovers cc
+                                ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
+                            $whereClause
+                            $orderBy
+                        ) data
+                )
+            where
+                rnum > $start and rownum <= $length
+        ");
+
+        if ($queryData) {
+            foreach ($queryData as $val) {
+                $action = '
+                    <a href="' . url('digital-storage-handover/single-upload-isbn/update-data/' . $val->ID) . '" class="btn btn-warning btn-sm">
+                        <i class="ph-pen me-1"></i>
+                        Ubah Data
+                    </a>
+                    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="destroyData(' . $val->ID . ')">
+                        <i class="ph-trash-simple me-1"></i>
+                        Hapus Data
+                    </a>
+                ';
+
+                if (($val->ID_CATALOGCOVERS ?: null)) {
+                    $badgeCover = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                } else {
+                    $badgeCover = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->ID_CATALOGFILES ?: null)) {
+                    $badgeContent = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                } else {
+                    $badgeContent = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->PUBLICATION_DAY ?: null) && ($val->PUBLICATION_MONTH ?: null) && ($val->PUBLICATION_YEAR ?: null)) {
+                    $badgePublish = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                } else {
+                    $badgePublish = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->DESCRIPTION ?: null)) {
+                    $badgeDescription = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                } else {
+                    $badgeDescription = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->CITY_ID ?: null)) {
+                    $badgeCity = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                } else {
+                    $badgeCity = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->PREVIEW ?: null)) {
+                    $badgePreview = $val->PREVIEW;
+                } else {
+                    $badgePreview = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                if (($val->AKSES ?: null)) {
+                    $badgeAccess = $val->AKSES;
+                } else {
+                    $badgeAccess = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
+                }
+
+                $data[] = [
+                    $start + 1,
+                    $action,
+                    $val->STATUS_UPLOAD_ISBN,
+                    ($val->TITLE ?? $val->TITLE_ORI),
+                    $val->CODE,
+                    Carbon::parse($val->CREATED_AT)->isoFormat('dddd, D MMMM Y'),
+                    $badgeCover,
+                    $badgeContent,
+                    $badgePublish,
+                    $badgeDescription,
+                    $badgeCity,
+                    $badgePreview,
+                    $badgeAccess,
+                ];
+
+                $start++;
+            }
+        }
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $totalData,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
+    }
+
+    public function uploaded(Request $request)
+    {
+        $validation = Validator::make($request->all(), [
+            'files' => 'required|array',
+            'files.*' => 'mimes:jpg,jpeg,png,pdf,epub|max:204800'
+        ], [
+            'files.required' => 'File tidak boleh kosong',
+            'files.array' => 'File harus array',
+            'files.*.mimes' => 'File yang di upload harus jpg, jpeg, png, pdf, epub',
+            'files.*.max' => 'Per file yang di upload maksimal 200 MB',
+        ]);
+
+        if ($validation->fails()) {
+            $response = [
+                'code' => 400,
+                'error' => $validation->errors()->all(),
+            ];
+        } else {
+            $files = $request->file('files');
+            $groupedFiles = [];
+
+            foreach ($files as $file) {
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $key = Str::slug($filename);
+                $mime = $file->getMimeType();
+
+                if ($mime === 'application/pdf') {
+                    $groupedFiles[$key]['pdf'] = $file;
+                    $groupedFiles[$key]['original_name'] = $filename;
+                } else if ($mime === 'application/epub+zip' || $file->getClientOriginalExtension() === 'epub') {
+                    $groupedFiles[$key]['epub'] = $file;
+                    $groupedFiles[$key]['original_name'] = $filename;
+                } else if (str_starts_with($mime, 'image/')) {
+                    $groupedFiles[$key]['cover'] = $file;
+                    $groupedFiles[$key]['original_name'] = $filename;
+                }
+            }
+
+            $successCount = 0;
+            $errors = [];
+
+            foreach ($groupedFiles as $key => $group) {
+                $hasCover = isset($group['cover']);
+                $hasPdf = isset($group['pdf']);
+                $hasEpub = isset($group['epub']);
+                $contentIsXOR = ($hasPdf && !$hasEpub) || (!$hasPdf && $hasEpub);
+
+                if ($hasCover && $contentIsXOR) {
+                    $isbn = $group['original_name'];
+                    $isbnReplace = str_replace(['-', '_'], '', $isbn);
+
+                    $checkExists = QueryAPI::get("
+                        select
+                            *
+                        from
+                            e_collections
+                        where
+                            replace(code, '-', '') = '$isbnReplace'
+                    ", true);
+
+                    if (!$checkExists) {
+                        $getISBN = ISBN::get('search', [
+                            'penerbit_id' => session('id'),
+                            'code' => str_replace(['-', '_'], '', $isbn)
+                        ], true);
+
+                        $physicalDescription = [
+                            'paging' => $getISBN->jml_hlm ?? '',
+                            'paging_flag' => 'Halaman',
+                            'ill' => '',
+                            'sizes' => ''
+                        ];
+
+                        $createCollection = QueryAPI::create('e_collections', [
+                            'id_old' => 0,
+                            'publisher_id' => session('id'),
+                            'title_ori' => $getISBN->title ?? '',
+                            'slug' => Str::slug($getISBN->title ?? '', '-'),
+                            'series' => $getISBN->seri ?? '',
+                            'code' => $getISBN->isbn ?? $isbn,
+                            'code_type' => 1,
+                            'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
+                            'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
+                            'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
+                            'physical_description' => json_encode($physicalDescription),
+                            'sync' => 0,
+                            'manual' => 1,
+                            'akses' => $request->access,
+                            'status' => 4,
+                            'created_by' => session('id'),
+                            'updated_by' => session('id'),
+                            'copyright' => Main::copyright(session('id')),
+                            'worksheet_id' => 20,
+                            'collection_media_id' => 141,
+                            'penerbit_id' => session('id'),
+                            'title' => $getISBN->title ?? '',
+                            'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
+                            'description' => $getISBN->sinopsis ?? '',
+                            'edition' => $getISBN->edisi ?? '',
+                        ]);
+
+                        if ($createCollection) {
+                            if ($getISBN) {
+                                $statusUploadISBN = 'ISBN Ditemukan';
+                            } else {
+                                $statusUploadISBN = 'ISBN Tidak Ditemukan';
+                            }
+
+                            QueryAPI::update('e_collections', $createCollection->ID, [
+                                'status_upload_isbn' => $statusUploadISBN
+                            ]);
+
+                            if (isset($group['cover'])) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'cover',
+                                    'id' => $createCollection->ID,
+                                    'status' => 1,
+                                    'hash' => md5('FILE-COVER-' . $createCollection->SLUG),
+                                    'mime' => $group['cover']->getMimeType(),
+                                    'filesize' => $group['cover']->getSize(),
+                                    'method' => 3,
+                                    'iszip' => false,
+                                    'file' => $group['cover'],
+                                ]);
+                            }
+
+                            if ($hasPdf) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'konten_digital',
+                                    'id' => $createCollection->ID,
+                                    'status' => 1,
+                                    'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
+                                    'mime' => $group['pdf']->getMimeType(),
+                                    'filesize' => $group['pdf']->getSize(),
+                                    'method' => 3,
+                                    'iszip' => false,
+                                    'file' => $group['pdf'],
+                                ]);
+                            } else if ($hasEpub) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'konten_digital',
+                                    'id' => $createCollection->ID,
+                                    'status' => 1,
+                                    'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
+                                    'mime' => $group['epub']->getMimeType(),
+                                    'filesize' => $group['epub']->getSize(),
+                                    'method' => 3,
+                                    'iszip' => false,
+                                    'file' => $group['epub'],
+                                ]);
+                            }
+
+                            $successCount++;
+                        }
+                    } else {
+                        $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: kode tersebut sudah pernah di upload";
+                    }
+                } else {
+                    $missing = [];
+
+                    if (!$hasCover) $missing[] = 'File Cover tidak ada';
+                    if ($hasPdf && $hasEpub) $missing[] = 'File Konten lebih dari 1 (hanya boleh salah satu)';
+                    if (!$hasPdf && !$hasEpub) $missing[] = 'File Konten tidak ada (wajib PDF atau EPUB)';
+
+                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: " . implode(', ', $missing) . ".";
+                }
+            }
+
+            $code = 404;
+            $message = 'Tidak ada pasangan file yang valid ditemukan.<br>Pastikan setiap buku memiliki Cover dan satu Konten (PDF atau EPUB).';
+
+            if ($successCount > 0) {
+                $code = 200;
+                $message = "Berhasil memproses <strong>$successCount</strong> pasangan buku (Cover + Konten)";
+            }
+
+            $response = [
+                'code' => $code,
+                'error' => $errors,
+                'message' => $message
+            ];
+        }
+
+        return response()->json($response);
+    }
+
+    public function submission()
+    {
+        $data = QueryAPI::get("
+            select
+                id
+            from
+                e_collections
+            where
+                deleted_at is null and
+                status = '4' and
+                penerbit_id = " . session('id') . " and
+                code_type = 1 and
+                code is not null
+        ");
+
+        if ($data) {
+            foreach ($data as $d) {
+                QueryAPI::update('e_collections', $d->ID, ['status' => 1]);
+            }
+
+            $response = [
+                'code' => 200,
+                'message' => 'Data berhasil diajukan'
+            ];
+        } else {
+            $response = [
+                'code' => 404,
+                'message' => 'Tidak ada data yang diajukan'
+            ];
+        }
+
+        return response()->json($response);
+    }
+
+    public function updateData(Request $request, $id)
+    {
+        $sqlCollection = "
+            select
+                ec.*,
+                kabupaten.namakab as namakab,
+                w.name as name_worksheet,
+                w.category as category_worksheet,
+                propinsi.namapropinsi as namapropinsi,
+                parents.title as title_parent,
+                ccr.id as id_catalogcovers,
+                ccr.fileurl as fileurl_catalogcovers,
+                ccr.hash as hash_catalogcovers,
+                ccr.mime as mime_catalogcovers,
+                ccr.file_size as file_size_catalogcovers,
+                ccr.method as method_catalogcovers,
+                cfr.id as id_catalogfiles,
+                cfr.fileurl as fileurl_catalogfiles,
+                cfr.hash as hash_catalogfiles,
+                cfr.mime as mime_catalogfiles,
+                cfr.file_size as file_size_catalogfiles,
+                cfr.method as method_catalogfiles
+            from
+                e_collections ec
+            left join
+                kabupaten on kabupaten.id = ec.kabupaten_id
+            left join
+                propinsi on propinsi.id = kabupaten.propinsiid
+            left join
+                e_collections parents on parents.id = ec.parent_id
+            left join
+                worksheets w on w.id = ec.worksheet_id
+            left join
+                (
+                    select
+                        cf.e_col_id, cf.id, cf.fileurl, cf.hash, cf.mime, cf.file_size, cf.method,
+                        row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
+                    from
+                        catalogfiles cf
+                ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
+            left join
+                (
+                    select
+                        cc.e_col_id, cc.id, cc.fileurl, cc.hash, cc.mime, cc.file_size, cc.method,
+                        row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
+                    from
+                        catalogcovers cc
+                ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
+            where
+                ec.id = $id and
+                ec.deleted_at is null and
+                ec.status = '4' and
+                w.category = '" . $this->worksheetCategory . "' and
+                ec.penerbit_id = " . session('id') . " and
+                ec.code_type = 1 and
+                ec.code is not null
+        ";
+
+        $collection = QueryAPI::get($sqlCollection, true);
+
+        if (!$collection) {
+            abort(404);
+        }
+
+        if ($request->ajax()) {
+            $validation = Validator::make($request->all(), [
+                'city_id' => 'required',
+                'title' => 'required',
+                'collection_media_id' => 'required',
+                'access' => 'required',
+                'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
+                'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
+            ], [
+                'city_id.required' => 'Kota tidak boleh kosong',
+                'title.required' => 'Judul tidak boleh kosong',
+                'collection_media_id.required' => 'Media tidak boleh kosong',
+                'access.required' => 'Akses tidak boleh kosong',
+                'file_cover.image' => 'File cover tidak valid',
+                'file_cover.mimes' => 'File cover harus png, jpg, jpeg',
+                'file_cover.max' => 'File cover maksimal ' . Main::formatFileSize((int) config('system.catalog_cover_max_upload')),
+                'file_content.file' => 'File konten tidak valid',
+                'file_content.mimes' => 'File konten harus pdf, epub, mp3, mp4, wav',
+                'file_content.max' => 'File konten maksimal ' . Main::formatFileSize((int) config('system.catalog_content_max_upload')),
+            ]);
+
+            if ($validation->fails()) {
+                $response = [
+                    'code' => 400,
+                    'error' => $validation->errors()->all(),
+                ];
+            } else {
+                try {
+                    $userId = session('id');
+                    $publishTime = strtotime($request->publish_time);
+                    $executorId = session('id');
+                    $status = $request->param;
+
+                    $baseCollectionData = [
+                        'id_old' => 0,
+                        'publisher_id' => $executorId,
+                        'city_id' => $request->city_id,
+                        'title_ori' => $request->title,
+                        'album' => $request->album,
+                        'slug' => Str::slug($request->title, '-'),
+                        'series' => $request->series,
+                        'serial' => $request->serial,
+                        'publication_month' => date('m', $publishTime),
+                        'publication_year' => date('Y', $publishTime),
+                        'publication_day' => date('d', $publishTime),
+                        'preview' => $request->preview,
+                        'physical_description' => json_encode($request->physical_description),
+                        'sync' => 0,
+                        'manual' => 1,
+                        'akses' => $request->access,
+                        'status' => $status,
+                        'created_by' => $userId,
+                        'updated_by' => $userId,
+                        'price' => str_replace([',', '.'], '', $request->price),
+                        'copyright' => Main::copyright($executorId),
+                        'collection_media_id' => $request->collection_media_id,
+                        'penerbit_id' => $executorId,
+                        'kabupaten_id' => $request->city_id,
+                        'title' => $request->title,
+                        'author' => implode(';', ($request->author ?? [])),
+                        'jilid' => $request->binding,
+                        'currency' => $request->currency,
+                        'description' => $request->description,
+                        'edition' => $request->edition,
+                        'edition_date' => date('Y-m-d H:i:s', strtotime($request->edition_date)),
+                        'qrcbn' => $request->qrcbn,
+                    ];
+
+                    $updateCollection = QueryAPI::update('e_collections', $id, $baseCollectionData);
+
+                    if (!$updateCollection) {
+                        throw new \Exception('Gagal membuat data koleksi');
+                    }
+
+                    $collection = QueryAPI::get($sqlCollection, true);
+
+                    $collectionCategory = QueryAPI::get("
+                        select
+                            *
+                        from
+                            e_collection_categories
+                        where
+                            collection_id = $id
+                    ");
+
+                    foreach ($collectionCategory ?? [] as $cc) {
+                        QueryAPI::delete('e_collection_categories', $cc->ID);
+                    }
+
+                    if ($request->category && is_array($request->category)) {
+                        $categoryData = [];
+
+                        foreach ($request->category as $categoryId) {
+                            $categoryData[] = [
+                                'collection_id' => $id,
+                                'category_id' => $categoryId
+                            ];
+                        }
+
+                        foreach ($categoryData as $data) {
+                            QueryAPI::create('e_collection_categories', $data);
+                        }
+                    }
+
+                    $fileCover = $request->file('file_cover');
+                    $fileContent = $request->file('file_content');
+
+                    if ($fileCover) {
+                        QueryAPI::uploadFile([
+                            'type' => 'cover',
+                            'id' => $id,
+                            'status' => 1,
+                            'hash' => md5('FILE-COVER-' . ($collection->SLUG ?? '')),
+                            'mime' => $fileCover->getMimeType(),
+                            'filesize' => $fileCover->getSize(),
+                            'method' => 3,
+                            'iszip' => false,
+                            'file' => $fileCover,
+                        ]);
+                    }
+
+                    if ($fileContent) {
+                        QueryAPI::uploadFile([
+                            'type' => 'konten_digital',
+                            'id' => $id,
+                            'status' => 1,
+                            'hash' => md5('FILE-KONTEN-' . ($collection->SLUG ?? '')),
+                            'mime' => $fileContent->getMimeType(),
+                            'filesize' => $fileContent->getSize(),
+                            'method' => 3,
+                            'iszip' => false,
+                            'file' => $fileContent,
+                        ]);
+                    }
+
+                    $response = [
+                        'code' => 200,
+                        'message' => 'Data telah di update'
+                    ];
+                } catch (\Exception $e) {
+                    $response = [
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ];
+                }
+            }
+
+            return response()->json($response);
+        }
+
+        $collectionCategory = [];
+        $dataCollectionCategory = QueryAPI::get("
+            select
+                *
+            from
+                e_collection_categories
+            where
+                collection_id = $id
+        ");
+
+        if ($dataCollectionCategory) {
+            foreach ($dataCollectionCategory as $dcc) {
+                $collectionCategory[] = $dcc->CATEGORY_ID;
+            }
+        }
+
+        $collectionProblemHistory = QueryAPI::get("
+            select
+                e_collection_problems.*,
+                e_problems.name as name_problem
+            from
+                e_collection_problems
+            left join
+                e_problems on e_problems.id = e_collection_problems.problem_id
+            where
+                e_collection_problems.collection_id = $id
+        ");
+
+        return view('layouts.index', [
+            'data' => [
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
+                'collection' => $collection,
+                'collectionCategory' => $collectionCategory,
+                'collectionContributor' => explode(';', ($collection->AUTHOR ?? '')),
+                'collectionProblemHistory' => $collectionProblemHistory,
+                'physicalDescription' => json_decode($collection->PHYSICAL_DESCRIPTION ?? ''),
+                'content' => 'digital-storage-handover.single-upload-isbn-detail',
+                'plugins' => [
+                    'select2',
+                    'daterangepicker',
+                    'datatable',
+                    'epubjs',
+                    'videojs',
+                    'pdfjs',
+                    'howlerjs',
+                ]
+            ]
+        ]);
+    }
+
+    public function destroyData(Request $request)
+    {
+        $id = $request->id;
+
+        try {
+            QueryAPI::update('e_collections', $id, [
+                'deleted_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $response = [
+                'code' => 200,
+                'message' => 'Data telah dihapus'
+            ];
+        } catch (\Exception $e) {
+            $response = [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ];
+        }
+
+        return response()->json($response);
+    }
+}

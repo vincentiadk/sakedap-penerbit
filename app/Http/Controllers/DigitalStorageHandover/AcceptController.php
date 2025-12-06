@@ -119,7 +119,7 @@ class AcceptController extends Controller
                 worksheets on worksheets.id = catalogs.worksheet_id
             where
                 (
-                    catalogs.isdelete = 0 or
+                    catalogs.catalogs.isdelete = 0 or
                     catalogs.isdelete is null
                 ) and
                 worksheets.category = '$this->worksheetCategory' and

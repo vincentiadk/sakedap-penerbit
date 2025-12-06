@@ -30,24 +30,9 @@ class SingleUploadNonISBNController extends Controller
                 'plugins' => [
                     'select2',
                     'daterangepicker',
-                    'fileinput',
                     'datatable',
                 ]
             ]
-        ]);
-    }
-
-    public function checkISBNCode(Request $request)
-    {
-        $code = $request->code;
-        $data = ISBN::get('search', [
-            'penerbit_id' => session('id'),
-            'code' => $code
-        ], true);
-
-        return response()->json([
-            'code' => $data ? 200 : 500,
-            'data' => $data
         ]);
     }
 

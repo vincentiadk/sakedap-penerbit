@@ -82,14 +82,12 @@
                         <div class="input-group">
                             <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" onchange="codeType()">
                                 <option value="">Tidak Ada</option>
-                                <option value="1">ISBN</option>
                                 <option value="2">ISMN</option>
                                 <option value="3">ISRC</option>
                                 <option value="4">ISSN</option>
                                 <option value="5">ISAN</option>
                             </select>
                             <input type="text" class="form-control" name="code" id="code" placeholder="....................">
-                            <button type="button" class="btn btn-success" id="btn-check-isbn" onclick="checkISBNCode()">Cek Kode</button>
                         </div>
                     </div>
                 </div>
@@ -436,65 +434,6 @@
         }
     }
 
-    function checkISBNCode() {
-        $.ajax({
-            url: '{{ url("digital-storage-handover/single-upload-non-isbn/check-isbn-code") }}',
-            type: 'GET',
-            dataType: 'JSON',
-            data: {
-                code: $('#code').val()
-            },
-            beforeSend: function() {
-                onLoading('show', 'body');
-            },
-            success: function(response) {
-                onLoading('close', 'body');
-
-                if(response.code == 200) {
-                    swalInit.fire({
-                        title: 'Data ditemukan',
-                        icon: 'success',
-                        showDenyButton: true,
-                        confirmButtonText: 'Otomatis Isi',
-                        denyButtonText: 'Hanya Cek Kode'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const data = response?.data ?? {};
-
-                            $('#title').val(data.title ?? '');
-                            $('#binding').val(data.keterangan ?? '');
-                            $('input[name="physical_description[paging]"]').val(data.jml_hlm ?? '');
-                            $('select[name="physical_description[paging_flag]"]').val('Halaman');
-                            $('#description').val(data.sinopsis ?? '');
-
-                            if (data.tanggal_terbit) {
-                                $('#publish_time').val(moment(data.tanggal_terbit).format('YYYY/MM/DD'));
-                            }
-
-                            if (data.seri) {
-                                $('#series_checkbox').prop('checked', false);
-                                $('#series').val(data.seri);
-                            }
-
-                            if (data.kepeng) {
-                                const contributors = data.kepeng.split(', ');
-                                const options = contributors.map(val => `<option value="${val}" selected>${val}</option>`).join('');
-
-                                $('#author').append(options);
-                            }
-                        }
-                    });
-                } else {
-                    swalInit.fire('Oops', 'Data tidak ditemukan', 'error');
-                }
-            },
-            error: function(response) {
-                onLoading('close', 'body');
-                responseError(response);
-            }
-        });
-    }
-
     function addEdition() {
         var total = $('#add-number-edition').val();
 
@@ -532,12 +471,9 @@
         var codeType = $('#code_type').val();
 
         $('#code').val('');
-        $('#btn-check-isbn').hide();
         $('#code').attr('disabled', false);
 
-        if(codeType == 1) {
-            $('#btn-check-isbn').show();
-        } else if(codeType == '') {
+        if(codeType == '') {
             $('#code').attr('disabled', true);
         }
     }
