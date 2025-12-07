@@ -5,16 +5,6 @@
                 <span class="fw-normal">Tagihan ISBN</span>
             </h4>
         </div>
-        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
-            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
-                <div class="d-inline-flex mt-3 mt-sm-0">
-                    <div class="input-group">
-                        <span class="input-group-text">Filter Total Ringkasan</span>
-                        <input type="text" class="form-control wmin-200 date-range-picker" name="date_summary" id="date_summary" value="{{ date('Y/m/01') }} - {{ date('Y/m/t') }}" placeholder="Pilih Tanggal" readonly>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 <div class="content pt-0">
@@ -230,12 +220,6 @@
         datePickerBasic('.date-range-picker');
         loadData();
         loadSummary();
-
-        $('#date_summary').on('apply.daterangepicker', function (e, picker) {
-            picker.element.val(picker.startDate.format(picker.locale.format) + " - " + picker.endDate.format(picker.locale.format));
-
-            loadSummary();
-        });
     });
 
     function loadSummary() {
@@ -243,9 +227,6 @@
             url: '{{ url("bill-isbn/load-summary") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date_summary').val()
-            },
             beforeSend: function() {
                 onLoading('show', '.card-summary');
             },

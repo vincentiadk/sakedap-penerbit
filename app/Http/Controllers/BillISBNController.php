@@ -183,8 +183,6 @@ class BillISBNController extends Controller
 
         $data = ISBN::get('tagihan_isbn', [
             'penerbit_id' => session('id'),
-            'createdate_from' => $startDate,
-            'createdate_to' => $endDate,
         ]);
 
         return response()->json($data);
