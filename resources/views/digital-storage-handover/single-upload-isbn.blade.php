@@ -77,7 +77,7 @@
             uploadUrl: '{{ url("digital-storage-handover/single-upload-isbn/uploaded") }}',
             uploadAsync: false,
             showUpload: false,
-            maxFileCount: 100,
+            showCancel: false,
             autoReplace: false,
             allowedFileExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'epub'],
             maxFileSize: 204800,
@@ -86,7 +86,7 @@
             dropZoneEnabled: true,
             dropZoneClickable: true,
             dropZoneTitle: 'Drag & drop file di sini atau <span class="text-primary">klik untuk browse</span>',
-            msgPlaceholder: 'Pilih satu atau beberapa file (otomatis upload)...',
+            msgPlaceholder: 'Pilih dua atau beberapa file (otomatis upload)',
             uploadExtraData: function() {
                 return {
                     _token: '{{ csrf_token() }}'
@@ -125,10 +125,8 @@
                     }
                 }
 
-                if (fileCount > 0) {
+                if (fileCount > 1) {
                     isUploading = true;
-
-                    onLoading('show', 'body');
 
                     setTimeout(function() {
                         $input.fileinput('upload');
@@ -151,8 +149,6 @@
 
         $input.on('filebatchuploadsuccess', function(event, data, previewId, index) {
             isUploading = false;
-
-            onLoading('close', 'body');
 
             const response = data.response;
             let errMessage = '';
@@ -197,8 +193,6 @@
 
         $input.on('filebatchuploaderror', function(event, data, msg) {
             isUploading = false;
-
-            onLoading('close', 'body');
 
             var errorMsg = 'Terjadi kesalahan saat upload';
             var errorDetails = [];
