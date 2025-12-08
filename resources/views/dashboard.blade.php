@@ -135,7 +135,7 @@
             <div class="card" id="card-total-collection">
                 <div class="card-header d-flex align-items-center">
                     <h6 class="mb-0">
-                        <i class="ph-chart-donut me-1"></i>
+                        <i class="ph-chart-pie-slice me-1"></i>
                         Distribusi Koleksi
                     </h6>
                     <div class="ms-auto">

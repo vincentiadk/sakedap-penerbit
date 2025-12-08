@@ -50,7 +50,7 @@
 						</a>
 					</li>
 					<li class="nav-item">
-						<a href="{{ url('dashboard') }}" class="navbar-nav-link rounded {{ Request::segment(1) == 'request-file' ? 'active' : '' }}">
+						<a href="{{ url('request-file') }}" class="navbar-nav-link rounded {{ Request::segment(1) == 'request-file' ? 'active' : '' }}">
 							<i class="ph-file-plus me-2"></i>
 							Permintaan File
 						</a>
