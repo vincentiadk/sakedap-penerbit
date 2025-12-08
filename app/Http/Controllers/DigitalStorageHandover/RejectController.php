@@ -37,6 +37,7 @@ class RejectController extends Controller
         $column = [
             'e_collections.id',
             null,
+            'penerbit.name',
             'e_collections.title',
             'collectionmedias.name',
             'e_collections.code',
@@ -56,7 +57,7 @@ class RejectController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "(e_collections.status = '5' and e_collections.deleted_at is null)";
-        $whereCondition[] = "e_collections.penerbit_id = " . session('id');
+        $whereCondition[] = "e_collections.penerbit_id = " . $request->executor_id;
         $whereCondition[] = "worksheets.category = '" . $this->worksheetCategory . "'";
 
         if ($request->title) {
@@ -120,7 +121,7 @@ class RejectController extends Controller
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
                 (e_collections.status = '5' and e_collections.deleted_at is null) and
-                e_collections.penerbit_id = " . session('id') . " and
+                e_collections.penerbit_id = " . $request->executor_id . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
 
@@ -135,6 +136,8 @@ class RejectController extends Controller
                 worksheets on worksheets.id = e_collections.worksheet_id
             left join
                 collectionmedias on collectionmedias.id = e_collections.collection_media_id
+            left join
+                penerbit on penerbit.id = e_collections.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -149,7 +152,8 @@ class RejectController extends Controller
                         (
                             select
                                 e_collections.*,
-                                collectionmedias.name as name_media
+                                collectionmedias.name as name_media,
+                                penerbit.name as name_penerbit
                             from
                                 e_collections
                             left join
@@ -158,6 +162,8 @@ class RejectController extends Controller
                                 worksheets on worksheets.id = e_collections.worksheet_id
                             left join
                                 collectionmedias on collectionmedias.id = e_collections.collection_media_id
+                            left join
+                                penerbit on penerbit.id = e_collections.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -178,6 +184,7 @@ class RejectController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     ($val->TITLE ?? $val->TITLE_ORI),
                     $val->NAME_MEDIA,
                     $val->CODE,
@@ -202,6 +209,7 @@ class RejectController extends Controller
         $sqlCollection = "
             select
                 ec.*,
+                penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
                 w.name as name_worksheet,
                 w.category as category_worksheet,
@@ -230,6 +238,8 @@ class RejectController extends Controller
             left join
                 worksheets w on w.id = ec.worksheet_id
             left join
+                penerbit on penerbit.id = ec.penerbit_id
+            left join
                 (
                     select
                         cf.e_col_id, cf.id, cf.fileurl, cf.hash, cf.mime, cf.file_size, cf.method,
@@ -249,8 +259,7 @@ class RejectController extends Controller
                 ec.id = $id and
                 ec.deleted_at is null and
                 ec.status = '5' and
-                w.category = '" . $this->worksheetCategory . "' and
-                ec.penerbit_id = " . session('id') . "
+                w.category = '" . $this->worksheetCategory . "'
         ";
 
         $collection = QueryAPI::get($sqlCollection, true);

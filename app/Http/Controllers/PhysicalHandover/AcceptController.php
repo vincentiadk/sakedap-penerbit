@@ -28,6 +28,7 @@ class AcceptController extends Controller
     {
         $column = [
             'letter_detail.letter_detail_id',
+            'penerbit.name',
             'letter.accept_date',
             'letter.letter_date',
             'letter_detail.title',
@@ -50,9 +51,9 @@ class AcceptController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')";
+        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
         $whereCondition[] = "letter_detail.qty_accept > 0";
-        $whereCondition[] = "letter.penerbit_id = " . session('id');
+        $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
             $whereCondition[] = "letter.jasa_pengiriman_id = $request->delivery_service_id";
@@ -96,9 +97,9 @@ class AcceptController extends Controller
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             where
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL') and
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
                 letter_detail.qty_accept > 0 and
-                letter.penerbit_id = " . session('id') . "
+                letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -112,6 +113,8 @@ class AcceptController extends Controller
                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
             left join
                 branchs on branchs.id = letter.branch_id
+            left join
+                penerbit on penerbit.id = letter.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -132,7 +135,8 @@ class AcceptController extends Controller
                                 letter.status as status_letter,
                                 letter.proses_by as proses_by_letter,
                                 letter.accept_date as accept_date_letter,
-                                letter.letter_date as letter_date_letter
+                                letter.letter_date as letter_date_letter,
+                                penerbit.name as name_penerbit
                             from
                                 letter_detail
                             left join
@@ -141,6 +145,8 @@ class AcceptController extends Controller
                                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
                             left join
                                 branchs on branchs.id = letter.branch_id
+                            left join
+                                penerbit on penerbit.id = letter.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -153,6 +159,7 @@ class AcceptController extends Controller
             foreach ($queryData as $val) {
                 $data[] = [
                     $start + 1,
+                    $val->NAME_PENERBIT,
                     Carbon::parse($val->ACCEPT_DATE_LETTER)->isoFormat('D MMMM Y'),
                     Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMMM Y'),
                     $val->TITLE,

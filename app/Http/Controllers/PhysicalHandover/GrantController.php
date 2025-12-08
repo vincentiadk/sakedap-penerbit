@@ -28,6 +28,7 @@ class GrantController extends Controller
     {
         $column = [
             'hibah_detail.id',
+            'penerbit.name',
             'letter.letter_date',
             'hibah_detail.createdate',
             'hibah_detail.judul',
@@ -52,7 +53,7 @@ class GrantController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "letter.penerbit_id = " . session('id');
+        $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
             $whereCondition[] = "letter.jasa_pengiriman_id = $request->delivery_service_id";
@@ -98,7 +99,7 @@ class GrantController extends Controller
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             where
-                letter.penerbit_id = " . session('id') . "
+                letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -116,6 +117,8 @@ class GrantController extends Controller
                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
             left join
                 branchs on branchs.id = letter.branch_id
+            left join
+                penerbit on penerbit.id = letter.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -136,6 +139,7 @@ class GrantController extends Controller
                                 letter_detail.jenis_media as jenis_media_letter_detail,
                                 jasa_pengiriman.name as name_jasa_pengiriman,
                                 branchs.name as name_branch,
+                                penerbit.name as name_penerbit,
                                 letter.receipt_no as receipt_no_letter,
                                 letter.status as status_letter,
                                 letter.proses_by as proses_by_letter,
@@ -152,6 +156,8 @@ class GrantController extends Controller
                                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
                             left join
                                 branchs on branchs.id = letter.branch_id
+                            left join
+                                penerbit on penerbit.id = letter.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -177,6 +183,7 @@ class GrantController extends Controller
 
                 $data[] = [
                     $start + 1,
+                    $val->NAME_PENERBIT,
                     Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('dddd, D MMMM Y'),
                     Carbon::parse($val->CREATEDATE)->isoFormat('dddd, D MMMM Y'),
                     $val->JUDUL,

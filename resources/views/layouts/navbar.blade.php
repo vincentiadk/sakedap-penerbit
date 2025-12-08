@@ -9,6 +9,47 @@
 			</div>
 			<div class="d-flex w-100 w-xl-auto overflow-auto overflow-xl-visible scrollbar-hidden border-top border-top-xl-0 order-1 order-xl-0 pt-2 pt-xl-0 mt-2 mt-xl-0">
 				<ul class="nav gap-1 justify-content-center flex-nowrap flex-xl-wrap mx-auto">
+                    <li class="nav-item nav-item-dropdown-lg dropdown">
+						<a href="{{ url('auth/profile') }}" class="navbar-nav-link rounded" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+							<i class="ph-users-four me-2"></i>
+							Grup
+						</a>
+                        <div class="dropdown-menu wmin-lg-400 p-0">
+                            <div class="d-flex align-items-center py-2 px-3 border-bottom">
+                                <h6 class="mb-0">
+                                    @if(session('group'))
+                                        {{ session('group') }}
+                                    @else
+                                        Tidak ada grup
+                                    @endif
+                                </h6>
+                            </div>
+                            <div class="dropdown-menu-scrollable">
+                                @if(count(Main::getExecutorGroup()) > 0)
+                                    @foreach(Main::getExecutorGroup() as $geg)
+                                        <div class="dropdown-item align-items-start text-wrap py-2 no-click">
+                                            <div class="flex-1">
+                                                <span class="fw-normal">{{ $geg->NAME }}</span>
+                                                <div class="text-muted">
+                                                    <small>
+                                                        ISBN : {{ $geg->IS_ISBN == 1 ? 'Terhubung' : 'Tidak Terhubung' }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-3">Tidak ada anggota</div>
+                                @endif
+                            </div>
+                            <div class="d-flex border-top py-2 px-3">
+                                <span class="text-dark no-click">
+                                    <i class="ph-database me-1"></i>
+                                    Total Anggota : <b>{{ count(Main::getExecutorGroup()) }}</b>
+                                </span>
+                            </div>
+                        </div>
+					</li>
                     <li class="nav-item">
 						<a href="{{ url('auth/profile') }}" class="navbar-nav-link rounded">
 							<i class="ph-user-circle me-2"></i>

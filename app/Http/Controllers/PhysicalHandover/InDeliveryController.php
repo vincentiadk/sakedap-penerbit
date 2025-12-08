@@ -28,6 +28,7 @@ class InDeliveryController extends Controller
     {
         $column = [
             'letter_detail.letter_detail_id',
+            'penerbit.name',
             'letter.letter_date',
             'letter_detail.title',
             'branchs.name',
@@ -48,7 +49,7 @@ class InDeliveryController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "letter.status in ('DALAM PENGIRIMAN')";
-        $whereCondition[] = "letter.penerbit_id = " . session('id');
+        $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
             $whereCondition[] = "letter.jasa_pengiriman_id = $request->delivery_service_id";
@@ -93,7 +94,7 @@ class InDeliveryController extends Controller
                 letter on letter.letter_id = letter_detail.letter_id
             where
                 letter.status in ('DALAM PENGIRIMAN') and
-                letter.penerbit_id = " . session('id') . "
+                letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -107,6 +108,8 @@ class InDeliveryController extends Controller
                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
             left join
                 branchs on branchs.id = letter.branch_id
+            left join
+                penerbit on penerbit.id = letter.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -123,6 +126,7 @@ class InDeliveryController extends Controller
                                 letter_detail.*,
                                 jasa_pengiriman.name as name_jasa_pengiriman,
                                 branchs.name as name_branch,
+                                penerbit.name as name_penerbit,
                                 letter.receipt_no as receipt_no_letter,
                                 letter.letter_date as letter_date_letter
                             from
@@ -133,6 +137,8 @@ class InDeliveryController extends Controller
                                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
                             left join
                                 branchs on branchs.id = letter.branch_id
+                            left join
+                                penerbit on penerbit.id = letter.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -145,6 +151,7 @@ class InDeliveryController extends Controller
             foreach ($queryData as $val) {
                 $data[] = [
                     $start + 1,
+                    $val->NAME_PENERBIT,
                     Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMMM Y'),
                     $val->TITLE,
                     $val->NAME_BRANCH,

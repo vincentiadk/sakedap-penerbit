@@ -106,7 +106,7 @@ class SingleUploadNonISBNController extends Controller
                     $publishTime = strtotime($request->publish_time);
                     $catalogId = $request->catalog_id;
                     $catalog = QueryAPI::get("select edeposit_col_id from catalogs where id = $catalogId", true);
-                    $executorId = session('id');
+                    $executorId = $request->executor_id;
 
                     $baseCollectionData = [
                         'id_old' => 0,

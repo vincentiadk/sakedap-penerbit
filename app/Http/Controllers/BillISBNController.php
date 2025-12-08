@@ -34,7 +34,7 @@ class BillISBNController extends Controller
         $filter = [
             'start' => $start,
             'length' => $length,
-            'penerbit_id' => session('id'),
+            'penerbit_id' => $request->executor_id,
         ];
 
         if ($search) {
@@ -139,7 +139,7 @@ class BillISBNController extends Controller
 
                 if ($letterDetail) {
                     $status = '
-                        <a href="' . url('physical-delivery/accept/print/' . $letterDetail->LETTER_ID) . '" class="btn btn-success btn-sm" target="_blank">
+                        <a href="' . url('physical-handover/delivery-accept/print/' . $letterDetail->LETTER_ID) . '" class="btn btn-success btn-sm" target="_blank">
                             <i class="ph-check me-1"></i>
                             Sudah Diterima
                         </a>
@@ -149,6 +149,7 @@ class BillISBNController extends Controller
                 $data[] = [
                     $start +  1,
                     $status,
+                    isset($val->nama_penerbit) ? $val->nama_penerbit : '',
                     isset($val->title) ? $val->title : '',
                     $author,
                     isset($val->tahun_terbit) ? $val->tahun_terbit : '',
@@ -177,12 +178,8 @@ class BillISBNController extends Controller
 
     public function loadSummary(Request $request)
     {
-        $explodeDate = explode(' - ', $request->date);
-        $startDate = Carbon::parse($explodeDate[0])->format('Y-m-d');
-        $endDate = Carbon::parse($explodeDate[1])->format('Y-m-d');
-
         $data = ISBN::get('tagihan_isbn', [
-            'penerbit_id' => session('id'),
+            'penerbit_id' => $request->executor_id,
         ]);
 
         return response()->json($data);

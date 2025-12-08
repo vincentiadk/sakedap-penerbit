@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Helpers\Main;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +36,7 @@ class Authentication
 
         if (!$id) {
             Session::flush();
+
             return redirect('/');
         }
 

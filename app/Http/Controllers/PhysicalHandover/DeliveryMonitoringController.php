@@ -32,6 +32,7 @@ class DeliveryMonitoringController extends Controller
         $column = [
             'l.letter_id',
             null,
+            'p.name',
             'l.status',
             'l.letter_number',
             'l.letter_date',
@@ -52,7 +53,7 @@ class DeliveryMonitoringController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "l.status in ('DIKIRIM', 'DALAM PENGIRIMAN')";
-        $whereCondition[] = "l.penerbit_id = " . session('id');
+        $whereCondition[] = "l.penerbit_id = " . $request->executor_id;
         $whereCondition[] = "l.order_no is null";
 
         if ($request->branch_id) {
@@ -95,7 +96,7 @@ class DeliveryMonitoringController extends Controller
             from
                 letter
             where
-                penerbit_id = " . session('id') . " and
+                penerbit_id = " . $request->executor_id . " and
                 status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
                 order_no is null
         ", true)->TOTAL ?? 0;
@@ -109,6 +110,8 @@ class DeliveryMonitoringController extends Controller
                 branchs b on b.id = l.branch_id
             left join
                 letter_detail ld on ld.letter_id = l.letter_id
+            left join
+                penerbit p on p.id = l.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -128,13 +131,14 @@ class DeliveryMonitoringController extends Controller
                                 l.letter_number,
                                 l.letter_date,
                                 b.name as name_branch,
+                                p.name as name_penerbit,
                                 case
-                                    when l.status in ('DIKIRIM')
+                                    when l.status in ('DIKIRIM', 'DALAM PENGIRIMAN')
                                     then coalesce(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
-                                    when l.status in ('DIKIRIM')
+                                    when l.status in ('DIKIRIM', 'DALAM PENGIRIMAN')
                                     then coalesce(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery
@@ -142,6 +146,8 @@ class DeliveryMonitoringController extends Controller
                                 letter l
                             left join
                                 branchs b on b.id = l.branch_id
+                            left join
+                                penerbit p on p.id = l.penerbit_id
                             left join
                                 (
                                     select
@@ -179,6 +185,7 @@ class DeliveryMonitoringController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     $val->STATUS,
                     $val->LETTER_NUMBER,
                     Carbon::parse($val->LETTER_DATE)->isoFormat('D MMMM Y'),
@@ -213,7 +220,6 @@ class DeliveryMonitoringController extends Controller
                     letter
                 where
                     letter_id = $id and
-                    penerbit_id = " . session('id') . " and
                     status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
                     order_no is null
             ";
@@ -358,7 +364,6 @@ class DeliveryMonitoringController extends Controller
                     propinsi on propinsi.id = branchs.province_id
                 where
                     letter.letter_id = $id and
-                    letter.penerbit_id = " . session('id') . " and
                     letter.status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
                     letter.order_no is null
             ";

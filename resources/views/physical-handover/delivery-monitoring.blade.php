@@ -14,6 +14,22 @@
         </div>
         <div class="card-body">
             <form id="form-filter">
+                <div class="form-group">
+                    <div class="input-group">
+                        <span class="input-group-text">Pelaksana Serah</span>
+                        <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                            <option value=""></option>
+                            @if(Main::getExecutorGroup())
+                                @foreach(Main::getExecutorGroup() as $geg)
+                                    <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                                @endforeach
+                            @else
+                                <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                            @endif
+                        </select>
+                    </div>
+                </div>
+                <hr class="py-1 mb-1">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
@@ -64,6 +80,7 @@
                     <tr>
                         <th class="text-nowrap" rowspan="2">No</th>
                         <th class="text-nowrap" rowspan="2">Aksi</th>
+                        <th class="text-nowrap" rowspan="2">Pelaksana Serah</th>
                         <th class="text-nowrap" rowspan="2">Status</th>
                         <th class="text-nowrap" rowspan="2">No Surat</th>
                         <th class="text-nowrap" rowspan="2">Tanggal</th>
@@ -115,6 +132,7 @@
             columns: [
                 { orderable: true, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },

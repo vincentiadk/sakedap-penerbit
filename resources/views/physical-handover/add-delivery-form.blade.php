@@ -13,6 +13,92 @@
     </div>
     <form id="form-data">
         <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="ph-address-book me-1"></i>
+                    Informasi Pengiriman
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nama Pengirim
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-user"></i></span>
+                            <input type="text" class="form-control" name="sender_name" id="sender_name" value="{{ session('name') }}" placeholder="Masukkan nama pengirim">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Pelaksana Serah
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-users-three"></i></span>
+                            <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                                <option value=""></option>
+                                @if(Main::getExecutorGroup())
+                                    @foreach(Main::getExecutorGroup() as $geg)
+                                        <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Tujuan
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-map-pin"></i></span>
+                            <select class="form-select" name="destination" id="destination">
+                                <option value="">Pilih Tujuan</option>
+                                <option value="1">Perpusnas</option>
+                                <option value="2">Provinsi</option>
+                                <option value="3">Perpusnas & Provinsi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nomor Telepon
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-phone"></i></span>
+                            <input type="text" class="form-control" name="phone" id="phone" value="{{ session('phone') }}" placeholder="Contoh: 08123456789">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nomor Surat Pengantar
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-envelope"></i></span>
+                            <input type="text" class="form-control" name="cover_letter_number" id="cover_letter_number" placeholder="Contoh: 001/SP/2025">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Berat Paket
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-package"></i></span>
+                            <input type="number" class="form-control" name="weight" id="weight" placeholder="Minimal 1" min="1" step="0.1">
+                            <span class="input-group-text">Kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm">
             <div class="card-header bg-white d-sm-flex align-items-sm-center py-3">
                 <h5 class="mb-sm-0">
                     <i class="ph-barcode me-1"></i>
@@ -21,7 +107,7 @@
                 <div class="ms-sm-auto my-sm-auto">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ph-magnifying-glass"></i></span>
-                        <input type="text" class="form-control" name="search_isbn" id="search_isbn" placeholder="Masukkan Nomor ISBN" onkeypress="if(event.keyCode==13) { searchISBN(); return false; }">
+                        <input type="text" class="form-control" name="search_isbn" id="search_isbn" placeholder="Masukkan Nomor ISBN" onkeypress="if(event.keyCode == 13) { searchISBN(); return false; }">
                         <button type="button" class="btn btn-primary" onclick="searchISBN()">
                             Cari
                         </button>
@@ -84,7 +170,7 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-light">
+            <div class="card-footer bg-white">
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="input-group">
@@ -131,7 +217,7 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-light">
+            <div class="card-footer bg-white">
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="input-group">
@@ -187,73 +273,6 @@
                                     </label>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="ph-address-book me-1"></i>
-                    Informasi Pengiriman
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="form-label">
-                            Nama Pengirim
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-user"></i></span>
-                            <input type="text" class="form-control" name="sender_name" id="sender_name" value="{{ session('name') }}" placeholder="Masukkan nama pengirim">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Tujuan
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-map-pin"></i></span>
-                            <select class="form-select" name="destination" id="destination">
-                                <option value="">Pilih Tujuan</option>
-                                <option value="1">Perpusnas</option>
-                                <option value="2">Provinsi</option>
-                                <option value="3">Perpusnas & Provinsi</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Nomor Telepon
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-phone"></i></span>
-                            <input type="text" class="form-control" name="phone" id="phone" value="{{ session('phone') }}" placeholder="Contoh: 08123456789">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Nomor Surat Pengantar
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-envelope"></i></span>
-                            <input type="text" class="form-control" name="cover_letter_number" id="cover_letter_number" placeholder="Contoh: 001/SP/2025">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Berat Paket
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-package"></i></span>
-                            <input type="number" class="form-control" name="weight" id="weight" placeholder="Minimal 1" min="1" step="0.1">
-                            <span class="input-group-text">Kg</span>
                         </div>
                     </div>
                 </div>
@@ -642,7 +661,7 @@
                 if (data.penerbit_id != executorId) {
                     swalInit.fire({
                         title: 'Penerbit Tidak Sesuai',
-                        html: `Mohon pilih pelaksana serah atas nama <strong>${data.nama_penerbit ?? 'penerbit terkait'}</strong>`,
+                        html: `Mohon pilih pelaksana serah atas nama <strong>${data.nama_penerbit ?? 'pelaksana serah terkait'}</strong>`,
                         icon: 'warning'
                     });
 

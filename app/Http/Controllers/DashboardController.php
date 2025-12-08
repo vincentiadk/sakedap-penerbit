@@ -62,17 +62,17 @@ class DashboardController extends Controller
         $query = "
             select
                 cm.name,
-                count(c.id) as total
+                count(ec.id) as total
             from
                 collectionmedias cm
             inner join
                 worksheets w on w.id = cm.worksheet_id
                 and w.category in ('$catDigital', '$catPrinted', '$catAnalog')
             inner join
-                catalogs c on c.worksheet_id = w.id
-                and c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                e_collections ec on ec.collection_media_id = cm.id
+                and ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
+                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
+                and ec.penerbit_id = $executorId
             group by
                 cm.name
             order by
@@ -127,16 +127,16 @@ class DashboardController extends Controller
         $query = "
             select
                 w.name,
-                count(c.id) as total
+                count(ec.id) as total
             from
                 worksheets w
             inner join
-                catalogs c on c.worksheet_id = w.id
+                e_collections ec on ec.worksheet_id = w.id
             where
                 w.category in ('$catDigital', '$catPrinted', '$catAnalog')
-                and c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                and ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
+                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
+                and ec.penerbit_id = $executorId
             group by
                 w.name
             order by
@@ -247,28 +247,42 @@ class DashboardController extends Controller
         $catAnalog = addslashes($this->worksheetCategoryAnalog);
         $catPrinted = addslashes($this->worksheetCategoryPrinted);
 
-        $query = "
+        $totalDigital = "
             select
-                sum(case when w.category = '$catDigital' then 1 else 0 end) as total_digital,
+                sum(case when w.category = '$catDigital' then 1 else 0 end) as total_digital
+            from
+                e_collections ec
+            inner join
+                worksheets w on w.id = ec.worksheet_id
+                and w.category in ('$catDigital')
+            where
+                ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
+                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
+                and ec.penerbit_id = $executorId
+        ";
+
+        $totalAnalogPrinted = "
+            select
                 sum(case when w.category = '$catAnalog' then 1 else 0 end) as total_analog,
                 sum(case when w.category = '$catPrinted' then 1 else 0 end) as total_printed
             from
-                catalogs c
+                collections c
             inner join
                 worksheets w on w.id = c.worksheet_id
-                and w.category in ('$catDigital', '$catAnalog', '$catPrinted')
+                and w.category in ('$catAnalog', '$catPrinted')
             where
                 c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
                 and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
                 and c.penerbit_id = $executorId
         ";
 
-        $data = QueryAPI::get($query, true);
+        $dataDigital = QueryAPI::get($totalDigital, true);
+        $dataAnalogPrinted = QueryAPI::get($totalAnalogPrinted, true);
 
         $response = [
-            'TOTAL_DIGITAL' => (int) ($data->TOTAL_DIGITAL ?? 0),
-            'TOTAL_ANALOG'  => (int) ($data->TOTAL_ANALOG ?? 0),
-            'TOTAL_PRINTED' => (int) ($data->TOTAL_PRINTED ?? 0),
+            'TOTAL_DIGITAL' => (int) ($dataDigital->TOTAL_DIGITAL ?? 0),
+            'TOTAL_ANALOG'  => (int) ($dataAnalogPrinted->TOTAL_ANALOG ?? 0),
+            'TOTAL_PRINTED' => (int) ($dataAnalogPrinted->TOTAL_PRINTED ?? 0),
         ];
 
         return response()->json($response);

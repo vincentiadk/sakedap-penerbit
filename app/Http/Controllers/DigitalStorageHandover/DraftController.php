@@ -39,6 +39,7 @@ class DraftController extends Controller
         $column = [
             'e_collections.id',
             null,
+            'penerbit.name',
             'e_collections.title',
             'collectionmedias.name',
             'e_collections.code',
@@ -57,7 +58,7 @@ class DraftController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "(e_collections.status = '4' and e_collections.deleted_at is null)";
-        $whereCondition[] = "e_collections.penerbit_id = " . session('id');
+        $whereCondition[] = "e_collections.penerbit_id = " . $request->executor_id;
         $whereCondition[] = "worksheets.category = '" . $this->worksheetCategory . "'";
 
         if ($request->title) {
@@ -121,7 +122,7 @@ class DraftController extends Controller
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
                 (e_collections.status = '4' and e_collections.deleted_at is null) and
-                e_collections.penerbit_id = " . session('id') . " and
+                e_collections.penerbit_id = " . $request->executor_id . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
 
@@ -132,6 +133,8 @@ class DraftController extends Controller
                 e_collections
             left join
                 kabupaten on kabupaten.id = e_collections.kabupaten_id
+            left join
+                penerbit on penerbit.id = e_collections.penerbit_id
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
             left join
@@ -150,11 +153,14 @@ class DraftController extends Controller
                         (
                             select
                                 e_collections.*,
+                                penerbit.name as name_penerbit,
                                 collectionmedias.name as name_media
                             from
                                 e_collections
                             left join
                                 kabupaten on kabupaten.id = e_collections.kabupaten_id
+                            left join
+                                penerbit on penerbit.id = e_collections.penerbit_id
                             left join
                                 worksheets on worksheets.id = e_collections.worksheet_id
                             left join
@@ -179,6 +185,7 @@ class DraftController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     ($val->TITLE ?? $val->TITLE_ORI),
                     $val->NAME_MEDIA,
                     $val->CODE,

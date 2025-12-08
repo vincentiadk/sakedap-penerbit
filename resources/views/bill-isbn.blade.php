@@ -101,6 +101,22 @@
             <h5 class="hstack gap-2 mb-0">Filter Data</h5>
         </div>
         <div class="card-body">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-text">Pelaksana Serah</span>
+                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                        <option value=""></option>
+                        @if(Main::getExecutorGroup())
+                            @foreach(Main::getExecutorGroup() as $geg)
+                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                            @endforeach
+                        @else
+                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+            <hr class="py-1 mb-1">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -196,6 +212,7 @@
                     <tr>
                         <th class="text-nowrap">No</th>
                         <th class="text-nowrap">Status</th>
+                        <th class="text-nowrap">Pelaksana Serah</th>
                         <th class="text-nowrap">Judul</th>
                         <th class="text-nowrap">Kepeng</th>
                         <th class="text-nowrap">Tahun</th>
@@ -269,6 +286,7 @@
                     media: $('#media').val(),
                     received_date_kckr: $('#received_date_kckr').val(),
                     received_date_province: $('#received_date_province').val(),
+                    executor_id: $('#executor_id').val(),
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -281,6 +299,7 @@
             columns: [
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle' },
