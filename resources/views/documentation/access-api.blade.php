@@ -173,7 +173,7 @@
                                                 <td><code>title</code></td>
                                                 <td>string</td>
                                                 <td><span class="badge bg-secondary">No</span></td>
-                                                <td>Judul buku yang dicari</td>
+                                                <td>Judul koleksi yang dicari</td>
                                             </tr>
                                             <tr>
                                                 <td><code>kepeng</code></td>
@@ -345,7 +345,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <strong>Deskripsi:</strong>
-                                    <p>Mengunggah file buku yang telah memiliki ISBN beserta cover-nya.</p>
+                                    <p>Mengunggah file koleksi yang telah memiliki ISBN beserta cover-nya.</p>
                                 </div>
                                 <div class="alert alert-warning mb-3">
                                     <i class="ph-warning-circle me-2"></i>
@@ -372,7 +372,7 @@
                                                 <td><code>content</code></td>
                                                 <td>file</td>
                                                 <td><span class="badge bg-danger">Yes</span></td>
-                                                <td>File buku (posting file)</td>
+                                                <td>File koleksi (posting file)</td>
                                             </tr>
                                             <tr>
                                                 <td><code>mime_content</code></td>
@@ -427,7 +427,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <strong>Deskripsi:</strong>
-                                    <p>Mengunggah karya digital selain buku ber-ISBN seperti musik, film, majalah elektronik, dll.</p>
+                                    <p>Mengunggah karya digital selain koleksi ber-ISBN seperti musik, film, majalah elektronik, dll.</p>
                                 </div>
                                 <div class="mb-3">
                                     <strong>Jenis Media yang Didukung:</strong>

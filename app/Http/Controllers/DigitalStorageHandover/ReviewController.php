@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'worksheet' => QueryAPI::get("select * from worksheets where category is not null") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
                 'content' => 'digital-storage-handover.review',
                 'plugins' => [
                     'datatable',
@@ -38,7 +38,7 @@ class ReviewController extends Controller
             'e_collections.id',
             null,
             'e_collections.title',
-            'worksheets.name',
+            'collectionmedias.name',
             'e_collections.code',
             'e_collections.updated_at',
         ];
@@ -76,8 +76,8 @@ class ReviewController extends Controller
             $whereCondition[] = "e_collections.publication_year = $request->year";
         }
 
-        if ($request->worksheet_id) {
-            $whereCondition[] = "e_collections.worksheet_id = $request->worksheet_id";
+        if ($request->media_id) {
+            $whereCondition[] = "e_collections.collection_media_id = $request->media_id";
         }
 
         if ($request->date) {
@@ -132,6 +132,8 @@ class ReviewController extends Controller
                 kabupaten on kabupaten.id = e_collections.kabupaten_id
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
+            left join
+                collectionmedias on collectionmedias.id = e_collections.collection_media_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -146,13 +148,15 @@ class ReviewController extends Controller
                         (
                             select
                                 e_collections.*,
-                                worksheets.name as name_worksheet
+                                collectionmedias.name as name_media
                             from
                                 e_collections
                             left join
                                 kabupaten on kabupaten.id = e_collections.kabupaten_id
                             left join
                                 worksheets on worksheets.id = e_collections.worksheet_id
+                            left join
+                                collectionmedias on collectionmedias.id = e_collections.collection_media_id
                             $whereClause
                             $orderBy
                         ) data
@@ -174,7 +178,7 @@ class ReviewController extends Controller
                     $start + 1,
                     $action,
                     ($val->TITLE ?? $val->TITLE_ORI),
-                    $val->NAME_WORKSHEET,
+                    $val->NAME_MEDIA,
                     $val->CODE,
                     Carbon::parse($val->UPDATED_AT)->isoFormat('dddd, D MMMM Y'),
                 ];

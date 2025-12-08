@@ -436,11 +436,11 @@ class SingleUploadISBNController extends Controller
             }
 
             $code = 404;
-            $message = 'Tidak ada pasangan file yang valid ditemukan.<br>Pastikan setiap buku memiliki Cover dan satu Konten (PDF atau EPUB).';
+            $message = 'Tidak ada pasangan file yang valid ditemukan.<br>Pastikan setiap koleksi memiliki Cover dan satu Konten (PDF atau EPUB).';
 
             if ($successCount > 0) {
                 $code = 200;
-                $message = "Berhasil memproses <strong>$successCount</strong> pasangan buku (Cover + Konten)";
+                $message = "Berhasil memproses <strong>$successCount</strong> pasangan koleksi (Cover + Konten)";
             }
 
             $response = [
