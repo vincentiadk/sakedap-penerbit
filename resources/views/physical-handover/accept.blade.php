@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Koleksi Dihibahkan</span>
+                Serah Simpan Fisik - <span class="fw-normal">Koleksi Diterima</span>
             </h4>
         </div>
     </div>
@@ -41,7 +41,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/grant') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/accept') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -58,16 +58,14 @@
                 <thead class="text-bg-light">
                     <tr>
                         <th class="text-nowrap">No</th>
+                        <th class="text-nowrap">Tgl Terima</th>
                         <th class="text-nowrap">Tgl Kirim</th>
-                        <th class="text-nowrap">Tgl Hibah</th>
                         <th class="text-nowrap">Judul</th>
                         <th class="text-nowrap">Tujuan</th>
                         <th class="text-nowrap">Jasa Kirim</th>
                         <th class="text-nowrap">Resi</th>
                         <th class="text-nowrap">Jumlah</th>
                         <th class="text-nowrap">Jenis Media</th>
-                        <th class="text-nowrap">Sumber</th>
-                        <th class="text-nowrap">Alasan Ditolak</th>
                         <th class="text-nowrap">Proses By</th>
                     </tr>
                 </thead>
@@ -95,9 +93,10 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
-                url: '{{ url("physical-delivery/grant/datatable") }}',
+                url: '{{ url("physical-handover/accept/datatable") }}',
                 dataType: 'JSON',
                 data: {
+                    executor_id: $('#executor_id').val(),
                     delivery_service_id: $('#delivery_service_id').val(),
                     date: $('#date').val(),
                     date_type: $('#date_type').val(),
@@ -112,16 +111,14 @@
             },
             columns: [
                 { orderable: true, className: 'align-middle text-center' },
-                { orderable: true, className: 'align-middle' },
                 { orderable: false, className: 'align-middle' },
-                { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
             ],
             initComplete: function (settings, json) {

@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Dalam Pengiriman</span>
+                Serah Simpan Fisik - <span class="fw-normal">Monitoring Pengiriman</span>
             </h4>
         </div>
     </div>
@@ -13,61 +13,40 @@
             <h5 class="hstack gap-2 mb-0">Filter Data</h5>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Pelaksana Serah :</label>
-                        <select class="form-select" name="executor_id" id="executor_id" data-placeholder="Semua"></select>
+            <form id="form-filter">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Tujuan :</label>
+                            <select class="form-select" name="branch_id" id="branch_id">
+                                <option value="">Semua</option>
+                                <option value="37">Perpustakaan Nasional Republik Indonesia</option>
+                                @if(Main::getBranch())
+                                    <option value="{{ Main::getBranch()->ID }}">{{ Main::getBranch()->NAME }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Jenis Tanggal :</label>
+                            <select class="form-select" name="date_type" id="date_type">
+                                <option value="letter_date" selected>Pengiriman</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Tanggal :</label>
+                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Jasa Kirim :</label>
-                        <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua">
-                            <option value=""></option>
-                            @foreach($deliveryService as $ds)
-                                <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Tujuan :</label>
-                        <select class="form-select" name="branch_id" id="branch_id">
-                            <option value="">Semua</option>
-                            <option value="37">Perpustakaan Nasional Republik Indonesia</option>
-                            @if(Main::getBranch())
-                                <option value="{{ Main::getBranch()->ID }}">{{ Main::getBranch()->NAME }}</option>
-                            @endif
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">No Resi :</label>
-                        <input type="text" class="form-control" name="receipt_no" id="receipt_no" placeholder="Semua">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Jenis Tanggal :</label>
-                        <select class="form-select" name="date_type" id="date_type">
-                            <option value="letter_date">Pengiriman</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Tanggal :</label>
-                        <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/in-delivery') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/delivery-monitoring') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -85,10 +64,9 @@
                     <tr>
                         <th class="text-nowrap" rowspan="2">No</th>
                         <th class="text-nowrap" rowspan="2">Aksi</th>
+                        <th class="text-nowrap" rowspan="2">Status</th>
                         <th class="text-nowrap" rowspan="2">No Surat</th>
                         <th class="text-nowrap" rowspan="2">Tanggal</th>
-                        <th class="text-nowrap" rowspan="2">Resi</th>
-                        <th class="text-nowrap" rowspan="2">Jasa Kirim</th>
                         <th class="text-nowrap" rowspan="2">Tujuan</th>
                         <th class="text-nowrap text-center" colspan="2">Pengiriman</th>
                     </tr>
@@ -117,14 +95,14 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
-                url: '{{ url("physical-delivery/in-delivery/datatable") }}',
+                url: '{{ url("physical-handover/delivery-monitoring/datatable") }}',
                 dataType: 'JSON',
-                data: {
-                    delivery_service_id: $('#delivery_service_id').val(),
-                    date: $('#date').val(),
-                    date_type: $('#date_type').val(),
-                    receipt_no: $('#receipt_no').val(),
-                    branch_id: $('#branch_id').val(),
+                data: function (d) {
+                    $('#form-filter').serializeArray().forEach(function(item) {
+                        d[item.name] = item.value;
+                    });
+
+                    return d;
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -141,9 +119,8 @@
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: false, className: 'align-middle text-center' },
-                { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();

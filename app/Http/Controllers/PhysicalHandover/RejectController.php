@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\QueryAPI;
@@ -14,7 +14,7 @@ class RejectController extends Controller
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.reject',
+                'content' => 'physical-handover.reject',
                 'plugins' => [
                     'datatable',
                     'select2',

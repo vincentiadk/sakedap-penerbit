@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Penerimaan</span>
+                Serah Simpan Fisik - <span class="fw-normal">Pengiriman Diterima</span>
             </h4>
         </div>
     </div>
@@ -72,7 +72,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/accept') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/delivery-accept') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -130,7 +130,7 @@
             destroy: true,
             order: [[2, 'desc']],
             ajax: {
-                url: '{{ url("physical-delivery/accept/datatable") }}',
+                url: '{{ url("physical-handover/delivery-accept/datatable") }}',
                 dataType: 'JSON',
                 data: {
                     delivery_service_id: $('#delivery_service_id').val(),

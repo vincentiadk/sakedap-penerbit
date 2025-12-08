@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Formulir</span>
+                Serah Simpan Fisik - <span class="fw-normal">Tambah Form Pengiriman</span>
             </h4>
         </div>
     </div>
@@ -465,7 +465,7 @@
 
         if (weight != '' && weight > 0 && destination != '') {
             $.ajax({
-                url: '{{ url("physical-delivery/form/calculate-cost") }}',
+                url: '{{ url("physical-handover/add-delivery-form/calculate-cost") }}',
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
@@ -603,7 +603,7 @@
         }
 
         $.ajax({
-            url: '{{ url("physical-delivery/form/search-isbn") }}',
+            url: '{{ url("physical-handover/add-delivery-form/search-isbn") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
@@ -870,7 +870,7 @@
 
     function selectCollectionNonISBN(param) {
         $.ajax({
-            url: '{{ url("physical-delivery/form/select-catalog") }}',
+            url: '{{ url("physical-handover/add-delivery-form/select-catalog") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
@@ -1138,7 +1138,7 @@
 
     function processSubmit() {
         $.ajax({
-            url: '{{ url("physical-delivery/form/submitted") }}',
+            url: '{{ url("physical-handover/add-delivery-form/submitted") }}',
             type: 'POST',
             dataType: 'JSON',
             data: $('#form-data').serialize(),
@@ -1169,7 +1169,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("physical-delivery/form") }}';
+                            location.href = '{{ url("physical-handover/add-delivery-form") }}';
                         }
                     });
                 } else if (response.code == 400) {

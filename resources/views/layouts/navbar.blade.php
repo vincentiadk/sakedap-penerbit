@@ -72,20 +72,27 @@
 						</div>
 					</li>
                     <li class="nav-item nav-item-dropdown-lg dropdown">
-						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'physical-delivery' ? 'active' : '' }}" data-bs-toggle="dropdown">
+						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'physical-handover' ? 'active' : '' }}" data-bs-toggle="dropdown">
 							<i class="ph-archive-box me-2"></i>
-							Pengiriman Fisik
+							Serah Simpan Fisik
 						</a>
-						<div class="dropdown-menu">
-							<a href="{{ url('physical-delivery/form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'form' ? 'active' : '' }}">Formulir</a>
-							<a href="{{ url('physical-delivery/print-label') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'print-label' ? 'active' : '' }}">Cetak Label</a>
-							<a href="{{ url('physical-delivery/delivery-monitoring') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'delivery-monitoring' ? 'active' : '' }}">Monitoring Pengiriman</a>
-							<a href="{{ url('physical-delivery/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Dalam Pengiriman</a>
-							<a href="{{ url('physical-delivery/package-sent') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'package-sent' ? 'active' : '' }}">Paket Terkirim</a>
-							<a href="{{ url('physical-delivery/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'accept' ? 'active' : '' }}">Penerimaan</a>
-							<a href="{{ url('physical-delivery/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
-							<a href="{{ url('physical-delivery/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
-							<a href="{{ url('physical-delivery/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
+						<div class="dropdown-menu" style="min-width:500px;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="fw-bold border-bottom ms-3 mt-2 pb-2 mb-2">Pengiriman Karya Fisik</div>
+                                    <a href="{{ url('physical-handover/add-delivery-form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'add-delivery-form' ? 'active' : '' }}">Tambah Form Pengiriman</a>
+                                    <a href="{{ url('physical-handover/delivery-monitoring') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-monitoring' ? 'active' : '' }}">Monitoring Pengiriman</a>
+                                    <a href="{{ url('physical-handover/delivery-accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-accept' ? 'active' : '' }}">Pengiriman Diterima</a>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="fw-bold border-bottom ms-3 me-3 mt-2 pb-2 mb-2">Koleksi Fisik</div>
+                                    <a href="{{ url('physical-handover/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'accept' ? 'active' : '' }}">Koleksi Diterima</a>
+                                    <a href="{{ url('physical-handover/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Koleksi Dalam Pengiriman</a>
+                                    <a href="{{ url('physical-handover/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
+                                    <a href="{{ url('physical-handover/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
+                                    <a href="{{ url('physical-handover/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
+                                </div>
+                            </div>
 						</div>
 					</li>
                     <li class="nav-item">

@@ -2,13 +2,13 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - Monitoring Pengiriman - <span class="fw-normal">Detail</span>
+                Serah Simpan Fisik - Monitoring Pengiriman - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
             <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
                 <div class="d-inline-flex mt-3 mt-sm-0">
-                    <a href="{{ url('physical-delivery/delivery-monitoring') }}" class="btn btn-primary">
+                    <a href="{{ url('physical-handover/delivery-monitoring') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -31,7 +31,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Nomor Resi : <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" placeholder="...........................">
+                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" value="{{ $letter->RECEIPT_NO ?? '' }}" placeholder="...........................">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -40,7 +40,7 @@
                             <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id">
                                 <option value=""></option>
                                 @foreach($deliveryService as $ds)
-                                    <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
+                                    <option value="{{ $ds->ID }}" {{ ($letter->JASA_PENGIRIMAN_ID ?? '') == $ds->ID ? 'selected' : '' }}>{{ $ds->NAME }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -48,7 +48,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="form-label">Biaya Kirim : <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" placeholder="...........................">
+                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" value="{{ $letter->BIAYA_KIRIM ?? '' }}" placeholder="...........................">
                         </div>
                     </div>
                 </div>
@@ -59,6 +59,30 @@
                         Simpan Data
                     </button>
                 </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Lacak Paket</h5>
+            </div>
+            <div class="card-body">
+                @if($receipt)
+                    <div class="border p-3 rounded">
+                        <div class="list-feed list-feed-solid">
+                            @foreach($receipt->manifest as $key => $m)
+                                <div class="list-feed-item {{ $key == 0 ? 'border-success' : 'border-primary' }}">
+                                    <div class="fw-semibold">{{ $m->manifest_code }}</div>
+                                    <div class="text-muted"><small>{{ $m->manifest_date }} {{ $m->manifest_time }}</small></div>
+                                    <div>{{ $m->manifest_description }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-info">
+                        Tidak ada data
+                    </div>
+                @endif
             </div>
         </div>
         <div class="card">
@@ -149,7 +173,7 @@
 
     function submitted() {
         $.ajax({
-            url: '{{ url("physical-delivery/delivery-monitoring/detail/" . $letter->LETTER_ID) }}',
+            url: '{{ url("physical-handover/delivery-monitoring/detail/" . $letter->LETTER_ID) }}',
             type: 'POST',
             dataType: 'JSON',
             data: $('#form-data').serialize(),
@@ -176,7 +200,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("physical-delivery/delivery-monitoring") }}';
+                            location.href = '{{ url("physical-handover/delivery-monitoring") }}';
                         }
                     });
                 } else if (response.code == 400) {

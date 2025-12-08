@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\Main;
@@ -10,14 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
-class AcceptController extends Controller
+class DeliveryAcceptController extends Controller
 {
     public function index()
     {
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.accept',
+                'content' => 'physical-handover.delivery-accept',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -204,11 +204,11 @@ class AcceptController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('physical-delivery/accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
+                    <a href="' . url('physical-handover/delivery-accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-check me-1"></i>
                         Detail
                     </a>
-                    <a href="' . url('physical-delivery/accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
+                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
                         <i class="ph-printer me-1"></i>
                         Resi Penerimaan
                     </a>
@@ -278,7 +278,7 @@ class AcceptController extends Controller
             'data' => [
                 'letter' => $letter,
                 'letterDetail' => $letterDetail,
-                'content' => 'physical-delivery.accept-detail',
+                'content' => 'physical-handover.delivery-accept-detail',
                 'plugins' => [
                     'select2',
                     'datatable',
@@ -500,7 +500,7 @@ class AcceptController extends Controller
 
             $letterNumber = $letter->LETTER_ID ?? date('YmdHis');
             $nameExecutor = $letter->NAME_PENERBIT ?? '';
-            $directory = storage_path('app/public/physical-delivery/accept/receipt');
+            $directory = storage_path('app/public/physical-handover/delivery-accept/receipt');
 
             if (!file_exists($directory)) {
                 mkdir($directory, 0755, true);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\Main;
@@ -15,7 +15,7 @@ class ReturController extends Controller
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.retur',
+                'content' => 'physical-handover.retur',
                 'plugins' => [
                     'datatable',
                     'select2',

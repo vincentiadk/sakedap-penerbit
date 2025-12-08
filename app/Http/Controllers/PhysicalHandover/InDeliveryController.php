@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\QueryAPI;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
-class GrantController extends Controller
+class InDeliveryController extends Controller
 {
     public function index()
     {
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.grant',
+                'content' => 'physical-handover.in-delivery',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -27,18 +27,13 @@ class GrantController extends Controller
     public function datatable(Request $request)
     {
         $column = [
-            'hibah_detail.id',
+            'letter_detail.letter_detail_id',
             'letter.letter_date',
-            'hibah_detail.createdate',
-            'hibah_detail.judul',
+            'letter_detail.title',
             'branchs.name',
             'jasa_pengiriman.name',
             'letter.receipt_no',
-            'letter_detail.qty_hibah',
             'letter_detail.jenis_media',
-            'collectionsources.name',
-            'letter_detail.remark',
-            'letter.proses_by',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -52,6 +47,7 @@ class GrantController extends Controller
         $order = $request->order;
 
         $whereClause = '';
+        $whereCondition[] = "letter.status in ('DALAM PENGIRIMAN')";
         $whereCondition[] = "letter.penerbit_id = " . session('id');
 
         if ($request->delivery_service_id) {
@@ -92,12 +88,11 @@ class GrantController extends Controller
             select
                 count(*) as total
             from
-                hibah_detail
-            left join
-                letter_detail on letter_detail.letter_detail_id = hibah_detail.letter_detail_id
+                letter_detail
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             where
+                letter.status in ('DALAM PENGIRIMAN') and
                 letter.penerbit_id = " . session('id') . "
         ", true)->TOTAL ?? 0;
 
@@ -105,11 +100,7 @@ class GrantController extends Controller
             select
                 count(*) as total
             from
-                hibah_detail
-            left join
-                collectionsources on collectionsources.id = hibah_detail.source_id
-            left join
-                letter_detail on letter_detail.letter_detail_id = hibah_detail.letter_detail_id
+                letter_detail
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             left join
@@ -129,23 +120,13 @@ class GrantController extends Controller
                     from
                         (
                             select
-                                hibah_detail.*,
-                                collectionsources.name as name_collectionsource,
-                                letter_detail.qty_hibah as qty_hibah_letter_detail,
-                                letter_detail.remark as remark_letter_detail,
-                                letter_detail.jenis_media as jenis_media_letter_detail,
+                                letter_detail.*,
                                 jasa_pengiriman.name as name_jasa_pengiriman,
                                 branchs.name as name_branch,
                                 letter.receipt_no as receipt_no_letter,
-                                letter.status as status_letter,
-                                letter.proses_by as proses_by_letter,
                                 letter.letter_date as letter_date_letter
                             from
-                                hibah_detail
-                            left join
-                                collectionsources on collectionsources.id = hibah_detail.source_id
-                            left join
-                                letter_detail on letter_detail.letter_detail_id = hibah_detail.letter_detail_id
+                                letter_detail
                             left join
                                 letter on letter.letter_id = letter_detail.letter_id
                             left join
@@ -162,32 +143,14 @@ class GrantController extends Controller
 
         if ($queryData) {
             foreach ($queryData as $val) {
-                $dataRemark = explode(';', $val->REMARK_LETTER_DETAIL ?? '');
-                $listRemark = '';
-
-                if ($dataRemark) {
-                    foreach ($dataRemark as $key => $dr) {
-                        $listRemark .= '<div>' . $key + 1 . '. ' . $dr . '</div>';
-                    }
-                }
-
-                $remark = '
-                    <button type="button" class="btn btn-light btn-sm" onclick="onPopover(this, ' . "'$listRemark'" . ')">Lihat</button>
-                ';
-
                 $data[] = [
                     $start + 1,
-                    Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('dddd, D MMMM Y'),
-                    Carbon::parse($val->CREATEDATE)->isoFormat('dddd, D MMMM Y'),
-                    $val->JUDUL,
+                    Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMMM Y'),
+                    $val->TITLE,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,
                     $val->RECEIPT_NO_LETTER,
-                    $val->QTY_HIBAH_LETTER_DETAIL,
-                    $val->JENIS_MEDIA_LETTER_DETAIL,
-                    $val->NAME_COLLECTIONSOURCE,
-                    $remark,
-                    $val->PROSES_BY_LETTER,
+                    $val->JENIS_MEDIA,
                 ];
 
                 $start++;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use App\Helpers\ISBN;
 use App\Helpers\Main;
@@ -12,7 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
-class FormController extends Controller
+class AddDeliveryFormController extends Controller
 {
     public function index()
     {
@@ -33,7 +33,7 @@ class FormController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'content' => 'physical-delivery.form',
+                'content' => 'physical-handover.add-delivery-form',
                 'media' => $media ?? [],
                 'plugins' => [
                     'select2',

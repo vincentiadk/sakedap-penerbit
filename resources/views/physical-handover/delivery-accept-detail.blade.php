@@ -2,13 +2,13 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - Dalam Pengiriman - <span class="fw-normal">Detail</span>
+                Serah Simpan Fisik - Pengiriman Diterima - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
             <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
                 <div class="d-inline-flex mt-3 mt-sm-0">
-                    <a href="{{ url('physical-delivery/in-delivery') }}" class="btn btn-primary">
+                    <a href="{{ url('physical-handover/delivery-accept') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -49,49 +49,28 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Lacak Paket</h5>
-            </div>
-            <div class="card-body">
-                @if($receipt)
-                    <div class="border p-3 rounded">
-                        <div class="list-feed list-feed-solid">
-                            @foreach($receipt->manifest as $key => $m)
-                                <div class="list-feed-item {{ $key == 0 ? 'border-success' : 'border-primary' }}">
-                                    <div class="fw-semibold">{{ $m->manifest_code }}</div>
-                                    <div class="text-muted"><small>{{ $m->manifest_date }} {{ $m->manifest_time }}</small></div>
-                                    <div>{{ $m->manifest_description }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @else
-                    <div class="alert alert-info">
-                        Tidak dapat terhubung ke track resi dengan nomor <strong>{{ $letter->RECEIPT_NO }}</strong>
-                    </div>
-                @endif
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Daftar Koleksi</h5>
-            </div>
             <div class="card-body">
                 <table class="table table-bordered w-100 display" id="datatable-client">
                     <thead class="text-bg-light">
                         <tr>
-                            <th class="text-center">No</th>
-                            <th class="text-center">Cover</th>
-                            <th>Judul</th>
-                            <th>ISBN</th>
-                            <th>Jilid</th>
-                            <th>Edisi</th>
-                            <th>Jumlah</th>
+                            <th class="text-center" rowspan="2">No</th>
+                            <th rowspan="2">Cover</th>
+                            <th rowspan="2">Judul</th>
+                            <th rowspan="2">ISBN</th>
+                            <th rowspan="2">Jilid</th>
+                            <th rowspan="2">Edisi</th>
+                            <th colspan="2" class="text-center">Jumlah Eks</th>
+                            <th rowspan="2">Alasan Ditolak</th>
+                        </tr>
+                        <tr>
+                            <th class="text-center">Diterima</th>
+                            <th class="text-center">Ditolak</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($letterDetail ?? [] as $key => $ld)
                             @php
+                                $strRand = Str::random(5);
                                 $code = str_replace('-', '', $ld->ISBN);
                                 $fileCover = asset('assets/no-file.jpg');
 
@@ -120,7 +99,16 @@
                                 <td class="text-wrap">{{ $ld->ISBN }}</td>
                                 <td class="text-wrap">{{ $ld->NOMORPANGGILJILID }}</td>
                                 <td class="text-wrap">{{ $ld->EDISI_SERIAL }}</td>
-                                <td class="text-wrap">{{ $ld->COPY ?: 0 }}</td>
+                                <td class="text-wrap">{{ $ld->QTY_ACCEPT }}</td>
+                                <td class="text-wrap">{{ $ld->QTY_REJECT }}</td>
+                                <td class="text-wrap">
+                                    @php $remark = explode(';', $ld->REMARK ?? ''); @endphp
+                                    <ul class="mb-0 m-0 ps-3">
+                                        @foreach($remark as $r)
+                                            <li>{{ $r }}</li>
+                                        @endforeach
+                                    </ul>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

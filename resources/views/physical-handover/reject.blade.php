@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Koleksi Ditolak</span>
+                Serah Simpan Fisik - <span class="fw-normal">Koleksi Ditolak</span>
             </h4>
         </div>
     </div>
@@ -76,7 +76,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/reject') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/reject') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -208,7 +208,7 @@
                 },
             ],
             ajax: {
-                url: '{{ url("physical-delivery/reject/datatable") }}',
+                url: '{{ url("physical-handover/reject/datatable") }}',
                 dataType: 'JSON',
                 data: {
                     executor_id: $('#executor_id').val(),
@@ -426,7 +426,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{{ url("physical-delivery/reject/grant") }}',
+                    url: '{{ url("physical-handover/reject/grant") }}',
                     type: 'POST',
                     dataType: 'JSON',
                     data: {
@@ -584,7 +584,7 @@
                 }).then((result) => {
                     if (result.isConfirmed && result.value) {
                         $.ajax({
-                            url: '{{ url("physical-delivery/reject/retur") }}',
+                            url: '{{ url("physical-handover/reject/retur") }}',
                             type: 'POST',
                             dataType: 'JSON',
                             data: {
