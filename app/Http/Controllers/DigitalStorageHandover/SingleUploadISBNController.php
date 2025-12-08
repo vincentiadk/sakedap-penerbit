@@ -145,7 +145,9 @@ class SingleUploadISBNController extends Controller
                             select
                                 ec.*,
                                 ccr.id as id_catalogcovers,
-                                cfr.id as id_catalogfiles
+                                ccr.fileurl as fileurl_catalogcovers,
+                                cfr.id as id_catalogfiles,
+                                cfr.fileurl as fileurl_catalogfiles
                             from
                                 e_collections ec
                             left join
@@ -153,7 +155,7 @@ class SingleUploadISBNController extends Controller
                             left join
                                 (
                                     select
-                                        cf.e_col_id, cf.id,
+                                        cf.e_col_id, cf.id, cf.fileurl,
                                         row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
                                     from
                                         catalogfiles cf
@@ -161,7 +163,7 @@ class SingleUploadISBNController extends Controller
                             left join
                                 (
                                     select
-                                        cc.e_col_id, cc.id,
+                                        cc.e_col_id, cc.id, cc.fileurl,
                                         row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
                                     from
                                         catalogcovers cc
@@ -188,13 +190,17 @@ class SingleUploadISBNController extends Controller
                 ';
 
                 if (($val->ID_CATALOGCOVERS ?: null)) {
-                    $badgeCover = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                    $badgeCover = '
+                        <a href="' . url('stream-file?type=cover&id=' . $val->ID_CATALOGCOVERS . '&filename=' . $val->FILEURL_CATALOGCOVERS) . '" target="_blank">Lihat File</a>
+                    ';
                 } else {
                     $badgeCover = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
                 }
 
                 if (($val->ID_CATALOGFILES ?: null)) {
-                    $badgeContent = '<span class="badge bg-success"><i class="ph-check"></i></span>';
+                    $badgeCover = '
+                        <a href="' . url('stream-file?type=konten_digital&id=' . $val->ID_CATALOGFILES . '&filename=' . $val->FILEURL_CATALOGFILES) . '" target="_blank">Lihat File</a>
+                    ';
                 } else {
                     $badgeContent = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
                 }
@@ -323,93 +329,97 @@ class SingleUploadISBNController extends Controller
                             'code' => str_replace(['-', '_'], '', $isbn)
                         ], true);
 
-                        $physicalDescription = [
-                            'paging' => $getISBN->jml_hlm ?? '',
-                            'paging_flag' => 'Halaman',
-                            'ill' => '',
-                            'sizes' => ''
-                        ];
+                        if (($getISBN->jenis_media ?? '') != 'cetak') {
+                            $physicalDescription = [
+                                'paging' => $getISBN->jml_hlm ?? '',
+                                'paging_flag' => 'Halaman',
+                                'ill' => '',
+                                'sizes' => ''
+                            ];
 
-                        $createCollection = QueryAPI::create('e_collections', [
-                            'id_old' => 0,
-                            'publisher_id' => session('id'),
-                            'title_ori' => $getISBN->title ?? '',
-                            'slug' => Str::slug($getISBN->title ?? '', '-'),
-                            'series' => $getISBN->seri ?? '',
-                            'code' => $getISBN->isbn ?? $isbn,
-                            'code_type' => 1,
-                            'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
-                            'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
-                            'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
-                            'physical_description' => json_encode($physicalDescription),
-                            'sync' => 0,
-                            'manual' => 1,
-                            'akses' => $request->access,
-                            'status' => 4,
-                            'created_by' => session('id'),
-                            'updated_by' => session('id'),
-                            'copyright' => Main::copyright(session('id')),
-                            'worksheet_id' => 20,
-                            'collection_media_id' => 141,
-                            'penerbit_id' => session('id'),
-                            'title' => $getISBN->title ?? '',
-                            'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
-                            'description' => $getISBN->sinopsis ?? '',
-                            'edition' => $getISBN->edisi ?? '',
-                        ]);
-
-                        if ($createCollection) {
-                            if ($getISBN) {
-                                $statusUploadISBN = 'ISBN Ditemukan';
-                            } else {
-                                $statusUploadISBN = 'ISBN Tidak Ditemukan';
-                            }
-
-                            QueryAPI::update('e_collections', $createCollection->ID, [
-                                'status_upload_isbn' => $statusUploadISBN
+                            $createCollection = QueryAPI::create('e_collections', [
+                                'id_old' => 0,
+                                'publisher_id' => session('id'),
+                                'title_ori' => $getISBN->title ?? '',
+                                'slug' => Str::slug($getISBN->title ?? '', '-'),
+                                'series' => $getISBN->seri ?? '',
+                                'code' => $getISBN->isbn ?? $isbn,
+                                'code_type' => 1,
+                                'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
+                                'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
+                                'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
+                                'physical_description' => json_encode($physicalDescription),
+                                'sync' => 0,
+                                'manual' => 1,
+                                'akses' => $request->access,
+                                'status' => 4,
+                                'created_by' => session('id'),
+                                'updated_by' => session('id'),
+                                'copyright' => Main::copyright(session('id')),
+                                'worksheet_id' => 20,
+                                'collection_media_id' => 141,
+                                'penerbit_id' => session('id'),
+                                'title' => $getISBN->title ?? '',
+                                'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
+                                'description' => $getISBN->sinopsis ?? '',
+                                'edition' => $getISBN->edisi ?? '',
                             ]);
 
-                            if (isset($group['cover'])) {
-                                QueryAPI::uploadFile([
-                                    'type' => 'cover',
-                                    'id' => $createCollection->ID,
-                                    'status' => 1,
-                                    'hash' => md5('FILE-COVER-' . $createCollection->SLUG),
-                                    'mime' => $group['cover']->getMimeType(),
-                                    'filesize' => $group['cover']->getSize(),
-                                    'method' => 3,
-                                    'iszip' => false,
-                                    'file' => $group['cover'],
-                                ]);
-                            }
+                            if ($createCollection) {
+                                if ($getISBN) {
+                                    $statusUploadISBN = 'ISBN Ditemukan';
+                                } else {
+                                    $statusUploadISBN = 'ISBN Tidak Ditemukan';
+                                }
 
-                            if ($hasPdf) {
-                                QueryAPI::uploadFile([
-                                    'type' => 'konten_digital',
-                                    'id' => $createCollection->ID,
-                                    'status' => 1,
-                                    'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
-                                    'mime' => $group['pdf']->getMimeType(),
-                                    'filesize' => $group['pdf']->getSize(),
-                                    'method' => 3,
-                                    'iszip' => false,
-                                    'file' => $group['pdf'],
+                                QueryAPI::update('e_collections', $createCollection->ID, [
+                                    'status_upload_isbn' => $statusUploadISBN
                                 ]);
-                            } else if ($hasEpub) {
-                                QueryAPI::uploadFile([
-                                    'type' => 'konten_digital',
-                                    'id' => $createCollection->ID,
-                                    'status' => 1,
-                                    'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
-                                    'mime' => $group['epub']->getMimeType(),
-                                    'filesize' => $group['epub']->getSize(),
-                                    'method' => 3,
-                                    'iszip' => false,
-                                    'file' => $group['epub'],
-                                ]);
-                            }
 
-                            $successCount++;
+                                if (isset($group['cover'])) {
+                                    QueryAPI::uploadFile([
+                                        'type' => 'cover',
+                                        'id' => $createCollection->ID,
+                                        'status' => 1,
+                                        'hash' => md5('FILE-COVER-' . $createCollection->SLUG),
+                                        'mime' => $group['cover']->getMimeType(),
+                                        'filesize' => $group['cover']->getSize(),
+                                        'method' => 3,
+                                        'iszip' => false,
+                                        'file' => $group['cover'],
+                                    ]);
+                                }
+
+                                if ($hasPdf) {
+                                    QueryAPI::uploadFile([
+                                        'type' => 'konten_digital',
+                                        'id' => $createCollection->ID,
+                                        'status' => 1,
+                                        'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
+                                        'mime' => $group['pdf']->getMimeType(),
+                                        'filesize' => $group['pdf']->getSize(),
+                                        'method' => 3,
+                                        'iszip' => false,
+                                        'file' => $group['pdf'],
+                                    ]);
+                                } else if ($hasEpub) {
+                                    QueryAPI::uploadFile([
+                                        'type' => 'konten_digital',
+                                        'id' => $createCollection->ID,
+                                        'status' => 1,
+                                        'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
+                                        'mime' => $group['epub']->getMimeType(),
+                                        'filesize' => $group['epub']->getSize(),
+                                        'method' => 3,
+                                        'iszip' => false,
+                                        'file' => $group['epub'],
+                                    ]);
+                                }
+
+                                $successCount++;
+                            }
+                        } else {
+                            $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: kode tersebut koleksi cetak";
                         }
                     } else {
                         $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: kode tersebut sudah pernah di upload";
@@ -447,15 +457,37 @@ class SingleUploadISBNController extends Controller
     {
         $data = QueryAPI::get("
             select
-                id
+                ec.*
             from
-                e_collections
+                e_collections ec
+            inner join
+                (
+                    select
+                        cf.e_col_id, cf.id,
+                        row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
+                    from
+                        catalogfiles cf
+                ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
+            inner join
+                (
+                    select
+                        cc.e_col_id, cc.id,
+                        row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
+                    from
+                        catalogcovers cc
+                ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
             where
-                deleted_at is null and
-                status = '4' and
-                penerbit_id = " . session('id') . " and
-                code_type = 1 and
-                code is not null
+                ec.deleted_at is null and
+                ec.status = '4' and
+                ec.penerbit_id = " . session('id') . " and
+                ec.code_type = 1 and
+                ec.code is not null and
+                ec.city_id is not null and
+                ec.publication_day is not null and
+                ec.publication_month is not null and
+                ec.publication_year is not null and
+                ec.preview is not null and
+                ec.akses is not null
         ");
 
         if ($data) {
