@@ -145,10 +145,10 @@ Route::middleware('authentication')->group(function () {
             Route::match(['get', 'post'], 'print/{id}', 'PrintLabelController@print');
         });
 
-        Route::prefix('input-receipt')->group(function () {
-            Route::get('/', 'InputReceiptController@index');
-            Route::get('datatable', 'InputReceiptController@datatable');
-            Route::match(['get', 'post'], 'detail/{id}', 'InputReceiptController@detail');
+        Route::prefix('delivery-monitoring')->group(function () {
+            Route::get('/', 'DeliveryMonitoringController@index');
+            Route::get('datatable', 'DeliveryMonitoringController@datatable');
+            Route::match(['get', 'post'], 'detail/{id}', 'DeliveryMonitoringController@detail');
         });
 
         Route::prefix('in-delivery')->group(function () {

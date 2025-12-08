@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Input Resi</span>
+                Pengiriman Fisik - <span class="fw-normal">Monitoring Pengiriman</span>
             </h4>
         </div>
     </div>
@@ -46,7 +46,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/input-receipt') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-delivery/delivery-monitoring') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -94,7 +94,7 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
-                url: '{{ url("physical-delivery/input-receipt/datatable") }}',
+                url: '{{ url("physical-delivery/delivery-monitoring/datatable") }}',
                 dataType: 'JSON',
                 data: function (d) {
                     $('#form-filter').serializeArray().forEach(function(item) {

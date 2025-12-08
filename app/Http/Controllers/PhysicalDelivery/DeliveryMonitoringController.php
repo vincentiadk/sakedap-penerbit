@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 
-class InputReceiptController extends Controller
+class DeliveryMonitoringController extends Controller
 {
     public function index()
     {
         return view('layouts.index', [
             'data' => [
-                'content' => 'physical-delivery.input-receipt',
+                'content' => 'physical-delivery.delivery-monitoring',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -163,7 +163,7 @@ class InputReceiptController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('physical-delivery/input-receipt/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
+                    <a href="' . url('physical-delivery/delivery-monitoring/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-info me-1"></i>
                         Detail
                     </a>
@@ -294,7 +294,7 @@ class InputReceiptController extends Controller
                     'letter' => $letter,
                     'letterDetail' => $letterDetail,
                     'deliveryService' => QueryAPI::get("select * from jasa_pengiriman where id != 1") ?? [],
-                    'content' => 'physical-delivery.input-receipt-detail',
+                    'content' => 'physical-delivery.delivery-monitoring-detail',
                     'plugins' => [
                         'select2',
                         'datatable',

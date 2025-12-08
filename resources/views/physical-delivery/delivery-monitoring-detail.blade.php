@@ -2,13 +2,13 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - Input Resi - <span class="fw-normal">Detail</span>
+                Pengiriman Fisik - Monitoring Pengiriman - <span class="fw-normal">Detail</span>
             </h4>
         </div>
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
             <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
                 <div class="d-inline-flex mt-3 mt-sm-0">
-                    <a href="{{ url('physical-delivery/input-receipt') }}" class="btn btn-primary">
+                    <a href="{{ url('physical-delivery/delivery-monitoring') }}" class="btn btn-primary">
                         <i class="ph-arrow-left me-1"></i>
                         Kembali ke Tabel
                     </a>
@@ -149,7 +149,7 @@
 
     function submitted() {
         $.ajax({
-            url: '{{ url("physical-delivery/input-receipt/detail/" . $letter->LETTER_ID) }}',
+            url: '{{ url("physical-delivery/delivery-monitoring/detail/" . $letter->LETTER_ID) }}',
             type: 'POST',
             dataType: 'JSON',
             data: $('#form-data').serialize(),
@@ -176,7 +176,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("physical-delivery/input-receipt") }}';
+                            location.href = '{{ url("physical-delivery/delivery-monitoring") }}';
                         }
                     });
                 } else if (response.code == 400) {
