@@ -140,6 +140,7 @@ class BulkJob implements ShouldQueue
 
                     $parentId = optional($catalog)->EDEPOSIT_COL_ID ?? 0;
                     $executorId = data_get($request, 'executor_id');
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
                     $cityId = optional($catalog)->CITY_ID ?? 0;
                     $copyrightId = $executorId;
                     $titleOri = optional($catalog)->TITLE ?? $title ?? '';
@@ -178,7 +179,7 @@ class BulkJob implements ShouldQueue
                         'worksheet_id' => $worksheetId,
                         'parent_id' => $parentId,
                         'publisher_id' => $executorId,
-                        'city_id' => $cityId,
+                        'city_id' => $executor->CITY_ID ?? $cityId,
                         'title_ori' => $titleOri,
                         'album' => $album,
                         'slug' => Str::slug($titleOri, '-'),
@@ -203,6 +204,7 @@ class BulkJob implements ShouldQueue
                         'currency' => $currency,
                         'description' => $sinopsis,
                         'edition' => $edition,
+                        'kabupaten_id' => $executor->CITY_ID ?? $cityId,
                         'edition_date' => $finalEditionDate ?? null,
                     ];
 
