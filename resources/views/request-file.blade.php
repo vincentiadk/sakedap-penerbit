@@ -5,20 +5,31 @@
                 <span class="fw-normal">Permintaan File</span>
             </h4>
         </div>
-        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
-            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
-                <div class="d-inline-flex mt-3 mt-sm-0">
-                    <button type="button" class="btn btn-primary" onclick="onCreate()">
-                        <i class="ph-plus-circle me-1"></i>
-                        Tambah Pengajuan
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 <div class="content pt-0">
     <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Daftar Koleksi</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside-collection">
+                <thead class="text-bg-light">
+                    <tr>
+                        <th class="text-nowrap">No</th>
+                        <th class="text-nowrap">Aksi</th>
+                        <th class="text-nowrap">Judul</th>
+                        <th class="text-nowrap">Kode</th>
+                        <th class="text-nowrap">Tgl Terima</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Daftar Pengajuan</h5>
+        </div>
         <div class="card-body">
             <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
                 <thead class="text-bg-light">
@@ -50,11 +61,7 @@
                     <ul class="mb-0" id="validation-data"></ul>
                 </div>
                 <form id="form-data" class="form-ajax">
-                    <input type="hidden" name="table_id" id="table_id">
-                    <div class="form-group">
-                        <label class="form-label">Katalog : <span class="text-danger fw-bold">*</span></label>
-                        <select class="form-select" name="catalog_id" id="catalog_id" data-dropdown-parent="#modal-form"></select>
-                    </div>
+                    <input type="hidden" name="catalog_id" id="catalog_id">
                     <div class="form-group">
                         <label class="form-label">Surat Pernyataan : <span class="text-danger fw-bold">*</span></label>
                         <div class="input-group">
@@ -63,10 +70,14 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer justify-content-end">
+            <div class="modal-footer justify-content-between">
+                <a href="{{ url('download/from-public?path=assets/surat-permohonan-file.doc') }}" class="btn btn-success" target="_blank">
+                    <i class="ph-download me-1"></i>
+                    Unduh Contoh Surat
+                </a>
                 <button class="btn btn-primary d-none" id="btn-create" onclick="createData()">
                     <i class="ph-plus-circle me-1"></i>
-                    Simpan Data
+                    Ajukan
                 </button>
             </div>
         </div>
@@ -76,12 +87,11 @@
 <script>
     $(function() {
         loadData();
-
-        select2Serverside('#catalog_id', 'catalog');
+        loadDataCollection();
     });
 
     function onReloadTable() {
-        window.gDataTable.ajax.reload(null, false);
+        loadData();
     }
 
     function onReset() {
@@ -90,7 +100,6 @@
         $('#modal-form').modal('hide');
         $('#form-data').trigger('reset');
         $('#btn-create').removeClass('d-none');
-        $('#catalog_id').val('').change();
     }
 
     function onCreate() {
@@ -149,7 +158,7 @@
             ],
             initComplete: function (settings, json) {
                 var table = this.api();
-                const searchInput = $('div.dataTables_filter input');
+                const searchInput = $('#datatable-serverside_filter input');
 
                 searchInput.off().unbind();
 
@@ -162,6 +171,55 @@
         });
 
         window.gDataTable.columns.adjust().draw();
+    }
+
+    function loadDataCollection() {
+        window.gDataTable = $('#datatable-serverside-collection').DataTable({
+            processing: true,
+            serverSide: true,
+            deferRender: true,
+            scrollX: true,
+            destroy: true,
+            order: [[0, 'desc']],
+            ajax: {
+                url: '{{ url("request-file/datatable-collection") }}',
+                dataType: 'JSON',
+                beforeSend: function() {
+                    onLoading('show', '#datatable-serverside-collection_wrapper');
+                },
+                error: function(response) {
+                    onLoading('close', '#datatable-serverside-collection_wrapper');
+                    responseError(response);
+                }
+            },
+            columns: [
+                { orderable: true, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle' },
+            ],
+            initComplete: function (settings, json) {
+                var table = this.api();
+                const searchInput = $('#datatable-serverside-collection_filter input');
+
+                searchInput.off().unbind();
+
+                searchInput.on('keyup', debounce(function () {
+                    table.search(this.value).draw();
+                }, 500));
+            },
+        }).on('draw.dt', function() {
+            onLoading('close', '#datatable-serverside-collection_wrapper');
+        });
+
+        window.gDataTable.columns.adjust().draw();
+    }
+
+    function praCreate(id) {
+        onCreate();
+
+        $('#catalog_id').val(id);
     }
 
     function createData() {

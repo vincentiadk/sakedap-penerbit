@@ -72,6 +72,7 @@ Route::middleware('authentication')->group(function () {
     Route::prefix('request-file')->group(function () {
         Route::get('/', 'RequestFileController@index');
         Route::get('datatable', 'RequestFileController@datatable');
+        Route::get('datatable-collection', 'RequestFileController@datatableCollection');
         Route::post('create-data', 'RequestFileController@createData');
     });
 
