@@ -34,21 +34,8 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function dataMediaType(Request $request)
+    public function dataMediaType()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -70,8 +57,6 @@ class DashboardController extends Controller
                 and w.category in ('$catDigital', '$catPrinted', '$catAnalog')
             inner join
                 e_collections ec on ec.collection_media_id = cm.id
-                and ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
-                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
                 and ec.penerbit_id = $executorId
             group by
                 cm.name
@@ -99,21 +84,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataWorksheet(Request $request)
+    public function dataWorksheet()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -134,8 +106,6 @@ class DashboardController extends Controller
                 e_collections ec on ec.worksheet_id = w.id
             where
                 w.category in ('$catDigital', '$catPrinted', '$catAnalog')
-                and ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
-                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
                 and ec.penerbit_id = $executorId
             group by
                 w.name
@@ -163,21 +133,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataCollectionStatus(Request $request)
+    public function dataCollectionStatus()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json(['label' => [], 'data' => []]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -193,9 +150,7 @@ class DashboardController extends Controller
             from
                 e_collections
             where
-                created_at >= to_date('$startDate', 'YYYY-MM-DD')
-                and created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and penerbit_id = $executorId
+                penerbit_id = $executorId
         ";
 
         $data = QueryAPI::get($query, true);
@@ -218,25 +173,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataTotalWorks(Request $request)
+    public function dataTotalWorks()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([
-                'TOTAL_DIGITAL' => 0,
-                'TOTAL_ANALOG' => 0,
-                'TOTAL_PRINTED' => 0
-            ]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -256,9 +194,7 @@ class DashboardController extends Controller
                 worksheets w on w.id = ec.worksheet_id
                 and w.category in ('$catDigital')
             where
-                ec.created_at >= to_date('$startDate', 'YYYY-MM-DD')
-                and ec.created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and ec.penerbit_id = $executorId
+                ec.penerbit_id = $executorId
         ";
 
         $totalAnalogPrinted = "
@@ -271,9 +207,7 @@ class DashboardController extends Controller
                 worksheets w on w.id = c.worksheet_id
                 and w.category in ('$catAnalog', '$catPrinted')
             where
-                c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                c.penerbit_id = $executorId
         ";
 
         $dataDigital = QueryAPI::get($totalDigital, true);

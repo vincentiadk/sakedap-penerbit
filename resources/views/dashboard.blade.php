@@ -5,16 +5,6 @@
                 <span class="fw-normal">Dashboard</span>
             </h4>
         </div>
-        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
-            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
-                <div class="d-inline-flex mt-3 mt-sm-0">
-                    <div class="input-group">
-                        <span class="input-group-text">Filter Tanggal</span>
-                        <input type="text" class="form-control wmin-200" name="date" id="date" value="{{ date('Y/01/01') }} - {{ date('Y/m/t') }}" placeholder="Pilih Tanggal" readonly>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 <div class="content">
@@ -199,14 +189,6 @@
 
 <script>
     $(function() {
-        datePickerBasic('#date');
-
-        $('#date').on('apply.daterangepicker', function (e, picker) {
-            picker.element.val(picker.startDate.format(picker.locale.format) + " - " + picker.endDate.format(picker.locale.format));
-
-            loadAllStatistic();
-        });
-
         loadAllStatistic();
     });
 
@@ -225,9 +207,6 @@
             url: '{{ url("dashboard/data-media-type") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-top-media');
             },
@@ -301,9 +280,6 @@
             url: '{{ url("dashboard/data-worksheet") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-top-worksheet');
             },
@@ -447,9 +423,6 @@
             url: '{{ url("dashboard/data-media-type") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-media-type');
                 onLoading('show', '.card-summary');
@@ -570,9 +543,6 @@
             url: '{{ url("dashboard/data-worksheet") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-worksheet');
             },
@@ -689,9 +659,6 @@
             url: '{{ url("dashboard/data-total-works") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-total-collection');
             },
@@ -813,9 +780,6 @@
             url: '{{ url("dashboard/data-collection-status") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-collection-status');
             },
