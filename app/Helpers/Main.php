@@ -542,4 +542,37 @@ class Main
 
         return $result['executors'] ?? [];
     }
+
+    /**
+     * phoneFormat
+     *
+     * @param  mixed $value
+     * @return void
+     */
+    public static function phoneFormat($value = '')
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^0-9]/', '', $value);
+
+        if (empty($cleaned)) {
+            return null;
+        }
+
+        if (str_starts_with($cleaned, '62')) {
+            return $cleaned;
+        }
+
+        if (str_starts_with($cleaned, '0')) {
+            return $cleaned;
+        }
+
+        if (str_starts_with($cleaned, '8')) {
+            return '62' . $cleaned;
+        }
+
+        return $cleaned;
+    }
 }

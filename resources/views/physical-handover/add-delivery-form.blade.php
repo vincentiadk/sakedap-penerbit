@@ -58,10 +58,9 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="ph-map-pin"></i></span>
                             <select class="form-select" name="destination" id="destination">
-                                <option value="">Pilih Tujuan</option>
                                 <option value="1">Perpusnas</option>
                                 <option value="2">Provinsi</option>
-                                <option value="3">Perpusnas & Provinsi</option>
+                                <option value="3" selected>Perpusnas & Provinsi</option>
                             </select>
                         </div>
                     </div>
@@ -72,7 +71,7 @@
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="ph-phone"></i></span>
-                            <input type="text" class="form-control" name="phone" id="phone" value="{{ session('phone') }}" placeholder="Contoh: 08123456789">
+                            <input type="text" class="form-control" name="phone" id="phone" value="{{ Main::phoneFormat(session('phone')) }}" placeholder="Contoh: 08123456789">
                         </div>
                     </div>
                     <div class="col-md-4">
