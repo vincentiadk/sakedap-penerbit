@@ -14,21 +14,14 @@
             <div class="ms-auto my-auto">
                 <a href="{{ asset('assets/Panduan Penggunaan Aplikasi Sakedap - Unggah Buku ISBN.pdf') }}" class="btn btn-teal" target="_blank">
                     <i class="ph-eye me-1"></i>
-                    Lihat Panduan
+                    Lihat Panduan (PDF)
                 </a>
             </div>
         </div>
         <div class="card-body">
             <form id="form-upload">
-                <input type="file" name="files[]" id="files" multiple data-show-upload="false" data-show-caption="true">
+                <input type="file" name="files[]" id="files" multiple data-show-upload="false" data-show-caption="true" multiple>
             </form>
-            <hr class="py-0">
-            <div class="text-end">
-                <button type="button" class="btn btn-primary" onclick="submitted()">
-                    <i class="ph-upload me-1"></i>
-                    Submit
-                </button>
-            </div>
         </div>
     </div>
     <div class="card">
@@ -69,18 +62,185 @@
     $(function() {
         loadData();
 
+        var $input = $("#files");
+        var isUploading = false;
+
+        if ($input.length === 0) {
+            return;
+        }
+
+        if ($input.data('fileinput')) {
+            $input.fileinput('destroy');
+        }
+
         dragAndDropFile('#files', {
+            uploadUrl: '{{ url("digital-storage-handover/single-upload-isbn/uploaded") }}',
+            uploadAsync: false,
             showUpload: false,
+            showCancel: false,
+            autoReplace: false,
             allowedFileExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'epub'],
-            maxFileSize: 208400,
-            browseLabel: "Pilih Semua File (Cover & Konten)",
-            dropZoneTitle: 'Drag & Drop semua file di sini (semua Cover dan semua Konten)',
+            maxFileSize: 204800,
             showCaption: true,
+            showPreview: true,
+            dropZoneEnabled: true,
+            dropZoneClickable: true,
+            dropZoneTitle: 'Drag & drop file di sini atau <span class="text-primary">klik untuk browse</span>',
+            msgPlaceholder: 'Pilih dua atau beberapa file (otomatis upload)',
+            uploadExtraData: function() {
+                return {
+                    _token: '{{ csrf_token() }}'
+                };
+            },
+            ajaxSettings: {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            },
+            fileActionSettings: {
+                showUpload: false,
+                showRemove: true,
+                showZoom: true,
+                showDrag: false,
+            }
+        });
+
+        setTimeout(function() {
+            $input = $("#files");
+
+            $input.on('filebatchselected', function(event, files) {
+                if (isUploading) {
+                    return;
+                }
+
+                var fileCount = 0;
+
+                if (files) {
+                    if (typeof files === 'object' && !Array.isArray(files)) {
+                        fileCount = Object.keys(files).length;
+                    } else if (Array.isArray(files)) {
+                        fileCount = files.length;
+                    } else if (files.length !== undefined) {
+                        fileCount = files.length;
+                    }
+                }
+
+                if (fileCount > 1) {
+                    isUploading = true;
+
+                    setTimeout(function() {
+                        $input.fileinput('upload');
+                    }, 500);
+                }
+            });
+        }, 300);
+
+        $input.on('filebatchpreupload', function(event, data, previewId, index) {
+            var fileCount = 0;
+
+            if (data.files && data.files.length) {
+                fileCount = data.files.length;
+            } else if (data.filescount) {
+                fileCount = data.filescount;
+            } else if (data.filenames && data.filenames.length) {
+                fileCount = data.filenames.length;
+            }
+        });
+
+        $input.on('filebatchuploadsuccess', function(event, data, previewId, index) {
+            isUploading = false;
+
+            const response = data.response;
+            let errMessage = '';
+
+            if(response.error && response.error.length > 0) {
+                $.each(response.error, function(i, val) {
+                    errMessage += '<li>' + val + '</li>';
+                });
+            }
+
+            var swalHtml = `
+                ${response.message}<br>
+                ${errMessage ? '<ul class="mb-0 text-start justify-content-start mt-2">' + errMessage + '</ul>' : ''}
+            `;
+
+            if(response.code == 200) {
+                onReloadTable();
+
+                swalInit.fire({
+                    title: 'Berhasil',
+                    html: swalHtml,
+                    icon: 'success',
+                    showDenyButton: false,
+                    showCancelButton: false,
+                    confirmButtonText: 'Oke',
+                }).then((result) => {
+                    $input.fileinput('clear');
+                    $input.fileinput('unlock');
+                });
+            } else {
+                swalInit.fire({
+                    title: 'Oops ...',
+                    html: swalHtml,
+                    icon: 'warning',
+                    showCloseButton: true
+                });
+
+                $input.fileinput('clear');
+                $input.fileinput('unlock');
+            }
+        });
+
+        $input.on('filebatchuploaderror', function(event, data, msg) {
+            isUploading = false;
+
+            var errorMsg = 'Terjadi kesalahan saat upload';
+            var errorDetails = [];
+
+            if (data.jqXHR && data.jqXHR.responseJSON) {
+                var response = data.jqXHR.responseJSON;
+                errorMsg = response.message || errorMsg;
+
+                if (response.error && Array.isArray(response.error) && response.error.length > 0) {
+                    errorDetails = response.error;
+                }
+            } else if (msg) {
+                errorMsg = msg;
+            }
+
+            var swalHtml = errorMsg;
+
+            if (errorDetails.length > 0) {
+                swalHtml += '<ul class="mb-0 text-start mt-3">';
+
+                errorDetails.forEach(function(err) {
+                    swalHtml += '<li class="text-muted small">' + err + '</li>';
+                });
+
+                swalHtml += '</ul>';
+            }
+
+            swalInit.fire({
+                title: 'Upload Gagal',
+                html: swalHtml,
+                icon: 'warning',
+                showCloseButton: true,
+                footer: '<small class="text-muted">Pastikan setiap ISBN memiliki Cover (jpg/png) dan Konten (pdf/epub) dengan nama file yang sama</small>'
+            });
+
+            $input.fileinput('clear');
+            $input.fileinput('unlock');
+        });
+
+        $input.on('fileclear', function(event) {
+            isUploading = false;
         });
     });
 
     function onReloadTable() {
-        window.gDataTable.ajax.reload(null, false);
+        if (window.gDataTable) {
+            window.gDataTable.ajax.reload(null, false);
+        }
     }
 
     function loadData() {
@@ -132,72 +292,6 @@
         });
 
         window.gDataTable.columns.adjust().draw();
-    }
-
-    function submitted() {
-        $.ajax({
-            url: '{{ url("digital-storage-handover/single-upload-isbn/uploaded") }}',
-            type: 'POST',
-            dataType: 'JSON',
-            data: new FormData($('#form-upload')[0]),
-            contentType: false,
-            processData: false,
-            cache: false,
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            beforeSend: function() {
-                onLoading('show', 'body');
-            },
-            success: function(response) {
-                onLoading('close', 'body');
-
-                let errMessage = '';
-
-                if(response.error) {
-                    $.each(response.error, function(i, val) {
-                        errMessage += '<li>' + val + '</li>';
-                    });
-                }
-
-                var swalHtml = `
-                    ${response.message}<br>
-                    <ul class="mb-0 text-start justify-content-start mt-2">${errMessage}</ul>
-                `;
-
-                if(response.code == 200) {
-                    swalInit.fire({
-                        title: 'Berhasil',
-                        html: swalHtml,
-                        icon: 'success',
-                        showDenyButton: false,
-                        showCancelButton: false,
-                        confirmButtonText: 'Oke',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            onLoading('show', 'body');
-
-                            location.href = '{{ url("digital-storage-handover/single-upload-isbn") }}';
-                        }
-                    });
-                } else {
-                    onLoading('close', 'body');
-
-                    swalInit.fire({
-                        title: 'Oops ...',
-                        html: swalHtml,
-                        icon: 'info',
-                        showCloseButton: true
-                    });
-                }
-            },
-            error: function(response) {
-                onLoading('close', 'body');
-                responseError(response);
-            }
-        });
     }
 
     function submission() {

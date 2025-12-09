@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Formulir</span>
+                Serah Simpan Fisik - <span class="fw-normal">Tambah Form Pengiriman</span>
             </h4>
         </div>
     </div>
@@ -13,6 +13,91 @@
     </div>
     <form id="form-data">
         <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="ph-address-book me-1"></i>
+                    Informasi Pengiriman
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nama Pengirim
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-user"></i></span>
+                            <input type="text" class="form-control" name="sender_name" id="sender_name" value="{{ session('name') }}" placeholder="Masukkan nama pengirim">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Pelaksana Serah
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-users-three"></i></span>
+                            <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                                <option value=""></option>
+                                @if(Main::getExecutorGroup())
+                                    @foreach(Main::getExecutorGroup() as $geg)
+                                        <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                                    @endforeach
+                                @else
+                                    <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Tujuan
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-map-pin"></i></span>
+                            <select class="form-select" name="destination" id="destination">
+                                <option value="1">Perpusnas</option>
+                                <option value="2">Provinsi</option>
+                                <option value="3" selected>Perpusnas & Provinsi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nomor Telepon
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-phone"></i></span>
+                            <input type="text" class="form-control" name="phone" id="phone" value="{{ Main::phoneFormat(session('phone')) }}" placeholder="Contoh: 08123456789">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Nomor Surat Pengantar
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-envelope"></i></span>
+                            <input type="text" class="form-control" name="cover_letter_number" id="cover_letter_number" placeholder="Contoh: 001/SP/2025">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Berat Paket
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ph-package"></i></span>
+                            <input type="number" class="form-control" name="weight" id="weight" placeholder="Minimal 1" min="1" step="0.1">
+                            <span class="input-group-text">Kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm">
             <div class="card-header bg-white d-sm-flex align-items-sm-center py-3">
                 <h5 class="mb-sm-0">
                     <i class="ph-barcode me-1"></i>
@@ -21,7 +106,7 @@
                 <div class="ms-sm-auto my-sm-auto">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ph-magnifying-glass"></i></span>
-                        <input type="text" class="form-control" name="search_isbn" id="search_isbn" placeholder="Masukkan Nomor ISBN" onkeypress="if(event.keyCode==13) { searchISBN(); return false; }">
+                        <input type="text" class="form-control" name="search_isbn" id="search_isbn" placeholder="Masukkan Nomor ISBN" onkeypress="if(event.keyCode == 13) { searchISBN(); return false; }">
                         <button type="button" class="btn btn-primary" onclick="searchISBN()">
                             Cari
                         </button>
@@ -42,8 +127,6 @@
                                 <th>Judul</th>
                                 <th>Edisi</th>
                                 <th>Jilid</th>
-                                <th width="150">QRCBN</th>
-                                <th width="150">ISBD</th>
                                 <th class="text-center" width="80">Aksi</th>
                             </tr>
                         </thead>
@@ -84,7 +167,7 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-light">
+            <div class="card-footer bg-white">
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="input-group">
@@ -131,7 +214,7 @@
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-light">
+            <div class="card-footer bg-white">
                 <div class="row align-items-center">
                     <div class="col-md-3">
                         <div class="input-group">
@@ -187,73 +270,6 @@
                                     </label>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="ph-address-book me-1"></i>
-                    Informasi Pengiriman
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="form-label">
-                            Nama Pengirim
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-user"></i></span>
-                            <input type="text" class="form-control" name="sender_name" id="sender_name" value="{{ session('name') }}" placeholder="Masukkan nama pengirim">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Tujuan
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-map-pin"></i></span>
-                            <select class="form-select" name="destination" id="destination">
-                                <option value="">Pilih Tujuan</option>
-                                <option value="1">Perpusnas</option>
-                                <option value="2">Provinsi</option>
-                                <option value="3">Perpusnas & Provinsi</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Nomor Telepon
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-phone"></i></span>
-                            <input type="text" class="form-control" name="phone" id="phone" value="{{ session('phone') }}" placeholder="Contoh: 08123456789">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Nomor Surat Pengantar
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-envelope"></i></span>
-                            <input type="text" class="form-control" name="cover_letter_number" id="cover_letter_number" placeholder="Contoh: 001/SP/2025">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">
-                            Berat Paket
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-package"></i></span>
-                            <input type="number" class="form-control" name="weight" id="weight" placeholder="Minimal 1" min="1" step="0.1">
-                            <span class="input-group-text">Kg</span>
                         </div>
                     </div>
                 </div>
@@ -329,10 +345,6 @@
         color: var(--bs-primary);
     }
 
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.025);
-    }
-
     .expedition-option {
         transition: all 0.2s ease;
     }
@@ -343,19 +355,6 @@
 
     .expedition-option input[type="radio"]:checked~label {
         font-weight: 600;
-    }
-
-    .form-label {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-    .card {
-        margin-bottom: 1.5rem;
-    }
-
-    .input-group-text {
-        background-color: #f8f9fa;
     }
 
     #data-collection-isbn tr:not(#empty-isbn-row):hover, #data-collection-non-isbn tr:not(#empty-non-isbn-row):hover, #data-collection-periodicals tr:not(#empty-periodicals-row):hover {
@@ -465,7 +464,7 @@
 
         if (weight != '' && weight > 0 && destination != '') {
             $.ajax({
-                url: '{{ url("physical-delivery/form/calculate-cost") }}',
+                url: '{{ url("physical-handover/add-delivery-form/calculate-cost") }}',
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
@@ -603,7 +602,7 @@
         }
 
         $.ajax({
-            url: '{{ url("physical-delivery/form/search-isbn") }}',
+            url: '{{ url("physical-handover/add-delivery-form/search-isbn") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
@@ -642,7 +641,7 @@
                 if (data.penerbit_id != executorId) {
                     swalInit.fire({
                         title: 'Penerbit Tidak Sesuai',
-                        html: `Mohon pilih pelaksana serah atas nama <strong>${data.nama_penerbit ?? 'penerbit terkait'}</strong>`,
+                        html: `Mohon pilih pelaksana serah atas nama <strong>${data.nama_penerbit ?? 'pelaksana serah terkait'}</strong>`,
                         icon: 'warning'
                     });
 
@@ -661,12 +660,6 @@
                         <td class="align-middle">${data.title ?? '-'}</td>
                         <td class="align-middle">${data.edisi ?? '-'}</td>
                         <td class="align-middle">${data.keterangan ?? '-'}</td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="ci_qrcbn[]" placeholder="Masukkan QRCBN">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="ci_isbd[]" placeholder="Masukkan ISBD">
-                        </td>
                         <td class="text-center align-middle">
                             <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)" data-bs-toggle="tooltip" title="Hapus data ini">
                                 <i class="ph-trash"></i>
@@ -870,7 +863,7 @@
 
     function selectCollectionNonISBN(param) {
         $.ajax({
-            url: '{{ url("physical-delivery/form/select-catalog") }}',
+            url: '{{ url("physical-handover/add-delivery-form/select-catalog") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
@@ -1138,7 +1131,7 @@
 
     function processSubmit() {
         $.ajax({
-            url: '{{ url("physical-delivery/form/submitted") }}',
+            url: '{{ url("physical-handover/add-delivery-form/submitted") }}',
             type: 'POST',
             dataType: 'JSON',
             data: $('#form-data').serialize(),
@@ -1169,7 +1162,7 @@
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
 
-                            location.href = '{{ url("physical-delivery/form") }}';
+                            location.href = '{{ url("physical-handover/add-delivery-form") }}';
                         }
                     });
                 } else if (response.code == 400) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\Main;
@@ -10,14 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
-class AcceptController extends Controller
+class DeliveryAcceptController extends Controller
 {
     public function index()
     {
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.accept',
+                'content' => 'physical-handover.delivery-accept',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -32,6 +32,7 @@ class AcceptController extends Controller
         $column = [
             'l.letter_id',
             null,
+            'p.name',
             'l.letter_date',
             'l.accept_date',
             'l.receipt_no',
@@ -58,8 +59,8 @@ class AcceptController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')";
-        $whereCondition[] = "l.penerbit_id = " . session('id');
+        $whereCondition[] = "l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
+        $whereCondition[] = "l.penerbit_id = " . $request->executor_id;
 
         if ($request->receipt_no) {
             $receiptNo = strtoupper($request->receipt_no);
@@ -114,8 +115,8 @@ class AcceptController extends Controller
             from
                 letter
             where
-                status in ('DITERIMA PENUH', 'DITERIMA PARSIAL') and
-                penerbit_id = " . session('id') . "
+                status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
+                penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -127,6 +128,8 @@ class AcceptController extends Controller
                 jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
             left join
                 branchs b on b.id = l.branch_id
+            left join
+                penerbit p on p.id = l.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -149,26 +152,27 @@ class AcceptController extends Controller
                                 l.accept_date,
                                 l.letter_date,
                                 b.name as name_branch,
+                                p.name as name_penerbit,
                                 jp.name as name_jasa_pengiriman,
                                 coalesce(td.total_eks_receipt, 0) as total_eks_receipt,
                                 coalesce(td.total_title_receipt, 0) as total_title_receipt,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
                                     then coalesce(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
                                     then coalesce(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
                                     then coalesce(td.total_eks_grant, 0)
                                     else 0
                                 end as total_eks_grant,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
                                     then coalesce(td.total_title_grant, 0)
                                     else 0
                                 end as total_title_grant
@@ -178,6 +182,8 @@ class AcceptController extends Controller
                                 jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
                             left join
                                 branchs b on b.id = l.branch_id
+                            left join
+                                penerbit p on p.id = l.penerbit_id
                             left join
                                 (
                                     select
@@ -204,11 +210,11 @@ class AcceptController extends Controller
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '
-                    <a href="' . url('physical-delivery/accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
+                    <a href="' . url('physical-handover/delivery-accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-check me-1"></i>
                         Detail
                     </a>
-                    <a href="' . url('physical-delivery/accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
+                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
                         <i class="ph-printer me-1"></i>
                         Resi Penerimaan
                     </a>
@@ -217,6 +223,7 @@ class AcceptController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     ($val->LETTER_DATE ?: null) ? Carbon::parse($val->LETTER_DATE)->isoFormat('dddd, D MMMM Y') : '',
                     ($val->ACCEPT_DATE ?: null) ? Carbon::parse($val->ACCEPT_DATE)->isoFormat('dddd, D MMMM Y') : '',
                     $val->RECEIPT_NO,
@@ -259,8 +266,7 @@ class AcceptController extends Controller
                 branchs on branchs.id = letter.branch_id
             where
                 letter.letter_id = $id and
-                letter.penerbit_id = " . session('id') . " and
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
         ";
 
         $letter = QueryAPI::get($letterSql, true);
@@ -278,7 +284,7 @@ class AcceptController extends Controller
             'data' => [
                 'letter' => $letter,
                 'letterDetail' => $letterDetail,
-                'content' => 'physical-delivery.accept-detail',
+                'content' => 'physical-handover.delivery-accept-detail',
                 'plugins' => [
                     'select2',
                     'datatable',
@@ -500,7 +506,7 @@ class AcceptController extends Controller
 
             $letterNumber = $letter->LETTER_ID ?? date('YmdHis');
             $nameExecutor = $letter->NAME_PENERBIT ?? '';
-            $directory = storage_path('app/public/physical-delivery/accept/receipt');
+            $directory = storage_path('app/public/physical-handover/delivery-accept/receipt');
 
             if (!file_exists($directory)) {
                 mkdir($directory, 0755, true);

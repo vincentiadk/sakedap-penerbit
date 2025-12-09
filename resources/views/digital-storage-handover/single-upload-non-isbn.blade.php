@@ -14,6 +14,23 @@
     <form id="form-data">
         <div class="card">
             <div class="card-header">
+                <h5 class="hstack gap-2 mb-0">Pelaksana Serah <span class="text-danger fw-bold">*</span></h5>
+            </div>
+            <div class="card-body">
+                <select class="form-select select2-basic" name="executor_id" id="executor_id">
+                    <option value=""></option>
+                    @if(Main::getExecutorGroup())
+                        @foreach(Main::getExecutorGroup() as $geg)
+                            <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                        @endforeach
+                    @else
+                        <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                    @endif
+                </select>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
                 <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
             </div>
             <div class="card-body">

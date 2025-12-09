@@ -72,6 +72,7 @@ Route::middleware('authentication')->group(function () {
     Route::prefix('request-file')->group(function () {
         Route::get('/', 'RequestFileController@index');
         Route::get('datatable', 'RequestFileController@datatable');
+        Route::get('datatable-collection', 'RequestFileController@datatableCollection');
         Route::post('create-data', 'RequestFileController@createData');
     });
 
@@ -130,44 +131,37 @@ Route::middleware('authentication')->group(function () {
         });
     });
 
-    Route::prefix('physical-delivery')->namespace('PhysicalDelivery')->group(function () {
-        Route::prefix('form')->group(function () {
-            Route::get('/', 'FormController@index');
-            Route::get('search-isbn', 'FormController@searchISBN');
-            Route::get('select-catalog', 'FormController@selectCatalog');
-            Route::get('calculate-cost', 'FormController@calculateCost');
-            Route::post('submitted', 'FormController@submitted');
-        });
-
-        Route::prefix('print-label')->group(function () {
-            Route::get('/', 'PrintLabelController@index');
-            Route::get('datatable', 'PrintLabelController@datatable');
-            Route::match(['get', 'post'], 'print/{id}', 'PrintLabelController@print');
+    Route::prefix('physical-handover')->namespace('PhysicalHandover')->group(function () {
+        Route::prefix('add-delivery-form')->group(function () {
+            Route::get('/', 'AddDeliveryFormController@index');
+            Route::get('search-isbn', 'AddDeliveryFormController@searchISBN');
+            Route::get('select-catalog', 'AddDeliveryFormController@selectCatalog');
+            Route::get('calculate-cost', 'AddDeliveryFormController@calculateCost');
+            Route::post('submitted', 'AddDeliveryFormController@submitted');
         });
 
         Route::prefix('delivery-monitoring')->group(function () {
             Route::get('/', 'DeliveryMonitoringController@index');
             Route::get('datatable', 'DeliveryMonitoringController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'DeliveryMonitoringController@detail');
+            Route::match(['get', 'post'], 'print-label/{id}', 'DeliveryMonitoringController@printLabel');
         });
 
-        Route::prefix('in-delivery')->group(function () {
-            Route::get('/', 'InDeliveryController@index');
-            Route::get('datatable', 'InDeliveryController@datatable');
-            Route::get('detail/{id}', 'InDeliveryController@detail');
-        });
-
-        Route::prefix('package-sent')->group(function () {
-            Route::get('/', 'PackageSentController@index');
-            Route::get('datatable', 'PackageSentController@datatable');
-            Route::get('detail/{id}', 'PackageSentController@detail');
+        Route::prefix('delivery-accept')->group(function () {
+            Route::get('/', 'DeliveryAcceptController@index');
+            Route::get('datatable', 'DeliveryAcceptController@datatable');
+            Route::get('detail/{id}', 'DeliveryAcceptController@detail');
+            Route::get('print/{id}', 'DeliveryAcceptController@print');
         });
 
         Route::prefix('accept')->group(function () {
             Route::get('/', 'AcceptController@index');
             Route::get('datatable', 'AcceptController@datatable');
-            Route::get('detail/{id}', 'AcceptController@detail');
-            Route::get('print/{id}', 'AcceptController@print');
+        });
+
+        Route::prefix('in-delivery')->group(function () {
+            Route::get('/', 'InDeliveryController@index');
+            Route::get('datatable', 'InDeliveryController@datatable');
         });
 
         Route::prefix('reject')->group(function () {

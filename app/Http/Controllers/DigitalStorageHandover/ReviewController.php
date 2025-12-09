@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'worksheet' => QueryAPI::get("select * from worksheets where category is not null") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
                 'content' => 'digital-storage-handover.review',
                 'plugins' => [
                     'datatable',
@@ -37,8 +37,9 @@ class ReviewController extends Controller
         $column = [
             'e_collections.id',
             null,
+            'penerbit.name',
             'e_collections.title',
-            'worksheets.name',
+            'collectionmedias.name',
             'e_collections.code',
             'e_collections.updated_at',
         ];
@@ -55,7 +56,7 @@ class ReviewController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "(e_collections.status = '1' and e_collections.deleted_at is null)";
-        $whereCondition[] = "e_collections.penerbit_id = " . session('id');
+        $whereCondition[] = "e_collections.penerbit_id = " . $request->executor_id;
         $whereCondition[] = "worksheets.category = '" . $this->worksheetCategory . "'";
 
         if ($request->title) {
@@ -76,8 +77,8 @@ class ReviewController extends Controller
             $whereCondition[] = "e_collections.publication_year = $request->year";
         }
 
-        if ($request->worksheet_id) {
-            $whereCondition[] = "e_collections.worksheet_id = $request->worksheet_id";
+        if ($request->media_id) {
+            $whereCondition[] = "e_collections.collection_media_id = $request->media_id";
         }
 
         if ($request->date) {
@@ -119,7 +120,7 @@ class ReviewController extends Controller
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
                 (e_collections.status = '1' and e_collections.deleted_at is null) and
-                e_collections.penerbit_id = " . session('id') . " and
+                e_collections.penerbit_id = " . $request->executor_id . " and
                 worksheets.category = '" . $this->worksheetCategory . "'
         ", true)->TOTAL ?? 0;
 
@@ -132,6 +133,10 @@ class ReviewController extends Controller
                 kabupaten on kabupaten.id = e_collections.kabupaten_id
             left join
                 worksheets on worksheets.id = e_collections.worksheet_id
+            left join
+                collectionmedias on collectionmedias.id = e_collections.collection_media_id
+            left join
+                penerbit on penerbit.id = e_collections.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -146,13 +151,18 @@ class ReviewController extends Controller
                         (
                             select
                                 e_collections.*,
-                                worksheets.name as name_worksheet
+                                collectionmedias.name as name_media,
+                                penerbit.name as name_penerbit
                             from
                                 e_collections
                             left join
                                 kabupaten on kabupaten.id = e_collections.kabupaten_id
                             left join
                                 worksheets on worksheets.id = e_collections.worksheet_id
+                            left join
+                                collectionmedias on collectionmedias.id = e_collections.collection_media_id
+                            left join
+                                penerbit on penerbit.id = e_collections.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -173,8 +183,9 @@ class ReviewController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     ($val->TITLE ?? $val->TITLE_ORI),
-                    $val->NAME_WORKSHEET,
+                    $val->NAME_MEDIA,
                     $val->CODE,
                     Carbon::parse($val->UPDATED_AT)->isoFormat('dddd, D MMMM Y'),
                 ];
@@ -196,6 +207,7 @@ class ReviewController extends Controller
         $sqlCollection = "
             select
                 ec.*,
+                penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
                 w.name as name_worksheet,
                 w.category as category_worksheet,
@@ -224,6 +236,8 @@ class ReviewController extends Controller
             left join
                 worksheets w on w.id = ec.worksheet_id
             left join
+                penerbit on penerbit.id = ec.penerbit_id
+            left join
                 (
                     select
                         cf.e_col_id, cf.id, cf.fileurl, cf.hash, cf.mime, cf.file_size, cf.method,
@@ -243,8 +257,7 @@ class ReviewController extends Controller
                 ec.id = $id and
                 ec.deleted_at is null and
                 ec.status = '1' and
-                w.category = '" . $this->worksheetCategory . "' and
-                ec.penerbit_id = " . session('id') . "
+                w.category = '" . $this->worksheetCategory . "'
         ";
 
         $collection = QueryAPI::get($sqlCollection, true);

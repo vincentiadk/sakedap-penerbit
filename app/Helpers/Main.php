@@ -289,6 +289,8 @@ class Main
                     'is_isbn' => $user->IS_ISBN ?: 0,
                 ]);
 
+                Cache::forget('executor_group_' . $user->ID);
+
                 $response = true;
             }
         }
@@ -468,5 +470,109 @@ class Main
         }
 
         return $number;
+    }
+
+    /**
+     * getExecutorGroup
+     *
+     * @return void
+     */
+    public static function getExecutorGroup($forceRefresh = false)
+    {
+        $id = session('id');
+
+        if (!$id) {
+            return [];
+        }
+
+        $cacheKey = 'executor_group_' . $id;
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+
+            session()->forget('group');
+        }
+
+        $result = Cache::rememberForever($cacheKey, function () use ($id) {
+            $dataGroup = QueryAPI::get("
+                select
+                    e_publisher_access.publisher_group_id,
+                    e_publisher_groups.name
+                from
+                    e_publisher_access
+                inner join
+                    e_publisher_groups on e_publisher_groups.id = e_publisher_access.publisher_group_id
+                where
+                    e_publisher_access.publisher_id = $id
+                    and e_publisher_access.deleted_at is null
+                    and rownum = 1
+            ", true);
+
+            if (!$dataGroup) {
+                return [
+                    'group_name' => null,
+                    'executors' => []
+                ];
+            }
+
+            $groupId = $dataGroup->PUBLISHER_GROUP_ID ?? $dataGroup->publisher_group_id;
+            $groupName = $dataGroup->NAME ?? $dataGroup->name;
+
+            $executors = QueryAPI::get("
+                select
+                    distinct penerbit.*
+                from
+                    penerbit
+                inner join
+                    e_publisher_access on e_publisher_access.publisher_id = penerbit.id
+                inner join
+                    e_publisher_groups on e_publisher_groups.id = e_publisher_access.publisher_group_id
+                where
+                    e_publisher_access.publisher_group_id = $groupId
+                    and e_publisher_access.deleted_at IS NULL
+            ");
+
+            return [
+                'group_name' => $groupName,
+                'executors' => $executors ?? []
+            ];
+        });
+
+        session(['group' => $result['group_name']]);
+
+        return $result['executors'] ?? [];
+    }
+
+    /**
+     * phoneFormat
+     *
+     * @param  mixed $value
+     * @return void
+     */
+    public static function phoneFormat($value = '')
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^0-9]/', '', $value);
+
+        if (empty($cleaned)) {
+            return null;
+        }
+
+        if (str_starts_with($cleaned, '62')) {
+            return $cleaned;
+        }
+
+        if (str_starts_with($cleaned, '0')) {
+            return $cleaned;
+        }
+
+        if (str_starts_with($cleaned, '8')) {
+            return '62' . $cleaned;
+        }
+
+        return $cleaned;
     }
 }

@@ -5,20 +5,10 @@
                 <span class="fw-normal">Dashboard</span>
             </h4>
         </div>
-        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
-            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
-                <div class="d-inline-flex mt-3 mt-sm-0">
-                    <div class="input-group">
-                        <span class="input-group-text">Filter Tanggal</span>
-                        <input type="text" class="form-control wmin-200" name="date" id="date" value="{{ date('Y/m/01') }} - {{ date('Y/m/t') }}" placeholder="Pilih Tanggal" readonly>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 <div class="content">
-    <div class="row">
+    <div class="row card-summary">
         <div class="col-xl-3 col-sm-6">
             <div class="card card-body bg-primary text-white">
                 <div class="d-flex align-items-center">
@@ -120,7 +110,7 @@
                 <div class="card-header d-flex align-items-center">
                     <h6 class="mb-0">
                         <i class="ph-chart-pie me-1"></i>
-                        Distribusi Jenis Bahan<
+                        Distribusi Jenis Bahan
                     </h6>
                     <div class="ms-auto">
                         <span class="badge bg-success bg-opacity-10 text-success" id="badge-worksheet">0 Item</span>
@@ -177,7 +167,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="min-height:442px;">
+                    <div class="table-responsive" style="max-height:442px; height:442px; overflow-y:auto;">
                         <table class="table table-hover table-striped table-xs">
                             <thead class="table-light sticky-top">
                                 <tr>
@@ -199,14 +189,6 @@
 
 <script>
     $(function() {
-        datePickerBasic('#date');
-
-        $('#date').on('apply.daterangepicker', function (e, picker) {
-            picker.element.val(picker.startDate.format(picker.locale.format) + " - " + picker.endDate.format(picker.locale.format));
-
-            loadAllStatistic();
-        });
-
         loadAllStatistic();
     });
 
@@ -225,9 +207,6 @@
             url: '{{ url("dashboard/data-media-type") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-top-media');
             },
@@ -301,9 +280,6 @@
             url: '{{ url("dashboard/data-worksheet") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-top-worksheet');
             },
@@ -447,11 +423,9 @@
             url: '{{ url("dashboard/data-media-type") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-media-type');
+                onLoading('show', '.card-summary');
             },
             success: function(response) {
                 var total = 0;
@@ -479,6 +453,7 @@
                     `);
 
                     onLoading('close', '#card-media-type');
+                    onLoading('close', '.card-summary');
 
                     return;
                 }
@@ -553,9 +528,11 @@
                 });
 
                 onLoading('close', '#card-media-type');
+                onLoading('close', '.card-summary');
             },
             error: function(response) {
                 onLoading('close', '#card-media-type');
+                onLoading('close', '.card-summary');
                 responseError(response);
             }
         });
@@ -566,9 +543,6 @@
             url: '{{ url("dashboard/data-worksheet") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-worksheet');
             },
@@ -685,9 +659,6 @@
             url: '{{ url("dashboard/data-total-works") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-total-collection');
             },
@@ -809,9 +780,6 @@
             url: '{{ url("dashboard/data-collection-status") }}',
             type: 'GET',
             dataType: 'JSON',
-            data: {
-                date: $('#date').val()
-            },
             beforeSend: function() {
                 onLoading('show', '#card-collection-status');
             },

@@ -9,6 +9,47 @@
 			</div>
 			<div class="d-flex w-100 w-xl-auto overflow-auto overflow-xl-visible scrollbar-hidden border-top border-top-xl-0 order-1 order-xl-0 pt-2 pt-xl-0 mt-2 mt-xl-0">
 				<ul class="nav gap-1 justify-content-center flex-nowrap flex-xl-wrap mx-auto">
+                    <li class="nav-item nav-item-dropdown-lg dropdown">
+						<a href="{{ url('auth/profile') }}" class="navbar-nav-link rounded" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+							<i class="ph-users-four me-2"></i>
+							Grup
+						</a>
+                        <div class="dropdown-menu wmin-lg-400 p-0">
+                            <div class="d-flex align-items-center py-2 px-3 border-bottom">
+                                <h6 class="mb-0">
+                                    @if(session('group'))
+                                        {{ session('group') }}
+                                    @else
+                                        Tidak ada grup
+                                    @endif
+                                </h6>
+                            </div>
+                            <div class="dropdown-menu-scrollable">
+                                @if(count(Main::getExecutorGroup()) > 0)
+                                    @foreach(Main::getExecutorGroup() as $geg)
+                                        <div class="dropdown-item align-items-start text-wrap py-2 no-click">
+                                            <div class="flex-1">
+                                                <span class="fw-normal">{{ $geg->NAME }}</span>
+                                                <div class="text-muted">
+                                                    <small>
+                                                        ISBN : {{ $geg->IS_ISBN == 1 ? 'Terhubung' : 'Tidak Terhubung' }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-3">Tidak ada anggota</div>
+                                @endif
+                            </div>
+                            <div class="d-flex border-top py-2 px-3">
+                                <span class="text-dark no-click">
+                                    <i class="ph-database me-1"></i>
+                                    Total Anggota : <b>{{ count(Main::getExecutorGroup()) }}</b>
+                                </span>
+                            </div>
+                        </div>
+					</li>
                     <li class="nav-item">
 						<a href="{{ url('auth/profile') }}" class="navbar-nav-link rounded">
 							<i class="ph-user-circle me-2"></i>
@@ -72,20 +113,27 @@
 						</div>
 					</li>
                     <li class="nav-item nav-item-dropdown-lg dropdown">
-						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'physical-delivery' ? 'active' : '' }}" data-bs-toggle="dropdown">
+						<a href="#" class="navbar-nav-link dropdown-toggle rounded {{ Request::segment(1) == 'physical-handover' ? 'active' : '' }}" data-bs-toggle="dropdown">
 							<i class="ph-archive-box me-2"></i>
-							Pengiriman Fisik
+							Serah Simpan Fisik
 						</a>
-						<div class="dropdown-menu">
-							<a href="{{ url('physical-delivery/form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'form' ? 'active' : '' }}">Formulir</a>
-							<a href="{{ url('physical-delivery/print-label') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'print-label' ? 'active' : '' }}">Cetak Label</a>
-							<a href="{{ url('physical-delivery/delivery-monitoring') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'delivery-monitoring' ? 'active' : '' }}">Monitoring Pengiriman</a>
-							<a href="{{ url('physical-delivery/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Dalam Pengiriman</a>
-							<a href="{{ url('physical-delivery/package-sent') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'package-sent' ? 'active' : '' }}">Paket Terkirim</a>
-							<a href="{{ url('physical-delivery/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'accept' ? 'active' : '' }}">Penerimaan</a>
-							<a href="{{ url('physical-delivery/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
-							<a href="{{ url('physical-delivery/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
-							<a href="{{ url('physical-delivery/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-delivery' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
+						<div class="dropdown-menu" style="min-width:500px;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="fw-bold border-bottom ms-3 mt-2 pb-2 mb-2">Pengiriman Karya Fisik</div>
+                                    <a href="{{ url('physical-handover/add-delivery-form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'add-delivery-form' ? 'active' : '' }}">Tambah Form Pengiriman</a>
+                                    <a href="{{ url('physical-handover/delivery-monitoring') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-monitoring' ? 'active' : '' }}">Monitoring Pengiriman</a>
+                                    <a href="{{ url('physical-handover/delivery-accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-accept' ? 'active' : '' }}">Pengiriman Diterima</a>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="fw-bold border-bottom ms-3 me-3 mt-2 pb-2 mb-2">Koleksi Fisik</div>
+                                    <a href="{{ url('physical-handover/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'accept' ? 'active' : '' }}">Koleksi Diterima</a>
+                                    <a href="{{ url('physical-handover/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Koleksi Dalam Pengiriman</a>
+                                    <a href="{{ url('physical-handover/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
+                                    <a href="{{ url('physical-handover/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
+                                    <a href="{{ url('physical-handover/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
+                                </div>
+                            </div>
 						</div>
 					</li>
                     <li class="nav-item">

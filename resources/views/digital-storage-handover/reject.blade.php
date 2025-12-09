@@ -13,6 +13,22 @@
             <h5 class="hstack gap-2 mb-0">Filter Data</h5>
         </div>
         <div class="card-body">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-text">Pelaksana Serah</span>
+                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                        <option value=""></option>
+                        @if(Main::getExecutorGroup())
+                            @foreach(Main::getExecutorGroup() as $geg)
+                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                            @endforeach
+                        @else
+                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+            <hr class="py-1 mb-1">
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
@@ -22,11 +38,11 @@
                 </div>
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label class="form-label">Jenis Bahan :</label>
-                        <select class="form-select select2-basic" name="worksheet_id" id="worksheet_id" data-placeholder="Semua">
+                        <label class="form-label">Jenis Media :</label>
+                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua">
                             <option value=""></option>
-                            @foreach($worksheet as $w)
-                                <option value="{{ $w->ID }}">{{ $w->NAME }} [{{ $w->CATEGORY }}]</option>
+                            @foreach($media as $m)
+                                <option value="{{ $m->ID }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
                             @endforeach
                         </select>
                     </div>
@@ -59,7 +75,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('digital-storage-handover/problem') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('digital-storage-handover/reject') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -77,8 +93,9 @@
                     <tr>
                         <th class="text-nowrap">No</th>
                         <th class="text-nowrap"><i class="ph-gear"></i></th>
+                        <th class="text-nowrap">Pelaksana Serah</th>
                         <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Jenis Bahan</th>
+                        <th class="text-nowrap">Jenis Media</th>
                         <th class="text-nowrap">Kode</th>
                         <th class="text-nowrap">Keterangan</th>
                         <th class="text-nowrap">Tgl Masalah</th>
@@ -111,8 +128,9 @@
                     isbn: $('#isbn').val(),
                     qrcbn: $('#qrcbn').val(),
                     year: $('#year').val(),
-                    worksheet_id: $('#worksheet_id').val(),
+                    media_id: $('#media_id').val(),
                     date: $('#date').val(),
+                    executor_id: $('#executor_id').val(),
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -125,6 +143,7 @@
             columns: [
                 { orderable: true, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },

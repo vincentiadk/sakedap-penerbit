@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Pengiriman Fisik - <span class="fw-normal">Koleksi Ditolak</span>
+                Serah Simpan Fisik - <span class="fw-normal">Koleksi Ditolak</span>
             </h4>
         </div>
     </div>
@@ -48,6 +48,22 @@
             <h5 class="hstack gap-2 mb-0">Filter Data</h5>
         </div>
         <div class="card-body">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-text">Pelaksana Serah</span>
+                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                        <option value=""></option>
+                        @if(Main::getExecutorGroup())
+                            @foreach(Main::getExecutorGroup() as $geg)
+                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                            @endforeach
+                        @else
+                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+            <hr class="py-1 mb-1">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
@@ -76,7 +92,7 @@
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('physical-delivery/reject') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/reject') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -104,6 +120,7 @@
                         <th class="text-nowrap">#</th>
                         <th class="text-nowrap">No</th>
                         <th class="text-nowrap"><i class="ph-gear"></i></th>
+                        <th class="text-nowrap">Pelaksana Serah</th>
                         <th class="text-nowrap">Auto Hibah</th>
                         <th class="text-nowrap">Tgl Kirim</th>
                         <th class="text-nowrap">Judul</th>
@@ -208,13 +225,14 @@
                 },
             ],
             ajax: {
-                url: '{{ url("physical-delivery/reject/datatable") }}',
+                url: '{{ url("physical-handover/reject/datatable") }}',
                 dataType: 'JSON',
                 data: {
                     executor_id: $('#executor_id').val(),
                     delivery_service_id: $('#delivery_service_id').val(),
                     date: $('#date').val(),
                     date_type: $('#date_type').val(),
+                    executor_id: $('#executor_id').val(),
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -228,6 +246,7 @@
                 { orderable: false, className: 'align-middle text-center allow-select' },
                 { orderable: true, className: 'align-middle text-center allow-select' },
                 { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
@@ -426,7 +445,7 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: '{{ url("physical-delivery/reject/grant") }}',
+                    url: '{{ url("physical-handover/reject/grant") }}',
                     type: 'POST',
                     dataType: 'JSON',
                     data: {
@@ -584,7 +603,7 @@
                 }).then((result) => {
                     if (result.isConfirmed && result.value) {
                         $.ajax({
-                            url: '{{ url("physical-delivery/reject/retur") }}',
+                            url: '{{ url("physical-handover/reject/retur") }}',
                             type: 'POST',
                             dataType: 'JSON',
                             data: {

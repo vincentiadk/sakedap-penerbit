@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use App\Helpers\ISBN;
 use App\Helpers\Main;
@@ -12,7 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
-class FormController extends Controller
+class AddDeliveryFormController extends Controller
 {
     public function index()
     {
@@ -33,7 +33,7 @@ class FormController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'content' => 'physical-delivery.form',
+                'content' => 'physical-handover.add-delivery-form',
                 'media' => $media ?? [],
                 'plugins' => [
                     'select2',
@@ -48,9 +48,11 @@ class FormController extends Controller
     public function searchISBN(Request $request)
     {
         $code = str_replace('-', '', $request->code);
+        $executorId = $request->executor_id;
 
         $data = ISBN::get('search', [
             'code' => $code,
+            'penerbit_id' => $executorId,
         ], true);
 
         $linkCover = asset('assets/no-file.jpg');
@@ -211,7 +213,7 @@ class FormController extends Controller
             'weight' => 'required|numeric|min:1',
             'destination' => 'required',
         ]), array_merge($addValidationMessage, [
-            'type_delivery.required' => 'Jenis pengiriman tidak boleh kosong',
+            'type_delivery.required' => 'Metode pengiriman tidak boleh kosong',
             'phone.required' => 'Telepon tidak boleh kosong',
             'phone.min_digits' => 'Telepon minimal 8 digit',
             'phone.max_digits' => 'Telepon maksimal 13 digit',
@@ -250,9 +252,9 @@ class FormController extends Controller
                 'letter_date' => $letterDate,
                 'letter_number' => $request->cover_letter_number,
                 'sender' => $request->sender_name,
-                'publisher_id' => session('id'),
+                'publisher_id' => $request->executor_id,
                 'lang' => 'id',
-                'penerbit_id' => session('id'),
+                'penerbit_id' => $request->executor_id,
                 'berat' => $weight * 1000,
                 'phone' => $request->phone,
             ];
@@ -532,7 +534,7 @@ class FormController extends Controller
                 'jenis_media' => $isbn->jenis_media,
                 'collection_type_id' => 2,
                 'penerbit_terbitan_id' => $isbn->ptid,
-                'penerbit_id' => $isbn->PENERBIT_ID ?? null,
+                'penerbit_id' => $isbn->PENERBIT_ID ?? $request->executor_id,
                 'nomorpanggiljilid' => $isbn->keterangan,
                 'qrcbn' => $qrcbn,
                 'isbd' => $isbd,
@@ -621,7 +623,7 @@ class FormController extends Controller
                 'collection_type_id' => $catalog->COLLECTIONMEDIA_ID ?? ($getCollectionMedia->ID ?? null),
                 'deskripsifisik' => $physicalDescription,
                 'jenis_media' => $getCollectionMedia->NAME ?? null,
-                'penerbit_id' => $catalog->PENERBIT_ID ?? session('id'),
+                'penerbit_id' => $catalog->PENERBIT_ID ?? $request->executor_id,
                 'nomorpanggiljilid' => $binding,
                 'qrcbn' => $qrcbn,
                 'isbd' => $isbd,
@@ -697,7 +699,7 @@ class FormController extends Controller
                     'province_id' => $catalog->PROPINSIID ?? null,
                     'kab_id' => $catalog->CITY_ID ?? null,
                     'collection_type_id' => $catalog->COLLECTIONMEDIA_ID ?? null,
-                    'penerbit_id' => $catalog->PENERBIT_ID ?? session('id'),
+                    'penerbit_id' => $catalog->PENERBIT_ID ?? $request->executor_id,
                 ];
 
                 QueryAPI::create('letter_detail', $letterDetailData, false);

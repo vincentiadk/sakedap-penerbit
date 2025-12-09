@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\PhysicalDelivery;
+namespace App\Http\Controllers\PhysicalHandover;
 
 use Carbon\Carbon;
 use App\Helpers\QueryAPI;
@@ -14,7 +14,7 @@ class RejectController extends Controller
         return view('layouts.index', [
             'data' => [
                 'deliveryService' => QueryAPI::get("select * from jasa_pengiriman") ?? [],
-                'content' => 'physical-delivery.reject',
+                'content' => 'physical-handover.reject',
                 'plugins' => [
                     'datatable',
                     'select2',
@@ -30,6 +30,7 @@ class RejectController extends Controller
             null,
             'letter_detail.letter_detail_id',
             null,
+            'penerbit.name',
             'letter.accept_date',
             'letter.letter_date',
             'letter_detail.title',
@@ -53,11 +54,11 @@ class RejectController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL')";
+        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
         $whereCondition[] = "letter_detail.qty_hibah is null";
         $whereCondition[] = "letter_detail.qty_retur is null";
         $whereCondition[] = "letter_detail.qty_reject > 0";
-        $whereCondition[] = "letter.penerbit_id = " . session('id');
+        $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
             $whereCondition[] = "letter.jasa_pengiriman_id = $request->delivery_service_id";
@@ -101,11 +102,11 @@ class RejectController extends Controller
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             where
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL') and
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
                 letter_detail.qty_hibah is null and
                 letter_detail.qty_retur is null and
                 letter_detail.qty_reject > 0 and
-                letter.penerbit_id = " . session('id') . "
+                letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -119,6 +120,8 @@ class RejectController extends Controller
                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
             left join
                 branchs on branchs.id = letter.branch_id
+            left join
+                penerbit on penerbit.id = letter.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -135,6 +138,7 @@ class RejectController extends Controller
                                 letter_detail.*,
                                 jasa_pengiriman.name as name_jasa_pengiriman,
                                 branchs.name as name_branch,
+                                penerbit.name as name_penerbit,
                                 letter.receipt_no as receipt_no_letter,
                                 letter.status as status_letter,
                                 letter.proses_by as proses_by_letter,
@@ -148,6 +152,8 @@ class RejectController extends Controller
                                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
                             left join
                                 branchs on branchs.id = letter.branch_id
+                            left join
+                                penerbit on penerbit.id = letter.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -198,6 +204,7 @@ class RejectController extends Controller
                     $inputHidden,
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     $timeAutoGrant,
                     Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMMM Y'),
                     $val->TITLE,

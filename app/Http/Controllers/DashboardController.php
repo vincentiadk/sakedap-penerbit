@@ -34,21 +34,8 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function dataMediaType(Request $request)
+    public function dataMediaType()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -62,17 +49,15 @@ class DashboardController extends Controller
         $query = "
             select
                 cm.name,
-                count(c.id) as total
+                count(ec.id) as total
             from
                 collectionmedias cm
             inner join
                 worksheets w on w.id = cm.worksheet_id
                 and w.category in ('$catDigital', '$catPrinted', '$catAnalog')
             inner join
-                catalogs c on c.worksheet_id = w.id
-                and c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                e_collections ec on ec.collection_media_id = cm.id
+                and ec.penerbit_id = $executorId
             group by
                 cm.name
             order by
@@ -99,21 +84,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataWorksheet(Request $request)
+    public function dataWorksheet()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -127,16 +99,14 @@ class DashboardController extends Controller
         $query = "
             select
                 w.name,
-                count(c.id) as total
+                count(ec.id) as total
             from
                 worksheets w
             inner join
-                catalogs c on c.worksheet_id = w.id
+                e_collections ec on ec.worksheet_id = w.id
             where
                 w.category in ('$catDigital', '$catPrinted', '$catAnalog')
-                and c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                and ec.penerbit_id = $executorId
             group by
                 w.name
             order by
@@ -163,21 +133,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataCollectionStatus(Request $request)
+    public function dataCollectionStatus()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json(['label' => [], 'data' => []]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -193,9 +150,7 @@ class DashboardController extends Controller
             from
                 e_collections
             where
-                created_at >= to_date('$startDate', 'YYYY-MM-DD')
-                and created_at <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and penerbit_id = $executorId
+                penerbit_id = $executorId
         ";
 
         $data = QueryAPI::get($query, true);
@@ -218,25 +173,8 @@ class DashboardController extends Controller
         return response()->json($response);
     }
 
-    public function dataTotalWorks(Request $request)
+    public function dataTotalWorks()
     {
-        $parts = explode(' - ', $request->date);
-
-        if (count($parts) < 2) {
-            return response()->json([
-                'TOTAL_DIGITAL' => 0,
-                'TOTAL_ANALOG' => 0,
-                'TOTAL_PRINTED' => 0
-            ]);
-        }
-
-        try {
-            $startDate = Carbon::parse($parts[0])->format('Y-m-d');
-            $endDate = Carbon::parse($parts[1])->format('Y-m-d');
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid date format'], 400);
-        }
-
         $executorId = (int) session('id');
 
         if (!$executorId) {
@@ -247,28 +185,38 @@ class DashboardController extends Controller
         $catAnalog = addslashes($this->worksheetCategoryAnalog);
         $catPrinted = addslashes($this->worksheetCategoryPrinted);
 
-        $query = "
+        $totalDigital = "
             select
-                sum(case when w.category = '$catDigital' then 1 else 0 end) as total_digital,
+                sum(case when w.category = '$catDigital' then 1 else 0 end) as total_digital
+            from
+                e_collections ec
+            inner join
+                worksheets w on w.id = ec.worksheet_id
+                and w.category in ('$catDigital')
+            where
+                ec.penerbit_id = $executorId
+        ";
+
+        $totalAnalogPrinted = "
+            select
                 sum(case when w.category = '$catAnalog' then 1 else 0 end) as total_analog,
                 sum(case when w.category = '$catPrinted' then 1 else 0 end) as total_printed
             from
-                catalogs c
+                collections c
             inner join
                 worksheets w on w.id = c.worksheet_id
-                and w.category in ('$catDigital', '$catAnalog', '$catPrinted')
+                and w.category in ('$catAnalog', '$catPrinted')
             where
-                c.createdate >= to_date('$startDate', 'YYYY-MM-DD')
-                and c.createdate <= to_date('$endDate', 'YYYY-MM-DD') + 1
-                and c.penerbit_id = $executorId
+                c.penerbit_id = $executorId
         ";
 
-        $data = QueryAPI::get($query, true);
+        $dataDigital = QueryAPI::get($totalDigital, true);
+        $dataAnalogPrinted = QueryAPI::get($totalAnalogPrinted, true);
 
         $response = [
-            'TOTAL_DIGITAL' => (int) ($data->TOTAL_DIGITAL ?? 0),
-            'TOTAL_ANALOG'  => (int) ($data->TOTAL_ANALOG ?? 0),
-            'TOTAL_PRINTED' => (int) ($data->TOTAL_PRINTED ?? 0),
+            'TOTAL_DIGITAL' => (int) ($dataDigital->TOTAL_DIGITAL ?? 0),
+            'TOTAL_ANALOG'  => (int) ($dataAnalogPrinted->TOTAL_ANALOG ?? 0),
+            'TOTAL_PRINTED' => (int) ($dataAnalogPrinted->TOTAL_PRINTED ?? 0),
         ];
 
         return response()->json($response);

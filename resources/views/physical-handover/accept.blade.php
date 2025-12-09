@@ -2,7 +2,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Serah Simpan Digital - <span class="fw-normal">Koleksi Diterima</span>
+                Serah Simpan Fisik - <span class="fw-normal">Koleksi Diterima</span>
             </h4>
         </div>
     </div>
@@ -13,53 +13,51 @@
             <h5 class="hstack gap-2 mb-0">Filter Data</h5>
         </div>
         <div class="card-body">
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-text">Pelaksana Serah</span>
+                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+                        <option value=""></option>
+                        @if(Main::getExecutorGroup())
+                            @foreach(Main::getExecutorGroup() as $geg)
+                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                            @endforeach
+                        @else
+                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                        @endif
+                    </select>
+                </div>
+            </div>
+            <hr class="py-1 mb-1">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Tanggal :</label>
-                        <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                        <div class="input-group">
+                            <select class="form-select w-auto flex-grow-0" name="date_type" id="date_type">
+                                <option value="accept_date">Diterima</option>
+                                <option value="letter_date">Pengiriman</option>
+                            </select>
+                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
-                        <label class="form-label">Jenis Media :</label>
-                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua">
+                        <label class="form-label">Jasa Kirim :</label>
+                        <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua">
                             <option value=""></option>
-                            @foreach($media as $m)
-                                <option value="{{ $m->ID }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
+                            @foreach($deliveryService as $ds)
+                                <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
                             @endforeach
                         </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Judul :</label>
-                        <input type="text" class="form-control" name="title" id="title" placeholder="....................">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">ISBN :</label>
-                        <input type="text" class="form-control" name="isbn" id="isbn" placeholder="....................">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">QRCBN :</label>
-                        <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="....................">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Tahun :</label>
-                        <input type="number" class="form-control" name="year" id="year" placeholder="....................">
                     </div>
                 </div>
             </div>
         </div>
         <div class="card-footer bg-white">
             <div class="text-end">
-                <a href="{{ url('digital-storage-handover/accept') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                <a href="{{ url('physical-handover/accept') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
                     <i class="ph-arrows-clockwise me-1"></i>
                     Reset Filter
                 </a>
@@ -76,11 +74,16 @@
                 <thead class="text-bg-light">
                     <tr>
                         <th class="text-nowrap">No</th>
-                        <th class="text-nowrap"><i class="ph-gear"></i></th>
-                        <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Jenis Media</th>
-                        <th class="text-nowrap">Kode</th>
+                        <th class="text-nowrap">Pelaksana Serah</th>
                         <th class="text-nowrap">Tgl Terima</th>
+                        <th class="text-nowrap">Tgl Kirim</th>
+                        <th class="text-nowrap">Judul</th>
+                        <th class="text-nowrap">Tujuan</th>
+                        <th class="text-nowrap">Jasa Kirim</th>
+                        <th class="text-nowrap">Resi</th>
+                        <th class="text-nowrap">Jumlah</th>
+                        <th class="text-nowrap">Jenis Media</th>
+                        <th class="text-nowrap">Proses By</th>
                     </tr>
                 </thead>
             </table>
@@ -94,6 +97,10 @@
         loadData();
     });
 
+    function onReloadTable() {
+        window.gDataTable.ajax.reload(null, false);
+    }
+
     function loadData() {
         window.gDataTable = $('#datatable-serverside').DataTable({
             processing: true,
@@ -103,15 +110,14 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
-                url: '{{ url("digital-storage-handover/accept/datatable") }}',
+                url: '{{ url("physical-handover/accept/datatable") }}',
                 dataType: 'JSON',
                 data: {
-                    title: $('#title').val(),
-                    isbn: $('#isbn').val(),
-                    qrcbn: $('#qrcbn').val(),
-                    year: $('#year').val(),
-                    media_id: $('#media_id').val(),
+                    executor_id: $('#executor_id').val(),
+                    delivery_service_id: $('#delivery_service_id').val(),
                     date: $('#date').val(),
+                    date_type: $('#date_type').val(),
+                    executor_id: $('#executor_id').val(),
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -123,11 +129,16 @@
             },
             columns: [
                 { orderable: true, className: 'align-middle text-center' },
-                { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: false, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-wrap' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();
