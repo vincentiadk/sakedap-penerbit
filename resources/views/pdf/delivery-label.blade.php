@@ -329,7 +329,7 @@
                     <tr>
                         <th>No.</th>
                         <th>Cek</th>
-                        <th>ISBN</th>
+                        <th>Identifier</th>
                         <th>Judul</th>
                         <th>Jumlah</th>
                     </tr>

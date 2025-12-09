@@ -65,9 +65,9 @@ class RejectController extends Controller
             $whereCondition[] = "(upper(e_collections.title_ori) like '%$title%' or upper(e_collections.title) like '%$title%')";
         }
 
-        if ($request->isbn) {
-            $isbn = str_replace('-', '', $request->isbn);
-            $whereCondition[] = "e_collections.code = '$isbn'";
+        if ($request->code) {
+            $code = str_replace('-', '', $request->code);
+            $whereCondition[] = "e_collections.code = '$code'";
         }
 
         if ($request->year) {

@@ -56,7 +56,7 @@
                             <th class="text-center" rowspan="2">No</th>
                             <th rowspan="2">Cover</th>
                             <th rowspan="2">Judul</th>
-                            <th rowspan="2">ISBN</th>
+                            <th rowspan="2">Identifier</th>
                             <th rowspan="2">Jilid</th>
                             <th rowspan="2">Edisi</th>
                             <th colspan="2" class="text-center">Jumlah Eks</th>

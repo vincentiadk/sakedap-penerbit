@@ -55,8 +55,8 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label class="form-label">ISBN :</label>
-                        <input type="text" class="form-control" name="isbn" id="isbn" placeholder="....................">
+                        <label class="form-label">Identifier :</label>
+                        <input type="text" class="form-control" name="code" id="code" placeholder="....................">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -119,7 +119,7 @@
                 dataType: 'JSON',
                 data: {
                     title: $('#title').val(),
-                    isbn: $('#isbn').val(),
+                    code: $('#code').val(),
                     qrcbn: $('#qrcbn').val(),
                     year: $('#year').val(),
                     media_id: $('#media_id').val(),

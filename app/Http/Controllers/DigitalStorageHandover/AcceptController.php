@@ -77,6 +77,11 @@ class AcceptController extends Controller
             $whereCondition[] = "catalogs.publishyear = $request->year";
         }
 
+        if ($request->code) {
+            $code = str_replace('-', '', $request->code);
+            $whereCondition[] = "catalogs.isbn = $code";
+        }
+
         if ($request->media_id) {
             $whereCondition[] = "catalogs.collectionmedia_id = $request->media_id";
         }
