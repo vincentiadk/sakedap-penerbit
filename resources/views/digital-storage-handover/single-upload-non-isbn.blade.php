@@ -37,7 +37,7 @@
                 <select class="form-select select2-basic" name="worksheet_id" id="worksheet_id" onchange="chooseWorksheet()">
                     <option value=""></option>
                     @foreach($worksheet as $w)
-                        <option value="{{ $w->ID }}">{{ $w->NAME }} [{{ $w->CATEGORY }}]</option>
+                        <option value="{{ $w->ID }}">{{ $w->ALIAS }}</option>
                     @endforeach
                 </select>
             </div>
@@ -77,12 +77,12 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Media <span class="text-danger fw-bold">*</span></label>
+                    <label class="col-form-label col-md-2">Jenis Koleksi <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id">
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()">
                             <option value=""></option>
                             @foreach($media as $m)
-                                <option value="{{ $m->ID }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
+                                <option value="{{ $m->ID }}">{{ $m->NAME }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -94,7 +94,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Kode</label>
+                    <label class="col-form-label col-md-2">Identifier</label>
                     <div class="col-md-10">
                         <div class="input-group">
                             <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" onchange="codeType()">
@@ -106,12 +106,6 @@
                             </select>
                             <input type="text" class="form-control" name="code" id="code" placeholder="....................">
                         </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Kota <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <select class="form-select" name="city_id" id="city_id"></select>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -142,7 +136,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
+                <div class="form-group row" id="form-input-serial">
                     <label class="col-form-label col-md-2">Kala Terbit</label>
                     <div class="col-md-10">
                         <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada">
@@ -169,18 +163,6 @@
                     <label class="col-form-label col-md-2">Preview</label>
                     <div class="col-md-10">
                         <input type="text" class="form-control" name="preview" id="preview" placeholder="cth : 1-5 / 00:01-00:20">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Akses <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <select class="form-select select2-basic" name="access" id="access" data-placeholder="Pilih">
-                            <option value=""></option>
-                            <option value="1">Akses full file berwatermak secara online</option>
-                            <option value="2">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</option>
-                            <option value="3">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</option>
-                            <option value="4">Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</option>
-                        </select>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -236,15 +218,33 @@
         </div>
         <div class="card">
             <div class="card-header">
+                <h5 class="hstack gap-2 mb-0">Akses</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1">
+                    <label class="form-check-label" for="access-1">Akses full file berwatermak secara online</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" checked>
+                    <label class="form-check-label" for="access-2">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3">
+                    <label class="form-check-label" for="access-3">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4">
+                    <label class="form-check-label" for="access-4">Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</label>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
                 <h5 class="hstack gap-2 mb-0">Kategori</h5>
             </div>
             <div class="card-body">
-                <select class="form-select select2-basic" name="category[]" id="category" data-placeholder="Pilih" multiple>
-                    <option value=""></option>
-                    @foreach($category as $c)
-                        <option value="{{ $c->ID }}">{{ $c->NAME }}</option>
-                    @endforeach
-                </select>
+                <div id="category-content"></div>
             </div>
         </div>
         <div class="card">
@@ -253,6 +253,9 @@
             </div>
             <div class="card-body">
                 <select class="form-select" name="author[]" id="author" data-placeholder="Tulis beberapa" multiple></select>
+                <div class="text-muted mt-1">
+                    <small><i class="ph-info me-1"></i> Contoh : Penulis, Hermawan, S.Kom.</small>
+                </div>
             </div>
         </div>
         <div class="card" id="card-edition">
@@ -366,7 +369,22 @@
         lookupCatalogParent('#catalog_title', '#catalog_id');
         codeType();
         chooseWorksheet();
+        getCategory();
     });
+
+    function getCategory() {
+        const category = @json($category ?? []);
+        const mediaId = $('#collection_media_id').val();
+
+        const categoryContent = category.filter(val => val.TYPE == mediaId).map(val => `
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}">
+                <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
+            </div>
+        `).join('');
+
+        $('#category-content').html(categoryContent || '<div class="alert alert-info"><i class="ph-info me-1"></i> Tidak ada kategori</div>');
+    }
 
     function chooseWorksheet() {
         var worksheetId = $('#worksheet_id').val();
@@ -377,6 +395,7 @@
             $('#card-edition').removeClass('d-none');
             $('#section-file-cover').removeClass('d-none');
             $('#section-file-content').addClass('d-none');
+            $('#form-input-serial').removeClass('d-none');
         } else {
             $('#form-parent').addClass('d-none');
             $('#btn-cancel-parent').addClass('d-none');
@@ -384,6 +403,7 @@
             $('#section-file-cover').removeClass('d-none');
             $('#section-file-content').removeClass('d-none');
             $('#column-edition').addClass('d-none');
+            $('#form-input-serial').addClass('d-none');
         }
 
         $('#card-edition #data-edition').html('');

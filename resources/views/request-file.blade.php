@@ -19,7 +19,7 @@
                         <th class="text-nowrap">No</th>
                         <th class="text-nowrap">Aksi</th>
                         <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Kode</th>
+                        <th class="text-nowrap">Identifier</th>
                         <th class="text-nowrap">Tgl Terima</th>
                     </tr>
                 </thead>

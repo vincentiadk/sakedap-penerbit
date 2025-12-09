@@ -24,13 +24,14 @@ class SingleUploadNonISBNController extends Controller
         return view('layouts.index', [
             'data' => [
                 'worksheet' => QueryAPI::get("select * from worksheets where category = '$this->worksheetCategory'") ?? [],
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'content' => 'digital-storage-handover.single-upload-non-isbn',
                 'plugins' => [
                     'select2',
                     'daterangepicker',
                     'datatable',
+                    'fileinput',
                 ]
             ]
         ]);
@@ -75,7 +76,6 @@ class SingleUploadNonISBNController extends Controller
         if ($request->ajax()) {
             $validation = Validator::make($request->all(), [
                 'worksheet_id' => 'required',
-                'city_id' => 'required',
                 'title' => 'required',
                 'collection_media_id' => 'required',
                 'access' => 'required',
@@ -83,9 +83,8 @@ class SingleUploadNonISBNController extends Controller
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
             ], [
                 'worksheet_id.required' => 'Jenis bahan tidak boleh kosong',
-                'city_id.required' => 'Kota tidak boleh kosong',
                 'title.required' => 'Judul tidak boleh kosong',
-                'collection_media_id.required' => 'Media tidak boleh kosong',
+                'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
                 'access.required' => 'Akses tidak boleh kosong',
                 'file_cover.image' => 'File cover tidak valid',
                 'file_cover.mimes' => 'File cover harus png, jpg, jpeg',
@@ -107,12 +106,13 @@ class SingleUploadNonISBNController extends Controller
                     $catalogId = $request->catalog_id;
                     $catalog = QueryAPI::get("select edeposit_col_id from catalogs where id = $catalogId", true);
                     $executorId = $request->executor_id;
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
 
                     $baseCollectionData = [
                         'id_old' => 0,
                         'parent_id' => $catalog->EDEPOSIT_COL_ID ?? null,
                         'publisher_id' => $executorId,
-                        'city_id' => $request->city_id,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
                         'title_ori' => $request->title,
                         'album' => $request->album,
                         'slug' => Str::slug($request->title, '-'),
@@ -136,7 +136,7 @@ class SingleUploadNonISBNController extends Controller
                         'worksheet_id' => $request->worksheet_id,
                         'collection_media_id' => $request->collection_media_id,
                         'penerbit_id' => $executorId,
-                        'kabupaten_id' => $request->city_id,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $request->title,
                         'author' => implode(';', ($request->author ?? [])),
                         'jilid' => $request->binding,

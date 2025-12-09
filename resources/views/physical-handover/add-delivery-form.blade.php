@@ -123,7 +123,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="text-center" width="80">Cover</th>
-                                <th>Kode ISBN</th>
+                                <th>Identifier</th>
                                 <th>Judul</th>
                                 <th>Edisi</th>
                                 <th>Jilid</th>
@@ -825,7 +825,7 @@
                                         <select class="form-select select2-basic" name="cni_type[]">
                                             <option value="">Pilih Jenis</option>
                                             @foreach ($media as $m)
-                                                <option value="{{ $m->NAME }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
+                                                <option value="{{ $m->NAME }}">{{ $m->NAME }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -881,7 +881,7 @@
                 selector.find('input[name="cni_author[]"]').val(response?.AUTHOR);
                 selector.find('input[name="cni_physical_description[]"]').val(response?.DESCRIPTION);
                 selector.find('input[name="cni_year[]"]').val(response?.PUBLISHYEAR);
-                selector.find('select[name="cni_type[]"]').val(response?.NAME_WORKSHEET).trigger('change');
+                selector.find('select[name="cni_type[]"]').val(response?.ALIAS_WORKSHEET).trigger('change');
                 selector.find('input[name="cni_price[]"]').val(response?.PRICE);
 
                 showToast('success', 'Data katalog berhasil dimuat');

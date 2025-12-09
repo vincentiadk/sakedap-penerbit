@@ -84,7 +84,7 @@ class AddDeliveryFormController extends Controller
         $data = QueryAPI::get("
             select
                 catalogs.*,
-                worksheets.name as name_worksheet,
+                worksheets.alias as alias_worksheet,
                 penerbit.name as name_penerbit
             from
                 catalogs

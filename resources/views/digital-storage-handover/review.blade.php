@@ -30,42 +30,36 @@
             </div>
             <hr class="py-1 mb-1">
             <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Tanggal :</label>
-                        <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">Jenis Media :</label>
-                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua">
-                            <option value=""></option>
-                            @foreach($media as $m)
-                                <option value="{{ $m->ID }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="form-group">
                         <label class="form-label">Judul :</label>
                         <input type="text" class="form-control" name="title" id="title" placeholder="....................">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Tanggal :</label>
+                        <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Jenis Koleksi :</label>
+                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua">
+                            <option value=""></option>
+                            @foreach($media as $m)
+                                <option value="{{ $m->ID }}">{{ $m->NAME }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label">ISBN :</label>
                         <input type="text" class="form-control" name="isbn" id="isbn" placeholder="....................">
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label class="form-label">QRCBN :</label>
-                        <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="....................">
-                    </div>
-                </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label">Tahun :</label>
                         <input type="number" class="form-control" name="year" id="year" placeholder="....................">
@@ -95,8 +89,8 @@
                         <th class="text-nowrap"><i class="ph-gear"></i></th>
                         <th class="text-nowrap">Pelaksana Serah</th>
                         <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Jenis Media</th>
-                        <th class="text-nowrap">Kode</th>
+                        <th class="text-nowrap">Jenis Koleksi</th>
+                        <th class="text-nowrap">Identifier</th>
                         <th class="text-nowrap">Tgl Update</th>
                     </tr>
                 </thead>

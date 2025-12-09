@@ -279,6 +279,7 @@ class Main
                     'name' => $user->NAME,
                     'email' => $user->EMAIL1,
                     'province_id' => $user->PROVINCE_ID ?: 31,
+                    'city_id' => $user->CITY_ID ?: null,
                     'province_name' => $user->NAMAPROPINSI ?: 'DKI Jakarta',
                     'phone' => $user->TELP1,
                     'postal_code' => $user->KODEPOS,

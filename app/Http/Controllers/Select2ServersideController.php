@@ -341,7 +341,7 @@ class Select2ServersideController extends Controller
                 $html = '
                     <div>' . ($d->TITLE ?? $d->TITLE_ORI) . '</div>
                     <div class="fw-light fs-12 text-muted">ID : ' . ($d->ID ?? '-') . '</div>
-                    <div class="fw-light fs-12 text-muted">Kode : ' . ($d->CODE ?? '-') . '</div>
+                    <div class="fw-light fs-12 text-muted">Identifier : ' . ($d->CODE ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Tahun Terbit : ' . ($d->PUBLICATION_YEAR ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Pelaksana Serah : ' . ($d->NAME_PENERBIT ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Kepeng : ' . str_replace(';', ', ', ($d->AUTHOR ?? '-')) . '</div>
@@ -466,7 +466,7 @@ class Select2ServersideController extends Controller
                     <div>' . ($title) . '</div>
                     <div class="fw-light fs-12 text-muted">ID : ' . ($d->ID ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">BIBID : ' . ($d->BIBID ?? '-') . '</div>
-                    <div class="fw-light fs-12 text-muted">Kode : ' . ($d->ISBN ?? '-') . '</div>
+                    <div class="fw-light fs-12 text-muted">Identifier : ' . ($d->ISBN ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Tahun Terbit : ' . ($d->PUBLISHYEAR ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Nomor Panggil : ' . ($d->CALLNUMBER ?? '-') . '</div>
                     <div class="fw-light fs-12 text-muted">Jumlah Koleksi : ' . ($c->TOTAL_COLLECTION ?? 0) . '</div>
@@ -559,7 +559,7 @@ class Select2ServersideController extends Controller
             foreach ($data as $d) {
                 $html = '
                     <div>' . ($d->JUDUL ?? '-') . '</div>
-                    <div class="fw-light fs-12 text-muted">Kode : ' . ($d->KODE_PROMO ?? '-') . '</div>
+                    <div class="fw-light fs-12 text-muted">Identifier : ' . ($d->KODE_PROMO ?? '-') . '</div>
                 ';
 
                 $response[] = [

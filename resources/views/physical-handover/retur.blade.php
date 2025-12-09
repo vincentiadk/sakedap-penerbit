@@ -127,7 +127,7 @@
                         <th class="text-nowrap">Jasa Kirim</th>
                         <th class="text-nowrap">Resi</th>
                         <th class="text-nowrap">Jumlah</th>
-                        <th class="text-nowrap">Jenis Media</th>
+                        <th class="text-nowrap">Jenis Koleksi</th>
                         <th class="text-nowrap">Alasan Ditolak</th>
                         <th class="text-nowrap">Proses By</th>
                     </tr>

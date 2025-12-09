@@ -23,7 +23,7 @@ class DraftController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'content' => 'digital-storage-handover.draft',
                 'plugins' => [
                     'datatable',
@@ -69,10 +69,6 @@ class DraftController extends Controller
         if ($request->isbn) {
             $isbn = str_replace('-', '', $request->isbn);
             $whereCondition[] = "e_collections.code = '$isbn'";
-        }
-
-        if ($request->qrcbn) {
-            $whereCondition[] = "e_collections.qrcbn = '$request->qrcbn'";
         }
 
         if ($request->year) {
@@ -210,7 +206,7 @@ class DraftController extends Controller
             select
                 ec.*,
                 kabupaten.namakab as namakab,
-                w.name as name_worksheet,
+                w.alias as alias_worksheet,
                 w.category as category_worksheet,
                 propinsi.namapropinsi as namapropinsi,
                 parents.title as title_parent,
@@ -256,8 +252,7 @@ class DraftController extends Controller
                 ec.id = $id and
                 ec.deleted_at is null and
                 ec.status = '4' and
-                w.category = '" . $this->worksheetCategory . "' and
-                ec.penerbit_id = " . session('id') . "
+                w.category = '" . $this->worksheetCategory . "'
         ";
 
         $collection = QueryAPI::get($sqlCollection, true);
@@ -268,16 +263,14 @@ class DraftController extends Controller
 
         if ($request->ajax()) {
             $validation = Validator::make($request->all(), [
-                'city_id' => 'required',
                 'title' => 'required',
                 'collection_media_id' => 'required',
                 'access' => 'required',
                 'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
             ], [
-                'city_id.required' => 'Kota tidak boleh kosong',
                 'title.required' => 'Judul tidak boleh kosong',
-                'collection_media_id.required' => 'Media tidak boleh kosong',
+                'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
                 'access.required' => 'Akses tidak boleh kosong',
                 'file_cover.image' => 'File cover tidak valid',
                 'file_cover.mimes' => 'File cover harus png, jpg, jpeg',
@@ -296,13 +289,14 @@ class DraftController extends Controller
                 try {
                     $userId = session('id');
                     $publishTime = strtotime($request->publish_time);
-                    $executorId = session('id');
+                    $executorId = $collection->PENERBIT_ID ?? null;
                     $status = $request->param;
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
 
                     $baseCollectionData = [
                         'id_old' => 0,
                         'publisher_id' => $executorId,
-                        'city_id' => $request->city_id,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
                         'title_ori' => $request->title,
                         'album' => $request->album,
                         'slug' => Str::slug($request->title, '-'),
@@ -323,7 +317,7 @@ class DraftController extends Controller
                         'copyright' => Main::copyright($executorId),
                         'collection_media_id' => $request->collection_media_id,
                         'penerbit_id' => $executorId,
-                        'kabupaten_id' => $request->city_id,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $request->title,
                         'author' => implode(';', ($request->author ?? [])),
                         'jilid' => $request->binding,
@@ -446,7 +440,7 @@ class DraftController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'collection' => $collection,
                 'collectionCategory' => $collectionCategory,

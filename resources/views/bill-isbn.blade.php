@@ -187,7 +187,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label class="form-label">Media :</label>
+                        <label class="form-label">Jenis Koleksi :</label>
                         <select class="form-select" name="media" id="media">
                             <option value="">Semua</option>
                             <option value="cetak">Cetak</option>
@@ -237,7 +237,7 @@
                         <th class="text-nowrap">Kepeng</th>
                         <th class="text-nowrap">Tahun</th>
                         <th class="text-nowrap">ISBN</th>
-                        <th class="text-nowrap">Media</th>
+                        <th class="text-nowrap">Jenis Koleksi</th>
                         <th class="text-nowrap">Pustaka</th>
                         <th class="text-nowrap">Tgl Terima KCKR</th>
                         <th class="text-nowrap">Tgl Terima Provinsi</th>
