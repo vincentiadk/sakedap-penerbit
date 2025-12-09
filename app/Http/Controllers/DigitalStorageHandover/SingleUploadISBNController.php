@@ -198,7 +198,7 @@ class SingleUploadISBNController extends Controller
                 }
 
                 if (($val->ID_CATALOGFILES ?: null)) {
-                    $badgeCover = '
+                    $badgeContent = '
                         <a href="' . url('stream-file?type=konten_digital&id=' . $val->ID_CATALOGFILES . '&filename=' . $val->FILEURL_CATALOGFILES) . '" target="_blank">Lihat File</a>
                     ';
                 } else {
