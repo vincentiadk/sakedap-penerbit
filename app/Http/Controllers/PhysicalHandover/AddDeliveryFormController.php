@@ -213,7 +213,7 @@ class AddDeliveryFormController extends Controller
             'weight' => 'required|numeric|min:1',
             'destination' => 'required',
         ]), array_merge($addValidationMessage, [
-            'type_delivery.required' => 'Jenis pengiriman tidak boleh kosong',
+            'type_delivery.required' => 'Metode pengiriman tidak boleh kosong',
             'phone.required' => 'Telepon tidak boleh kosong',
             'phone.min_digits' => 'Telepon minimal 8 digit',
             'phone.max_digits' => 'Telepon maksimal 13 digit',

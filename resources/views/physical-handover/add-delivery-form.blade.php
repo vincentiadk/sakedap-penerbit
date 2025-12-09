@@ -128,8 +128,6 @@
                                 <th>Judul</th>
                                 <th>Edisi</th>
                                 <th>Jilid</th>
-                                <th width="150">QRCBN</th>
-                                <th width="150">ISBD</th>
                                 <th class="text-center" width="80">Aksi</th>
                             </tr>
                         </thead>
@@ -348,10 +346,6 @@
         color: var(--bs-primary);
     }
 
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.025);
-    }
-
     .expedition-option {
         transition: all 0.2s ease;
     }
@@ -362,19 +356,6 @@
 
     .expedition-option input[type="radio"]:checked~label {
         font-weight: 600;
-    }
-
-    .form-label {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-
-    .card {
-        margin-bottom: 1.5rem;
-    }
-
-    .input-group-text {
-        background-color: #f8f9fa;
     }
 
     #data-collection-isbn tr:not(#empty-isbn-row):hover, #data-collection-non-isbn tr:not(#empty-non-isbn-row):hover, #data-collection-periodicals tr:not(#empty-periodicals-row):hover {
@@ -680,12 +661,6 @@
                         <td class="align-middle">${data.title ?? '-'}</td>
                         <td class="align-middle">${data.edisi ?? '-'}</td>
                         <td class="align-middle">${data.keterangan ?? '-'}</td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="ci_qrcbn[]" placeholder="Masukkan QRCBN">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="ci_isbd[]" placeholder="Masukkan ISBD">
-                        </td>
                         <td class="text-center align-middle">
                             <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)" data-bs-toggle="tooltip" title="Hapus data ini">
                                 <i class="ph-trash"></i>
