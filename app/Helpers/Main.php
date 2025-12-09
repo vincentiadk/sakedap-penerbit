@@ -563,7 +563,7 @@ class Main
         }
 
         if (str_starts_with($cleaned, '62')) {
-            return $cleaned;
+            return '0' . substr($cleaned, 2);
         }
 
         if (str_starts_with($cleaned, '0')) {
@@ -571,7 +571,7 @@ class Main
         }
 
         if (str_starts_with($cleaned, '8')) {
-            return '62' . $cleaned;
+            return '0' . $cleaned;
         }
 
         return $cleaned;

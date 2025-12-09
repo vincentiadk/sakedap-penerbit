@@ -145,7 +145,7 @@
             deferRender: true,
             scrollX: true,
             destroy: true,
-            order: [[2, 'desc']],
+            order: [[0, 'desc']],
             ajax: {
                 url: '{{ url("physical-handover/delivery-accept/datatable") }}',
                 dataType: 'JSON',

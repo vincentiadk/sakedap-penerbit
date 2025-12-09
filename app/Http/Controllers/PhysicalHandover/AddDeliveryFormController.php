@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Validator;
 
 class AddDeliveryFormController extends Controller
 {
+    private const PERPUSNAS_DATA = [
+        'name' => 'Perpustakaan Nasional Republik Indonesia',
+        'phone' => '0213152171',
+        'address' => 'Jl. Salemba Raya No.28A, Jakarta Pusat, DKI Jakarta 10430',
+        'email' => 'depbangkol@gmail.com',
+    ];
+
     public function index()
     {
         $worksheetAnalog = Main::COLLECTION_ANALOG;
@@ -170,60 +177,14 @@ class AddDeliveryFormController extends Controller
     public function submitted(Request $request)
     {
         if (!$request->ajax()) {
-            return response()->json(['code' => 400, 'message' => 'Invalid request']);
+            return response()->json([
+                'code' => 400,
+                'message' => 'Invalid request'
+            ]);
         }
 
-        $addValidationRule = [];
-        $addValidationMessage = [];
-
-        if (config('system.delivery_method') == 'expedition' && $request->type_delivery == 2) {
-            if ($request->destination == 1) {
-                $addValidationRule = [
-                    'perpusnas_delivery' => 'required',
-                ];
-
-                $addValidationMessage = [
-                    'perpusnas_delivery.required' => 'Mohon memilih ekspedisi perpusnas',
-                ];
-            } else if ($request->destination == 2) {
-                $addValidationRule = [
-                    'province_delivery' => 'required',
-                ];
-
-                $addValidationMessage = [
-                    'province_delivery.required' => 'Mohon memilih ekspedisi provinsi',
-                ];
-            } else if ($request->destination == 3) {
-                $addValidationRule = [
-                    'perpusnas_delivery' => 'required',
-                    'province_delivery' => 'required',
-                ];
-
-                $addValidationMessage = [
-                    'perpusnas_delivery.required' => 'Mohon memilih ekspedisi perpusnas',
-                    'province_delivery.required' => 'Mohon memilih ekspedisi provinsi',
-                ];
-            }
-        }
-
-        $validation = Validator::make($request->all(), array_merge($addValidationRule, [
-            'type_delivery' => 'required',
-            'phone' => 'required|min_digits:8|max_digits:13|numeric',
-            'sender_name' => 'required',
-            'weight' => 'required|numeric|min:1',
-            'destination' => 'required',
-        ]), array_merge($addValidationMessage, [
-            'type_delivery.required' => 'Metode pengiriman tidak boleh kosong',
-            'phone.required' => 'Telepon tidak boleh kosong',
-            'phone.min_digits' => 'Telepon minimal 8 digit',
-            'phone.max_digits' => 'Telepon maksimal 13 digit',
-            'phone.numeric' => 'Telepon harus angka',
-            'sender_name.required' => 'Nama pengirim tidak boleh kosong',
-            'weight.required' => 'Berat paket tidak boleh kosong',
-            'weight.numeric' => 'Berat paket harus angka',
-            'weight.min' => 'Berat paket minimal 1',
-            'destination.required' => 'Tujuan tidak boleh kosong',
-        ]));
+        $validationRules = $this->getValidationRules($request);
+        $validation = Validator::make($request->all(), $validationRules['rules'], $validationRules['messages']);
 
         if ($validation->fails()) {
             return response()->json([
@@ -234,34 +195,12 @@ class AddDeliveryFormController extends Controller
 
         try {
             $now = now()->format('Y-m-d H:i:s');
-            $currentUser = session('username');
-            $currentIp = $request->ip();
-            $weight = $request->weight;
-            $letterDate = $now;
-
-            $auditData = [
-                'create_date' => $now,
-                'create_by' => $currentUser,
-                'create_terminal' => $currentIp,
-                'update_date' => $now,
-                'update_by' => $currentUser,
-                'update_terminal' => $currentIp,
-            ];
-
-            $baseLetterData = [
-                'letter_date' => $letterDate,
-                'letter_number' => $request->cover_letter_number,
-                'sender' => $request->sender_name,
-                'publisher_id' => $request->executor_id,
-                'lang' => 'id',
-                'penerbit_id' => $request->executor_id,
-                'berat' => $weight * 1000,
-                'phone' => $request->phone,
-            ];
+            $auditData = $this->buildAuditData($now, $request);
+            $baseLetterData = $this->buildBaseLetterData($request, $now, $auditData);
 
             if ($request->type_delivery == 1) {
                 $this->handleSelfDelivery($request, $baseLetterData, $auditData);
-            } else if ($request->type_delivery == 2) {
+            } elseif ($request->type_delivery == 2) {
                 $this->handleCourierDelivery($request, $baseLetterData, $auditData);
             }
 
@@ -271,208 +210,256 @@ class AddDeliveryFormController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Submission error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->except(['password', 'token'])
             ]);
 
             return response()->json([
                 'code' => $e->getCode() ?: 500,
-                'message' => $e->getMessage()
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem'
             ]);
         }
     }
 
-    private function handleSelfDelivery($request, $baseLetterData, $auditData)
+    private function getValidationRules(Request $request)
+    {
+        $rules = [
+            'type_delivery' => 'required|in:1,2',
+            'phone' => 'required|numeric|digits_between:8,13',
+            'sender_name' => 'required|string|max:255',
+            'weight' => 'required|numeric|min:1',
+            'destination' => 'required|in:1,2,3',
+        ];
+
+        $messages = [
+            'type_delivery.required' => 'Metode pengiriman tidak boleh kosong',
+            'type_delivery.in' => 'Metode pengiriman tidak valid',
+            'phone.required' => 'Telepon tidak boleh kosong',
+            'phone.digits_between' => 'Telepon harus antara 8-13 digit',
+            'phone.numeric' => 'Telepon harus berupa angka',
+            'sender_name.required' => 'Nama pengirim tidak boleh kosong',
+            'sender_name.max' => 'Nama pengirim maksimal 255 karakter',
+            'weight.required' => 'Berat paket tidak boleh kosong',
+            'weight.numeric' => 'Berat paket harus berupa angka',
+            'weight.min' => 'Berat paket minimal 1',
+            'destination.required' => 'Tujuan tidak boleh kosong',
+            'destination.in' => 'Tujuan tidak valid',
+        ];
+
+        if (config('system.delivery_method') === 'expedition' && $request->type_delivery == 2) {
+            $additionalRules = $this->getExpeditionValidationRules($request->destination);
+            $rules = array_merge($rules, $additionalRules['rules']);
+            $messages = array_merge($messages, $additionalRules['messages']);
+        }
+
+        return ['rules' => $rules, 'messages' => $messages];
+    }
+
+    private function getExpeditionValidationRules($destination)
+    {
+        $rules = [];
+        $messages = [];
+
+        if (in_array($destination, [1, 3])) {
+            $rules['perpusnas_delivery'] = 'required|string';
+            $messages['perpusnas_delivery.required'] = 'Mohon memilih ekspedisi perpusnas';
+        }
+
+        if (in_array($destination, [2, 3])) {
+            $rules['province_delivery'] = 'required|string';
+            $messages['province_delivery.required'] = 'Mohon memilih ekspedisi provinsi';
+        }
+
+        return ['rules' => $rules, 'messages' => $messages];
+    }
+
+    private function buildAuditData($now, Request $request)
+    {
+        $currentUser = session('username');
+        $currentIp = $request->ip();
+
+        return [
+            'create_date' => $now,
+            'create_by' => $currentUser,
+            'create_terminal' => $currentIp,
+            'update_date' => $now,
+            'update_by' => $currentUser,
+            'update_terminal' => $currentIp,
+        ];
+    }
+
+    private function buildBaseLetterData(Request $request, $now, $auditData)
+    {
+        return array_merge([
+            'letter_date' => $now,
+            'letter_number' => $request->cover_letter_number,
+            'sender' => $request->sender_name,
+            'publisher_id' => $request->executor_id,
+            'lang' => 'id',
+            'penerbit_id' => $request->executor_id,
+            'berat' => $request->weight * 1000,
+            'phone' => $request->phone,
+        ], $auditData);
+    }
+
+    private function handleSelfDelivery(Request $request, $baseLetterData, $auditData)
     {
         if ($request->destination == 1 || $request->destination == 3) {
-            $letterData = array_merge($baseLetterData, [
-                'branch_id' => 37,
-                'receipt_no' => 'LSG' . date('YmdHis'),
-                'status' => 'TERKIRIM',
-                'biaya_kirim' => 0,
-            ], $auditData);
-
-            $createLetterDetail = $this->buildLetterDetail($request, $letterData, 1);
-
-            QueryAPI::update('letter', $createLetterDetail->letter_id ?? 0, [
-                'jumlah_paket' => $createLetterDetail->total_package ?? 0,
-            ], false);
+            $this->createSelfDeliveryLetter($request, $baseLetterData, $auditData, Main::getBranch()->ID ?? null, 1);
         }
 
         if ($request->destination == 2 || $request->destination == 3) {
-            $letterData = array_merge($baseLetterData, [
-                'branch_id' => Main::getBranch()->ID ?? null,
-                'receipt_no' => 'LSG' . date('YmdHis'),
-                'status' => 'TERKIRIM',
-                'biaya_kirim' => 0,
-            ], $auditData);
-
-            $createLetterDetail = $this->buildLetterDetail($request, $letterData, 2);
-
-            QueryAPI::update('letter', $createLetterDetail->letter_id ?? 0, [
-                'jumlah_paket' => $createLetterDetail->total_package ?? 0,
-            ], false);
+            $this->createSelfDeliveryLetter($request, $baseLetterData, $auditData, 37, 2);
         }
     }
 
-    private function handleCourierDelivery($request, $baseLetterData, $auditData)
+    private function createSelfDeliveryLetter(Request $request, $baseLetterData, $auditData, $branchId, $copyType)
     {
-        if (config('system.delivery_method') == 'expedition') {
-            $perpusnasDelivery = $request->perpusnas_delivery;
-            $provinceDelivery = $request->province_delivery;
+        $letterData = array_merge($baseLetterData, [
+            'branch_id' => $branchId,
+            'receipt_no' => 'LSG' . now()->format('YmdHis'),
+            'status' => 'TERKIRIM',
+            'biaya_kirim' => 0,
+        ], $auditData);
 
-            $origin = Komship::get('tariff/api/v1/destination/search', [
-                'keyword' => session('postal_code'),
-            ]);
+        $letter = QueryAPI::create('letter', $letterData, false);
 
-            if ($perpusnasDelivery) {
-                $dataPerpusnasDelivery = explode(';', $perpusnasDelivery);
-                $letterData = array_merge($baseLetterData, $auditData);
-                $letter = QueryAPI::create('letter', $letterData, false);
-
-                if (!$letter) {
-                    return response()->json([
-                        'code' => 500,
-                        'message' => 'Gagal membuat surat'
-                    ]);
-                }
-
-                $createLetterDetail = $this->buildLetterDetail($request, $letter, 1);
-
-                $destinationPerpusnas = Komship::get('tariff/api/v1/destination/search', [
-                    'keyword' => 10430,
-                ]);
-
-                $createOrderKomerce = Komship::post('order/api/v1/orders/store', [
-                    'order_date' => date('Y-m-d'),
-                    'brand_name' => session('name'),
-                    'shipper_name' => session('name'),
-                    'shipper_phone' => Main::formatPhoneKomship($request->phone),
-                    'shipper_address' => session('address'),
-                    'shipper_email' => session('email'),
-                    'shipper_destination_id' => $origin[0]->id ?? 0,
-                    'receiver_name' => 'Perpustakaan Nasional Republik Indonesia',
-                    'receiver_phone' => Main::formatPhoneKomship('0213152171'),
-                    'receiver_destination_id' => $destinationPerpusnas[0]->id ?? 0,
-                    'receiver_address' => 'Jl. Salemba Raya No.28A, Jakarta Pusat, DKI Jakarta 10430',
-                    'receiver_email' => 'depbangkol@gmail.com',
-                    'shipping' => $dataPerpusnasDelivery[0] ?? '',
-                    'shipping_type' => $dataPerpusnasDelivery[1] ?? '',
-                    'payment_method' => 'BANK TRANSFER',
-                    'shipping_cost' => (float) ($dataPerpusnasDelivery[3] ?? ''),
-                    'grand_total' => (float) ($dataPerpusnasDelivery[2] ?? ''),
-                    'order_details' => $createLetterDetail->collection ?? [],
-                ]);
-
-                QueryAPI::update('letter', $letter->LETTER_ID, [
-                    'type_of_delivery' => $dataPerpusnasDelivery[0] ?? '',
-                    'branch_id' => 37,
-                    'status' => 'DIKIRIM',
-                    'receipt_no' => $createOrderKomerce->order_no ?? '',
-                    'order_no' => $createOrderKomerce->order_no ?? '',
-                    'biaya_kirim' => $dataPerpusnasDelivery[3] ?? 0,
-                    'jumlah_paket' => $createLetterDetail->total_package ?? 0,
-                ], false);
-            }
-
-            if ($provinceDelivery) {
-                $dataProvinceDelivery = explode(';', $provinceDelivery);
-                $letterData = array_merge($baseLetterData, $auditData);
-                $letter = QueryAPI::create('letter', $letterData, false, 2);
-
-                if (!$letter) {
-                    return response()->json([
-                        'code' => 500,
-                        'message' => 'Gagal membuat surat'
-                    ]);
-                }
-
-                $createLetterDetail = $this->buildLetterDetail($request, $letter, 2);
-
-                $destinationProvince = Komship::get('tariff/api/v1/destination/search', [
-                    'keyword' => Main::getBranch()->KODE_POS ?? 0,
-                ]);
-
-                $createOrderKomerce = Komship::post('order/api/v1/orders/store', [
-                    'order_date' => date('Y-m-d'),
-                    'brand_name' => session('name'),
-                    'shipper_name' => session('name'),
-                    'shipper_phone' => Main::formatPhoneKomship($request->phone),
-                    'shipper_address' => session('address'),
-                    'shipper_email' => session('email'),
-                    'shipper_destination_id' => $origin[0]->id ?? 0,
-                    'receiver_name' => Main::getBranch()->NAME ?? '',
-                    'receiver_phone' => Main::formatPhoneKomship(Main::getBranch()->PHONE ?? ''),
-                    'receiver_destination_id' => $destinationProvince[0]->id ?? 0,
-                    'receiver_address' => Main::getBranch()->ALAMAT ?? '',
-                    'shipping' => $dataProvinceDelivery[0] ?? '',
-                    'shipping_type' => $dataProvinceDelivery[1] ?? '',
-                    'payment_method' => 'BANK TRANSFER',
-                    'shipping_cost' => (float) ($dataProvinceDelivery[3] ?? ''),
-                    'grand_total' => (float) ($dataProvinceDelivery[2] ?? ''),
-                    'order_details' => $createLetterDetail->collection ?? [],
-                ]);
-
-                QueryAPI::update('letter', $letter->LETTER_ID, [
-                    'type_of_delivery' => $dataProvinceDelivery[0] ?? '',
-                    'branch_id' => Main::getBranch()->ID ?? null,
-                    'status' => 'DIKIRIM',
-                    'receipt_no' => $createOrderKomerce->order_no ?? '',
-                    'order_no' => $createOrderKomerce->order_no ?? '',
-                    'biaya_kirim' => $dataProvinceDelivery[3] ?? 0,
-                    'jumlah_paket' => $createLetterDetail->total_package ?? 0,
-                ], false);
-            }
+        if (!$letter || !isset($letter->LETTER_ID)) {
+            throw new \Exception('Gagal membuat surat');
         }
 
-        if (config('system.delivery_method') == 'manual') {
-            if ($request->destination == 1 || $request->destination == 3) {
-                $letterData = array_merge($baseLetterData, [
-                    'branch_id' => 37,
-                    'status' => 'DIKIRIM',
-                ], $auditData);
+        $createLetterDetail = $this->buildLetterDetail($request, $letter, $copyType);
 
-                $letter = QueryAPI::create('letter', $letterData, false);
-                $createLetterDetail = $this->buildLetterDetail($request, $letter, 1);
+        QueryAPI::update('letter', $letter->LETTER_ID, [
+            'jumlah_paket' => $createLetterDetail->total_package ?? 0,
+        ], false);
+    }
 
-                $this->buildLetterDetail($request, $createLetterDetail, 1);
-            }
-
-            if ($request->destination == 2 || $request->destination == 3) {
-                $letterData = array_merge($baseLetterData, [
-                    'branch_id' => Main::getBranch()->ID ?? null,
-                    'status' => 'DIKIRIM',
-                ], $auditData);
-
-                $letter = QueryAPI::create('letter', $letterData, false);
-                $createLetterDetail = $this->buildLetterDetail($request, $letter, 1);
-
-                $this->buildLetterDetail($request, $letterData, 2);
-            }
+    private function handleCourierDelivery(Request $request, $baseLetterData, $auditData)
+    {
+        if (config('system.delivery_method') === 'expedition') {
+            $this->handleExpeditionDelivery($request, $baseLetterData, $auditData);
+        } elseif (config('system.delivery_method') === 'manual') {
+            $this->handleManualDelivery($request, $baseLetterData, $auditData);
         }
     }
 
-    private function buildLetterDetail($request, $letter, $allotment)
+    private function handleExpeditionDelivery(Request $request, $baseLetterData, $auditData)
     {
-        $cacheDuration = 60;
+        $origin = $this->getOriginDestination(session('postal_code'));
+
+        if ($request->perpusnas_delivery && in_array($request->destination, [2, 3])) {
+            $this->createExpeditionOrder($request, $baseLetterData, $auditData, $request->perpusnas_delivery, 37, 2, $origin, self::PERPUSNAS_DATA, 10430);
+        }
+
+        if ($request->province_delivery && in_array($request->destination, [1, 3])) {
+            $branch = Main::getBranch();
+            $provinceData = [
+                'name' => $branch->NAME ?? '',
+                'phone' => $branch->PHONE ?? '',
+                'address' => $branch->ALAMAT ?? '',
+                'email' => session('email'),
+            ];
+
+            $this->createExpeditionOrder($request, $baseLetterData, $auditData, $request->province_delivery, $branch->ID ?? null, 1, $origin, $provinceData, $branch->KODE_POS ?? 0);
+        }
+    }
+
+    private function getOriginDestination($postalCode)
+    {
+        return Komship::get('tariff/api/v1/destination/search', [
+            'keyword' => $postalCode,
+        ]) ?? [];
+    }
+
+    private function createExpeditionOrder(Request $request, $baseLetterData, $auditData, $deliveryData, $branchId, $copyType, $origin, $receiverData, $postalCode)
+    {
+        $deliveryParts = explode(';', $deliveryData);
+        $letter = QueryAPI::create('letter', $baseLetterData, false);
+
+        if (!$letter || !isset($letter->LETTER_ID)) {
+            throw new \Exception('Gagal membuat surat');
+        }
+
+        $createLetterDetail = $this->buildLetterDetail($request, $letter, $copyType);
+        $destination = $this->getOriginDestination($postalCode);
+
+        $orderData = [
+            'order_date' => now()->format('Y-m-d'),
+            'brand_name' => session('name'),
+            'shipper_name' => session('name'),
+            'shipper_phone' => Main::formatPhoneKomship($request->phone),
+            'shipper_address' => session('address'),
+            'shipper_email' => session('email'),
+            'shipper_destination_id' => $origin[0]->id ?? 0,
+            'receiver_name' => $receiverData['name'],
+            'receiver_phone' => Main::formatPhoneKomship($receiverData['phone']),
+            'receiver_destination_id' => $destination[0]->id ?? 0,
+            'receiver_address' => $receiverData['address'],
+            'receiver_email' => $receiverData['email'],
+            'shipping' => $deliveryParts[0] ?? '',
+            'shipping_type' => $deliveryParts[1] ?? '',
+            'payment_method' => 'BANK TRANSFER',
+            'shipping_cost' => (float) ($deliveryParts[3] ?? 0),
+            'grand_total' => (float) ($deliveryParts[2] ?? 0),
+            'order_details' => $createLetterDetail->collection ?? [],
+        ];
+
+        $createOrderKomerce = Komship::post('order/api/v1/orders/store', $orderData);
+
+        QueryAPI::update('letter', $letter->LETTER_ID, [
+            'type_of_delivery' => $deliveryParts[0] ?? '',
+            'branch_id' => $branchId,
+            'status' => 'DIKIRIM',
+            'receipt_no' => $createOrderKomerce->order_no ?? '',
+            'order_no' => $createOrderKomerce->order_no ?? '',
+            'biaya_kirim' => $deliveryParts[3] ?? 0,
+            'jumlah_paket' => $createLetterDetail->total_package ?? 0,
+        ], false);
+    }
+
+    private function handleManualDelivery(Request $request, $baseLetterData, $auditData)
+    {
+        if (in_array($request->destination, [1, 3])) {
+            $this->createManualDeliveryLetter($request, $baseLetterData, $auditData, Main::getBranch()->ID ?? null, 1);
+        }
+
+        if (in_array($request->destination, [2, 3])) {
+            $this->createManualDeliveryLetter($request, $baseLetterData, $auditData, 37, 2);
+        }
+    }
+
+    private function createManualDeliveryLetter(Request $request, $baseLetterData, $auditData, $branchId, $copyType)
+    {
+        $letterData = array_merge($baseLetterData, [
+            'branch_id' => $branchId,
+            'status' => 'DIKIRIM',
+        ], $auditData);
+
+        $letter = QueryAPI::create('letter', $letterData, false);
+
+        if ($letter) {
+            $this->buildLetterDetail($request, $letter, $copyType);
+        }
+    }
+
+    private function buildLetterDetail(Request $request, $letter, $copyType)
+    {
         $totalPackage = 0;
         $collection = [];
 
-        if ($request->ci) {
-            $result = $this->processCIItems($request, $letter, $allotment, $cacheDuration);
-            $totalPackage += $result['total'];
-            $collection = array_merge($collection, $result['collection']);
-        }
+        $itemTypes = [
+            'ci' => 'processCIItems',
+            'cni' => 'processCNIItems',
+            'cp' => 'processCPItems',
+        ];
 
-        if ($request->cni) {
-            $result = $this->processCNIItems($request, $letter, $allotment, $cacheDuration);
-            $totalPackage += $result['total'];
-            $collection = array_merge($collection, $result['collection']);
-        }
-
-        if ($request->cp) {
-            $result = $this->processCPItems($request, $letter, $allotment, $cacheDuration);
-            $totalPackage += $result['total'];
-            $collection = array_merge($collection, $result['collection']);
+        foreach ($itemTypes as $itemType => $method) {
+            if ($request->has($itemType) && !empty($request->$itemType)) {
+                $result = $this->$method($request, $letter, $copyType);
+                $totalPackage += $result['total'];
+                $collection = array_merge($collection, $result['collection']);
+            }
         }
 
         return (object) [
@@ -482,40 +469,35 @@ class AddDeliveryFormController extends Controller
         ];
     }
 
-    private function processCIItems($request, $letter, $allotment, $cacheDuration)
+    private function processCIItems(Request $request, $letter, $copyType)
     {
         $totalPackage = 0;
         $collection = [];
 
         foreach ($request->ci as $key => $ci) {
             $code = $request->ci_code[$key] ?? null;
-            if (!$code) continue;
 
-            $isbnCacheKey = "isbn:{$code}";
-            $isbn = Cache::remember($isbnCacheKey, $cacheDuration, function () use ($code) {
-                return ISBN::get('search', ['code' => $code], true);
-            });
+            if (!$code) {
+                continue;
+            }
 
-            if (!$isbn) continue;
+            $isbn = Cache::remember("isbn:{$code}", 60, fn() => ISBN::get('search', ['code' => $code], true));
 
-            $qrcbn = ($request->ci_qrcbn[$key] ?? 0);
-            $isbd = ($request->ci_isbd[$key] ?? 0);
+            if (!$isbn) {
+                continue;
+            }
 
-            $totalPackage++;
+            $qrcbn = $request->ci_qrcbn[$key] ?? 0;
+            $isbd = $request->ci_isbd[$key] ?? 0;
             $catalog = null;
 
             if ($isbn->is_kdt_valid) {
-                $catalogId = $isbn->catalog_id;
-                $catalogCacheKey = "catalog:{$catalogId}";
-
-                $catalog = Cache::remember($catalogCacheKey, $cacheDuration, function () use ($catalogId) {
-                    return QueryAPI::get("select * from catalogs where id = {$catalogId}", true);
-                });
+                $catalog = Cache::remember("catalog:{$isbn->catalog_id}", 60, fn() => QueryAPI::get("SELECT * FROM catalogs WHERE id = {$isbn->catalog_id}", true));
             }
 
             $letterDetailData = [
                 'title' => $isbn->title,
-                'copy' => $allotment == 1 ? 1 : 2,
+                'copy' => $copyType,
                 'quantity' => 1,
                 'letter_id' => $letter->LETTER_ID ?? null,
                 'author' => $isbn->kepeng,
@@ -542,159 +524,107 @@ class AddDeliveryFormController extends Controller
 
             QueryAPI::create('letter_detail', $letterDetailData, false);
 
+            $totalPackage++;
             $collection[] = [
                 'product_name' => $isbn->title,
-                'qty' => $allotment == 1 ? 1 : 2,
-            ];
-        }
-
-        return [
-            'total' => $totalPackage,
-            'collection' => $collection
-        ];
-    }
-
-    private function processCNIItems($request, $letter, $allotment, $cacheDuration)
-    {
-        $totalPackage = 0;
-        $collection = [];
-
-        foreach ($request->cni as $key => $cni) {
-            $totalPackage++;
-
-            $catalogId = $request->cni_catalog_id[$key] ?? null;
-            $catalog = null;
-
-            if ($catalogId) {
-                $catalogCacheKey = "catalog:detail:{$catalogId}";
-
-                $catalog = Cache::remember($catalogCacheKey, $cacheDuration, function () use ($catalogId) {
-                    $catalogQuery = "
-                    select
-                        catalogs.*,
-                        penerbit.name as name_penerbit,
-                        penerbit.alamat as alamat_penerbit,
-                        kabupaten.namakab as namakab,
-                        kabupaten.propinsiid as propinsiid
-                    from
-                        catalogs
-                    left join
-                        penerbit on penerbit.id = catalogs.penerbit_id
-                    left join
-                        kabupaten on kabupaten.id = penerbit.city_id
-                    where
-                        catalogs.id = $catalogId
-                ";
-
-                    return QueryAPI::get($catalogQuery, true);
-                });
-            }
-
-            $title = $request->cni_title[$key] ?? null;
-            $author = $request->cni_author[$key] ?? null;
-            $year = $request->cni_year[$key] ?? null;
-            $physicalDescription = $request->cni_physical_description[$key] ?? null;
-            $executor = $request->cni_executor[$key] ?? ($letterExecutor->NAME ?? null);
-            $binding = $request->cni_binding[$key] ?? null;
-            $qrcbn = $request->cni_qrcbn[$key] ?? null;
-            $isbd = $request->cni_isbd[$key] ?? null;
-            $media = strtoupper($request->cni_type[$key] ?? '');
-            $getCollectionMedia = null;
-
-            if ($media) {
-                $getCollectionMedia = QueryAPI::get("select * from collectionmedias where upper(name) = '$media'", true);
-            }
-
-            $letterDetailData = [
-                'title' => $title,
-                'copy' => $allotment == 1 ? 1 : 2,
-                'quantity' => 1,
-                'price' => str_replace(',', '', ($request->cni_price[$key] ?? 0)),
-                'letter_id' => $letter->LETTER_ID ?? null,
-                'author' => $author,
-                'publisher' => $catalog->NAME_PENERBIT ?? $executor,
-                'publisher_address' => $catalog->ALAMAT_PENERBIT ?? null,
-                'publish_year' => $year,
-                'publisher_city' => $catalog->NAMAKAB ?? null,
-                'is_receivedate' => 1,
-                'catalog_id' => $catalogId,
-                'province_id' => $catalog->PROPINSIID ?? null,
-                'kab_id' => $catalog->CITY_ID ?? null,
-                'collection_type_id' => $catalog->COLLECTIONMEDIA_ID ?? ($getCollectionMedia->ID ?? null),
-                'deskripsifisik' => $physicalDescription,
-                'jenis_media' => $getCollectionMedia->NAME ?? null,
-                'penerbit_id' => $catalog->PENERBIT_ID ?? $request->executor_id,
-                'nomorpanggiljilid' => $binding,
-                'qrcbn' => $qrcbn,
-                'isbd' => $isbd,
-            ];
-
-            QueryAPI::create('letter_detail', $letterDetailData, false);
-
-            $collection[] = [
-                'product_name' => $title,
-                'qty' => $allotment == 1 ? 1 : 2,
+                'qty' => $copyType,
             ];
         }
 
         return ['total' => $totalPackage, 'collection' => $collection];
     }
 
-    private function processCPItems($request, $letter, $allotment, $cacheDuration)
+    private function processCNIItems(Request $request, $letter, $copyType)
+    {
+        $totalPackage = 0;
+        $collection = [];
+
+        foreach ($request->cni as $key => $cni) {
+            $catalogId = $request->cni_catalog_id[$key] ?? null;
+            $catalog = null;
+
+            if ($catalogId) {
+                $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, fn() => $this->getCatalogDetail($catalogId));
+            }
+
+            $title = $request->cni_title[$key] ?? null;
+            $media = strtoupper($request->cni_type[$key] ?? '');
+            $getCollectionMedia = null;
+
+            if ($media) {
+                $getCollectionMedia = QueryAPI::get("SELECT * FROM collectionmedias WHERE UPPER(name) = '{$media}'", true);
+            }
+
+            $letterDetailData = [
+                'title' => $title,
+                'copy' => $copyType,
+                'quantity' => 1,
+                'price' => str_replace(',', '', $request->cni_price[$key] ?? 0),
+                'letter_id' => $letter->LETTER_ID ?? null,
+                'author' => $request->cni_author[$key] ?? null,
+                'publisher' => $catalog->NAME_PENERBIT ?? ($request->cni_executor[$key] ?? null),
+                'publisher_address' => $catalog->ALAMAT_PENERBIT ?? null,
+                'publish_year' => $request->cni_year[$key] ?? null,
+                'publisher_city' => $catalog->NAMAKAB ?? null,
+                'is_receivedate' => 1,
+                'catalog_id' => $catalogId,
+                'province_id' => $catalog->PROPINSIID ?? null,
+                'kab_id' => $catalog->CITY_ID ?? null,
+                'collection_type_id' => $catalog->COLLECTIONMEDIA_ID ?? ($getCollectionMedia->ID ?? null),
+                'deskripsifisik' => $request->cni_physical_description[$key] ?? null,
+                'jenis_media' => $getCollectionMedia->NAME ?? null,
+                'penerbit_id' => $catalog->PENERBIT_ID ?? $request->executor_id,
+                'nomorpanggiljilid' => $request->cni_binding[$key] ?? null,
+                'qrcbn' => $request->cni_qrcbn[$key] ?? null,
+                'isbd' => $request->cni_isbd[$key] ?? null,
+            ];
+
+            QueryAPI::create('letter_detail', $letterDetailData, false);
+
+            $totalPackage++;
+            $collection[] = [
+                'product_name' => $title,
+                'qty' => $copyType,
+            ];
+        }
+
+        return ['total' => $totalPackage, 'collection' => $collection];
+    }
+
+    private function processCPItems(Request $request, $letter, $copyType)
     {
         $totalPackage = 0;
         $collection = [];
 
         foreach ($request->cp as $key => $cp) {
             $catalogId = $request->cp_catalog_id[$key] ?? null;
+            $catalogTitle = $request->cp_manual_title[$key] ?? null;
+            $catalog = null;
 
-            if (!$catalogId) continue;
+            if ($catalogId && empty($catalogTitle)) {
+                $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, fn() => $this->getCatalogDetail($catalogId));
+            }
+
+            if (!isset($request->cpe[$key]) || !is_array($request->cpe[$key])) {
+                continue;
+            }
 
             foreach ($request->cpe[$key] as $keys => $cpe) {
-                $totalPackage++;
-
-                $catalogCacheKey = "catalog:detail:{$catalogId}";
-
-                $catalog = Cache::remember($catalogCacheKey, $cacheDuration, function () use ($catalogId) {
-                    $catalogQuery = "
-                    select
-                        catalogs.*,
-                        penerbit.name as name_penerbit,
-                        penerbit.alamat as alamat_penerbit,
-                        kabupaten.namakab as namakab,
-                        kabupaten.propinsiid as propinsiid
-                    from
-                        catalogs
-                    left join
-                        penerbit on penerbit.id = catalogs.penerbit_id
-                    left join
-                        kabupaten on kabupaten.id = penerbit.city_id
-                    where
-                        catalogs.id = $catalogId
-                ";
-
-                    return QueryAPI::get($catalogQuery, true);
-                });
-
-                $edition = $request->cpe_edition[$key][$keys] ?? null;
-                $firstTTES = $request->cpe_first_ttes[$key][$keys] ?? null;
-                $endTTES = $request->cpe_end_ttes[$key][$keys] ?? null;
-
                 $letterDetailData = [
-                    'title' => $catalog->TITLE ?? null,
-                    'copy' => $allotment == 1 ? 1 : 2,
+                    'title' => $catalog->TITLE ?? $catalogTitle,
+                    'copy' => $copyType,
                     'quantity' => 1,
                     'price' => $catalog->PRICE ?? null,
                     'letter_id' => $letter->LETTER_ID ?? null,
                     'author' => $catalog->AUTHOR ?? null,
-                    'publisher' => $catalog->NAME_PENERBIT ?? ($letterExecutor->NAME ?? null),
+                    'publisher' => $catalog->NAME_PENERBIT ?? null,
                     'publisher_address' => $catalog->ALAMAT_PENERBIT ?? null,
                     'publish_year' => $catalog->PUBLISHYEAR ?? null,
                     'publisher_city' => $catalog->NAMAKAB ?? null,
                     'is_receivedate' => 1,
-                    'edisi_serial' => $edition,
-                    'ttes_awal' => $firstTTES,
-                    'ttes_akhir' => $endTTES,
+                    'edisi_serial' => $request->cpe_edition[$key][$keys] ?? null,
+                    'ttes_awal' => $request->cpe_first_ttes[$key][$keys] ?? null,
+                    'ttes_akhir' => $request->cpe_end_ttes[$key][$keys] ?? null,
                     'catalog_id' => $catalogId,
                     'province_id' => $catalog->PROPINSIID ?? null,
                     'kab_id' => $catalog->CITY_ID ?? null,
@@ -704,16 +634,36 @@ class AddDeliveryFormController extends Controller
 
                 QueryAPI::create('letter_detail', $letterDetailData, false);
 
+                $totalPackage++;
                 $collection[] = [
-                    'product_name' => $edition,
-                    'qty' => $allotment == 1 ? 1 : 2,
+                    'product_name' => $request->cpe_edition[$key][$keys] ?? null,
+                    'qty' => $copyType,
                 ];
             }
         }
 
-        return [
-            'total' => $totalPackage,
-            'collection' => $collection
-        ];
+        return ['total' => $totalPackage, 'collection' => $collection];
+    }
+
+    private function getCatalogDetail($catalogId)
+    {
+        $query = "
+            SELECT
+                catalogs.*,
+                penerbit.name AS name_penerbit,
+                penerbit.alamat AS alamat_penerbit,
+                kabupaten.namakab AS namakab,
+                kabupaten.propinsiid AS propinsiid
+            FROM
+                catalogs
+            LEFT JOIN
+                penerbit ON penerbit.id = catalogs.penerbit_id
+            LEFT JOIN
+                kabupaten ON kabupaten.id = penerbit.city_id
+            WHERE
+                catalogs.id = :catalog_id
+        ";
+
+        return QueryAPI::get($query, true, ['catalog_id' => $catalogId]);
     }
 }
