@@ -118,16 +118,36 @@
             </div>
             <hr class="py-1 mb-1">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label">Judul :</label>
                         <input type="text" class="form-control" name="title" id="title" placeholder="....................">
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <div class="form-group">
                         <label class="form-label">Kepeng :</label>
                         <input type="text" class="form-control" name="author" id="author" placeholder="....................">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Penyerahan Perpusnas :</label>
+                        <select class="form-select" name="is_perpusnas" id="is_perpusnas">
+                            <option value="">Semua</option>
+                            <option value="1">Sudah Diserahkan</option>
+                            <option value="2">Belum Diserahkan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Penyerahan Provinsi :</label>
+                        <select class="form-select" name="is_province" id="is_province">
+                            <option value="">Semua</option>
+                            <option value="1">Sudah Diserahkan</option>
+                            <option value="2">Belum Diserahkan</option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-3">
