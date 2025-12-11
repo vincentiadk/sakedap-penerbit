@@ -122,17 +122,21 @@
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center" width="80">Cover</th>
-                                <th>Kode ISBN</th>
-                                <th>Judul</th>
-                                <th>Edisi</th>
-                                <th>Jilid</th>
-                                <th class="text-center" width="80">Aksi</th>
+                                <th class="text-center text-nowrap" width="80">Cover</th>
+                                <th class="text-nowrap">Judul</th>
+                                <th class="text-nowrap">Kepengarangan</th>
+                                <th class="text-nowrap">Pelaksana Serah</th>
+                                <th class="text-nowrap">Tahun Terbit</th>
+                                <th class="text-nowrap">Identifier</th>
+                                <th class="text-nowrap">Sinopsis</th>
+                                <th class="text-nowrap">Jumlah Eks Perpusnas</th>
+                                <th class="text-nowrap">Jumlah Eks Provinsi</th>
+                                <th class="text-center text-nowrap" width="80">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="data-collection-isbn">
                             <tr id="empty-isbn-row">
-                                <td colspan="8" class="text-center text-muted py-4">
+                                <td colspan="10" class="text-center text-muted py-4">
                                     <i class="ph-books ph-3x d-block mb-2 opacity-50"></i>
                                     Belum ada data ISBN
                                 </td>
@@ -360,21 +364,25 @@
     #data-collection-isbn tr:not(#empty-isbn-row):hover, #data-collection-non-isbn tr:not(#empty-non-isbn-row):hover, #data-collection-periodicals tr:not(#empty-periodicals-row):hover {
         background-color: rgba(0, 0, 0, 0.02);
     }
+
+    .input-mode-switch {
+        transition: all 0.3s ease;
+    }
+
+    .periodical-catalog-section, .periodical-manual-section {
+        display: none;
+    }
+
+    .periodical-catalog-section.active, .periodical-manual-section.active {
+        display: block;
+    }
 </style>
 
 <script>
     $(function() {
         datePickerSingle('.date-single');
         typeDelivery();
-        initializeTooltips();
     });
-
-    function initializeTooltips() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    }
 
     function selectDeliveryType(type) {
         $('#type-delivery-' + type).prop('checked', true).trigger('change');
@@ -656,12 +664,16 @@
                         <input type="hidden" name="ci_code[]" value="${data.isbn ?? ''}">
 
                         <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
-                        <td class="align-middle">${data.isbn ?? '-'}</td>
-                        <td class="align-middle">${data.title ?? '-'}</td>
-                        <td class="align-middle">${data.edisi ?? '-'}</td>
-                        <td class="align-middle">${data.keterangan ?? '-'}</td>
+                        <td class="align-middle text-wrap">${data.title ?? '-'}</td>
+                        <td class="align-middle text-wrap">${data.kepeng ?? '-'}</td>
+                        <td class="align-middle text-wrap">${data.nama_penerbit ?? '-'}</td>
+                        <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
+                        <td class="align-middle text-nowrap">${data.isbn ?? '-'}</td>
+                        <td class="align-middle text-wrap">${data.sinopsis ?? '-'}</td>
+                        <td class="align-middle">2</td>
+                        <td class="align-middle">1</td>
                         <td class="text-center align-middle">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)" data-bs-toggle="tooltip" title="Hapus data ini">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
                                 <i class="ph-trash"></i>
                             </button>
                         </td>
@@ -670,17 +682,14 @@
 
                 $('#search_isbn').val('').focus();
 
-                initializeTooltips();
-
                 if (data.is_kdt_valid == 1) {
                     swalInit.fire({
                         title: 'Berhasil Ditambahkan',
                         html: `ISBN telah tervalidasi dengan KDT.<br>Koleksi otomatis dikaitkan dengan Katalog ID: <strong>${data.catalog_id}</strong>`,
                         icon: 'success',
-                        timer: 3000
                     });
                 } else {
-                    showToast('success', 'ISBN berhasil ditambahkan');
+                    notification('success', 'ISBN berhasil ditambahkan');
                 }
             },
             error: function(response) {
@@ -712,7 +721,7 @@
                         if (tableId === 'data-collection-isbn') {
                             emptyMessage = `
                                 <tr id="empty-isbn-row">
-                                    <td colspan="8" class="text-center text-muted py-4">
+                                    <td colspan="10" class="text-center text-muted py-4">
                                         <i class="ph-books ph-3x d-block mb-2 opacity-50"></i>
                                         Belum ada data ISBN
                                     </td>
@@ -741,7 +750,8 @@
                         $('#' + tableId).html(emptyMessage);
                     }
                 });
-                showToast('success', 'Data berhasil dihapus');
+
+                notification('success', 'Data berhasil dihapus');
             }
         });
     }
@@ -778,7 +788,7 @@
                 <tr class="animate__animated animate__fadeIn">
                     <input type="hidden" name="cni[]" value="1">
                     <td width="5%" class="align-top">
-                        <button type="button" class="btn btn-danger" onclick="removeItem(this)" data-bs-toggle="tooltip" title="Hapus data ini">
+                        <button type="button" class="btn btn-danger" onclick="removeItem(this)">
                             <i class="ph-trash"></i>
                         </button>
                     </td>
@@ -825,7 +835,7 @@
                                         <select class="form-select select2-basic" name="cni_type[]">
                                             <option value="">Pilih Jenis</option>
                                             @foreach ($media as $m)
-                                                <option value="{{ $m->NAME }}">{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
+                                                <option value="{{ $m->NAME }}">{{ $m->NAME }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -856,9 +866,6 @@
             lookupCatalog(`.cni_catalog_id_${randStr}`, `.cni_catalog_id_${randStr}`, true);
             select2Basic();
         }
-
-        initializeTooltips();
-        showToast('success', `${total} baris koleksi non-ISBN berhasil ditambahkan`);
     }
 
     function selectCollectionNonISBN(param) {
@@ -881,10 +888,10 @@
                 selector.find('input[name="cni_author[]"]').val(response?.AUTHOR);
                 selector.find('input[name="cni_physical_description[]"]').val(response?.DESCRIPTION);
                 selector.find('input[name="cni_year[]"]').val(response?.PUBLISHYEAR);
-                selector.find('select[name="cni_type[]"]').val(response?.NAME_WORKSHEET).trigger('change');
+                selector.find('select[name="cni_type[]"]').val(response?.ALIAS_WORKSHEET).trigger('change');
                 selector.find('input[name="cni_price[]"]').val(response?.PRICE);
 
-                showToast('success', 'Data katalog berhasil dimuat');
+                notification('success', 'Data katalog berhasil dimuat');
             },
             error: function(response) {
                 onLoading('close', '#data-collection-non-isbn');
@@ -921,22 +928,51 @@
             var randStr = randomString(10);
 
             $('#data-collection-periodicals').append(`
-                <tr class="${randStr} animate__animated animate__fadeIn">
+                <tr class="periodical-row-${randStr} animate__animated animate__fadeIn">
                     <input type="hidden" name="cp[]" value="1">
                     <td width="5%" rowspan="2" class="align-top">
-                        <button type="button" class="btn btn-danger" onclick="removeItemPeriodicals('${randStr}')" data-bs-toggle="tooltip" title="Hapus data ini">
+                        <button type="button" class="btn btn-danger" onclick="removeItemPeriodicals('${randStr}')">
                             <i class="ph-trash"></i>
                         </button>
                     </td>
                     <td width="95%">
-                        <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[]">
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="ph-database"></i></span>
-                            <input type="text" class="form-control cp_catalog_text_${randStr}" placeholder="Pilih Katalog Terbitan Berkala" readonly>
+                        <div class="card border-0 bg-light mb-2">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0"><i class="ph-toggle-left me-1"></i> Katalog</h6>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-primary input-mode-switch active" onclick="switchInputMode('${randStr}', 'catalog')">
+                                            <i class="ph-database me-1"></i>
+                                            Pilihan
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary input-mode-switch" onclick="switchInputMode('${randStr}', 'manual')">
+                                            <i class="ph-keyboard me-1"></i>
+                                            Manual
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="periodical-catalog-section-${randStr} periodical-catalog-section active">
+                                    <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[]">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="ph-database"></i></span>
+                                        <input type="text" class="form-control cp_catalog_text_${randStr}" placeholder="Pilih Katalog Terbitan Berkala" readonly>
+                                    </div>
+                                </div>
+                                <div class="periodical-manual-section-${randStr} periodical-manual-section">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <span class="input-group-text">Judul Terbitan</span>
+                                                <input type="text" class="form-control" name="cp_manual_title[]" placeholder="Contoh: Majalah Perpustakaan Indonesia">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>
-                <tr class="${randStr}">
+                <tr class="periodical-row-${randStr}">
                     <td>
                         <div class="card border-0 bg-light">
                             <div class="card-body">
@@ -948,7 +984,7 @@
                                     </button>
                                 </div>
                                 <div id="data-collection-periodicals-edition-${randStr}">
-                                    <div class="alert alert-info border-0">
+                                    <div class="alert alert-info border-0 mb-0">
                                         <i class="ph-info me-1"></i>
                                         Belum ada edisi yang ditambahkan
                                     </div>
@@ -963,9 +999,26 @@
                 worksheet_id: [13, 142]
             });
         }
+    }
 
-        initializeTooltips();
-        showToast('success', `${total} koleksi terbitan berkala berhasil ditambahkan`);
+    function switchInputMode(randStr, mode) {
+        $(`.periodical-row-${randStr} .input-mode-switch`).removeClass('active');
+        $(`.periodical-row-${randStr} .input-mode-switch`).each(function() {
+            if ((mode === 'catalog' && $(this).text().trim().includes('Katalog')) || (mode === 'manual' && $(this).text().trim().includes('Manual'))) {
+                $(this).addClass('active');
+            }
+        });
+
+        if (mode === 'catalog') {
+            $(`.periodical-catalog-section-${randStr}`).addClass('active').slideDown();
+            $(`.periodical-manual-section-${randStr}`).removeClass('active').slideUp();
+            $(`.periodical-manual-section-${randStr} input, .periodical-manual-section-${randStr} textarea`).val('');
+        } else {
+            $(`.periodical-catalog-section-${randStr}`).removeClass('active').slideUp();
+            $(`.periodical-manual-section-${randStr}`).addClass('active').slideDown();
+            $(`.cp_catalog_id_${randStr}`).val('');
+            $(`.cp_catalog_text_${randStr}`).val('');
+        }
     }
 
     function removeItemPeriodicals(param) {
@@ -979,7 +1032,7 @@
             confirmButtonColor: '#d9534f'
         }).then((result) => {
             if (result.isConfirmed) {
-                $('.' + param).fadeOut(300, function() {
+                $('.periodical-row-' + param).fadeOut(300, function() {
                     $(this).remove();
 
                     if ($('#data-collection-periodicals tr').length === 0) {
@@ -994,7 +1047,7 @@
                     }
                 });
 
-                showToast('success', 'Data terbitan berkala berhasil dihapus');
+                notification('success', 'Data terbitan berkala berhasil dihapus');
             }
         });
     }
@@ -1007,28 +1060,28 @@
         $('#data-collection-periodicals-edition-' + param).append(`
             <div class="card border mb-2 animate__animated animate__fadeIn edition-card-${randStr}">
                 <div class="card-body p-3">
-                    <input type="hidden" name="cpe[][]">
+                    <input type="hidden" name="cpe_${param}[]" value="1">
                     <div class="row g-2">
                         <div class="col-md-4">
                             <label class="form-label small">Edisi Serial</label>
-                            <input type="text" class="form-control form-control-sm" name="cpe_edition[][]" placeholder="Contoh: Vol. 1 No. 1">
+                            <input type="text" class="form-control form-control-sm" name="cpe_edition_${param}[]" placeholder="Contoh: Vol. 1 No. 1">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Awal</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_first_ttes[][]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_first_ttes_${param}[]" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Akhir</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_end_ttes[][]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_end_ttes_${param}[]" readonly>
                             </div>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItemEdition('${randStr}')" data-bs-toggle="tooltip" title="Hapus edisi ini">
+                            <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItemEdition('${randStr}')">
                                 <i class="ph-trash"></i>
                             </button>
                         </div>
@@ -1038,8 +1091,6 @@
         `);
 
         datePickerSingle('.date-single');
-        initializeTooltips();
-        showToast('success', 'Edisi berhasil ditambahkan');
     }
 
     function removeItemEdition(param) {
@@ -1057,7 +1108,7 @@
                     $(this).remove();
                 });
 
-                showToast('success', 'Edisi berhasil dihapus');
+                notification('success', 'Edisi berhasil dihapus');
             }
         });
     }
@@ -1076,41 +1127,6 @@
         });
 
         $('.btn-to-top button').click();
-    }
-
-    function showToast(type, message) {
-        var bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
-        var icon = type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-x-circle' : 'ph-info';
-
-        var toastHtml = `
-            <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="${icon} me-1"></i>
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-1 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-
-        if ($('#toast-container').length === 0) {
-            $('body').append('<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>');
-        }
-
-        $('#toast-container').append(toastHtml);
-
-        var toastElement = $('#toast-container .toast:last');
-        var toast = new bootstrap.Toast(toastElement[0], {
-            autohide: true,
-            delay: 3000
-        });
-
-        toast.show();
-
-        toastElement[0].addEventListener('hidden.bs.toast', function() {
-            $(this).remove();
-        });
     }
 
     function submitted() {
@@ -1167,7 +1183,7 @@
                     });
                 } else if (response.code == 400) {
                     showValidation(response.error);
-                    showToast('error', 'Terdapat kesalahan pada form. Mohon periksa kembali.');
+                    notification('error', 'Terdapat kesalahan pada form. Mohon periksa kembali.');
                 } else {
                     swalInit.fire({
                         title: 'Perhatian',

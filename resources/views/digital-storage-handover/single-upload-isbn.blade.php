@@ -42,7 +42,7 @@
                         <th class="text-nowrap"><i class="ph-gear"></i></th>
                         <th class="text-nowrap">Status</th>
                         <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Kode</th>
+                        <th class="text-nowrap">Identifier</th>
                         <th class="text-nowrap">Tgl Upload</th>
                         <th class="text-nowrap">File Cover</th>
                         <th class="text-nowrap">File Konten</th>

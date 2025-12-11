@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'content' => 'digital-storage-handover.review',
                 'plugins' => [
                     'datatable',
@@ -64,13 +64,9 @@ class ReviewController extends Controller
             $whereCondition[] = "(upper(e_collections.title_ori) like '%$title%' or upper(e_collections.title) like '%$title%')";
         }
 
-        if ($request->isbn) {
-            $isbn = str_replace('-', '', $request->isbn);
-            $whereCondition[] = "e_collections.code = '$isbn'";
-        }
-
-        if ($request->qrcbn) {
-            $whereCondition[] = "e_collections.qrcbn = '$request->qrcbn'";
+        if ($request->code) {
+            $code = str_replace('-', '', $request->code);
+            $whereCondition[] = "e_collections.code = '$code'";
         }
 
         if ($request->year) {
@@ -209,7 +205,7 @@ class ReviewController extends Controller
                 ec.*,
                 penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
-                w.name as name_worksheet,
+                w.alias as alias_worksheet,
                 w.category as category_worksheet,
                 propinsi.namapropinsi as namapropinsi,
                 parents.title as title_parent,
@@ -296,7 +292,7 @@ class ReviewController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'collection' => $collection,
                 'collectionCategory' => $collectionCategory,

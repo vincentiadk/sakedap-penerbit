@@ -77,7 +77,7 @@
                 <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
             </div>
             <div class="card-body">
-                {{ $collection->NAME_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
+                {{ $collection->ALIAS_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
             </div>
         </div>
         @if($collection->TITLE_PARENT)
@@ -110,12 +110,12 @@
                     </div>
                 @endif
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Media <span class="text-danger fw-bold">*</span></label>
+                    <label class="col-form-label col-md-2">Jenis Koleksi <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" disabled>
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
                             <option value=""></option>
                             @foreach($media as $m)
-                                <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }} [{{ $m->DEPOSITFORMAT_CODE }}]</option>
+                                <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -127,7 +127,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Kode</label>
+                    <label class="col-form-label col-md-2">Identifier</label>
                     <div class="col-md-10">
                         <div class="input-group">
                             <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" disabled>
@@ -140,16 +140,6 @@
                             </select>
                             <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="...................." disabled>
                         </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Kota <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <select class="form-select" name="city_id" id="city_id" disabled>
-                            @if($collection->NAMAKAB)
-                                <option value="{{ $collection->CITY_ID }}" selected>{{ $collection->NAMAPROPINSI }} -> {{ $collection->NAMAKAB }}</option>
-                            @endif
-                        </select>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -210,18 +200,6 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Akses <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <select class="form-select select2-basic" name="access" id="access" data-placeholder="Pilih" disabled>
-                            <option value=""></option>
-                            <option value="1" {{ $collection->AKSES == 1 ? 'selected' : '' }}>Akses full file berwatermak secara online</option>
-                            <option value="2" {{ $collection->AKSES == 2 ? 'selected' : '' }}>Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</option>
-                            <option value="3" {{ $collection->AKSES == 3 ? 'selected' : '' }}>Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</option>
-                            <option value="4" {{ $collection->AKSES == 4 ? 'selected' : '' }}>Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
                     <label class="col-form-label col-md-2">Mata Uang</label>
                     <div class="col-md-10">
                         <select class="form-select" name="currency" id="currency" disabled>
@@ -274,15 +252,33 @@
         </div>
         <div class="card">
             <div class="card-header">
+                <h5 class="hstack gap-2 mb-0">Akses</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} disabled>
+                    <label class="form-check-label" for="access-1">Akses full file berwatermak secara online</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} disabled>
+                    <label class="form-check-label" for="access-2">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} disabled>
+                    <label class="form-check-label" for="access-3">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</label>
+                </div>
+                <div class="form-group form-check">
+                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} disabled>
+                    <label class="form-check-label" for="access-4">Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</label>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
                 <h5 class="hstack gap-2 mb-0">Kategori</h5>
             </div>
             <div class="card-body">
-                <select class="form-select select2-basic" name="category[]" id="category" data-placeholder="Pilih" multiple disabled>
-                    <option value=""></option>
-                    @foreach($category as $c)
-                        <option value="{{ $c->ID }}" {{ in_array($c->ID, $collectionCategory ?? []) ? 'selected' : '' }}>{{ $c->NAME }}</option>
-                    @endforeach
-                </select>
+                <div id="category-content"></div>
             </div>
         </div>
         <div class="card">
@@ -393,7 +389,29 @@
             tags: true,
             tokenSeparators: [';']
         });
+
+        getCategory();
     });
+
+    function getCategory() {
+        const category = @json($category ?? []);
+        const categoryValue = @json($collectionCategory ?? []);
+        const mediaId = $('#collection_media_id').val();
+        const selectedIds = new Set(categoryValue.map(v => v.CATEGORY_ID));
+
+        const categoryContent = category.filter(val => val.TYPE == mediaId).map(val => {
+            const checked = selectedIds.has(val.ID) ? 'checked' : '';
+
+            return `
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked}>
+                    <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
+                </div>
+            `;
+        }).join('');
+
+        $('#category-content').html(categoryContent || '<div class="alert alert-info"><i class="ph-info me-1"></i> Tidak ada kategori</div>');
+    }
 
     $(document).ready(function() {
         const fileUrl = "{{ url('stream-file') }}?type=konten_digital&id={{ $collection->ID_CATALOGFILES ?? '' }}&filename={{ $collection->FILEURL_CATALOGFILES ?? '' }}";

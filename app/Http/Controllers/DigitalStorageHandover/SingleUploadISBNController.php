@@ -65,7 +65,7 @@ class SingleUploadISBNController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "(ec.status = '4' and ec.deleted_at is null)";
-        $whereCondition[] = "ec.penerbit_id = " . session('id');
+        $whereCondition[] = "ec.created_by = " . session('id');
         $whereCondition[] = "ec.code_type = '1'";
         $whereCondition[] = "ec.code is not null";
         $whereCondition[] = "w.category = '" . $this->worksheetCategory . "'";
@@ -101,7 +101,7 @@ class SingleUploadISBNController extends Controller
                 worksheets on worksheets.id = e_collections.worksheet_id
             where
                 (e_collections.status = '4' and e_collections.deleted_at is null) and
-                e_collections.penerbit_id = " . session('id') . " and
+                e_collections.created_by = " . session('id') . " and
                 worksheets.category = '" . $this->worksheetCategory . "' and
                 e_collections.code_type = '1' and
                 e_collections.code is not null
@@ -325,7 +325,6 @@ class SingleUploadISBNController extends Controller
 
                     if (!$checkExists) {
                         $getISBN = ISBN::get('search', [
-                            'penerbit_id' => session('id'),
                             'code' => str_replace(['-', '_'], '', $isbn)
                         ], true);
 
@@ -337,9 +336,13 @@ class SingleUploadISBNController extends Controller
                                 'sizes' => ''
                             ];
 
+                            $executorId = $getISBN->penerbit_id ?? null;
+                            $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
+
                             $createCollection = QueryAPI::create('e_collections', [
                                 'id_old' => 0,
-                                'publisher_id' => session('id'),
+                                'city_id' => $executor->CITY_ID ?? session('city_id'),
+                                'publisher_id' => $executorId,
                                 'title_ori' => $getISBN->title ?? '',
                                 'slug' => Str::slug($getISBN->title ?? '', '-'),
                                 'series' => $getISBN->seri ?? '',
@@ -355,10 +358,11 @@ class SingleUploadISBNController extends Controller
                                 'status' => 4,
                                 'created_by' => session('id'),
                                 'updated_by' => session('id'),
-                                'copyright' => Main::copyright(session('id')),
+                                'copyright' => Main::copyright($executorId ?? session('id')),
                                 'worksheet_id' => 20,
                                 'collection_media_id' => 141,
-                                'penerbit_id' => session('id'),
+                                'penerbit_id' => $executorId,
+                                'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                                 'title' => $getISBN->title ?? '',
                                 'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
                                 'description' => $getISBN->sinopsis ?? '',
@@ -419,10 +423,10 @@ class SingleUploadISBNController extends Controller
                                 $successCount++;
                             }
                         } else {
-                            $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: kode tersebut koleksi cetak";
+                            $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: isbn tersebut koleksi cetak";
                         }
                     } else {
-                        $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: kode tersebut sudah pernah di upload";
+                        $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: isbn tersebut sudah pernah di upload";
                     }
                 } else {
                     $missing = [];
@@ -479,7 +483,7 @@ class SingleUploadISBNController extends Controller
             where
                 ec.deleted_at is null and
                 ec.status = '4' and
-                ec.penerbit_id = " . session('id') . " and
+                ec.created_by = " . session('id') . " and
                 ec.code_type = 1 and
                 ec.code is not null and
                 ec.city_id is not null and
@@ -515,7 +519,7 @@ class SingleUploadISBNController extends Controller
             select
                 ec.*,
                 kabupaten.namakab as namakab,
-                w.name as name_worksheet,
+                w.alias as alias_worksheet,
                 w.category as category_worksheet,
                 propinsi.namapropinsi as namapropinsi,
                 parents.title as title_parent,
@@ -562,7 +566,6 @@ class SingleUploadISBNController extends Controller
                 ec.deleted_at is null and
                 ec.status = '4' and
                 w.category = '" . $this->worksheetCategory . "' and
-                ec.penerbit_id = " . session('id') . " and
                 ec.code_type = 1 and
                 ec.code is not null
         ";
@@ -575,16 +578,14 @@ class SingleUploadISBNController extends Controller
 
         if ($request->ajax()) {
             $validation = Validator::make($request->all(), [
-                'city_id' => 'required',
                 'title' => 'required',
                 'collection_media_id' => 'required',
                 'access' => 'required',
                 'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
             ], [
-                'city_id.required' => 'Kota tidak boleh kosong',
                 'title.required' => 'Judul tidak boleh kosong',
-                'collection_media_id.required' => 'Media tidak boleh kosong',
+                'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
                 'access.required' => 'Akses tidak boleh kosong',
                 'file_cover.image' => 'File cover tidak valid',
                 'file_cover.mimes' => 'File cover harus png, jpg, jpeg',
@@ -603,13 +604,14 @@ class SingleUploadISBNController extends Controller
                 try {
                     $userId = session('id');
                     $publishTime = strtotime($request->publish_time);
-                    $executorId = session('id');
                     $status = $request->param;
+                    $executorId = $collection->PENERBIT_ID ?? null;
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
 
                     $baseCollectionData = [
                         'id_old' => 0,
                         'publisher_id' => $executorId,
-                        'city_id' => $request->city_id,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
                         'title_ori' => $request->title,
                         'album' => $request->album,
                         'slug' => Str::slug($request->title, '-'),
@@ -630,7 +632,7 @@ class SingleUploadISBNController extends Controller
                         'copyright' => Main::copyright($executorId),
                         'collection_media_id' => $request->collection_media_id,
                         'penerbit_id' => $executorId,
-                        'kabupaten_id' => $request->city_id,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $request->title,
                         'author' => implode(';', ($request->author ?? [])),
                         'jilid' => $request->binding,
@@ -753,7 +755,7 @@ class SingleUploadISBNController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'collection' => $collection,
                 'collectionCategory' => $collectionCategory,

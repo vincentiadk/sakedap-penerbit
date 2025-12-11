@@ -60,7 +60,7 @@
                 <div class="card-header d-flex align-items-center">
                     <h6 class="mb-0">
                         <i class="ph-trophy me-1 text-warning"></i>
-                        Top 5 Jenis Media
+                        Top 5 Jenis Koleksi
                     </h6>
                     <div class="ms-auto">
                         <span class="badge bg-primary bg-opacity-10 text-primary" id="badge-top-media">0 Item</span>
@@ -94,7 +94,7 @@
                 <div class="card-header d-flex align-items-center">
                     <h6 class="mb-0">
                         <i class="ph-chart-pie me-1"></i>
-                        Distribusi Jenis Media
+                        Distribusi Jenis Koleksi
                     </h6>
                     <div class="ms-auto">
                         <span class="badge bg-primary bg-opacity-10 text-primary" id="badge-media-type">0 Item</span>

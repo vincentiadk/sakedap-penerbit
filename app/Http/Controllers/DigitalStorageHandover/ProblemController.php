@@ -23,7 +23,7 @@ class ProblemController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'content' => 'digital-storage-handover.problem',
                 'plugins' => [
                     'datatable',
@@ -68,13 +68,9 @@ class ProblemController extends Controller
             $whereCondition[] = "(upper(e_collections.title_ori) like '%$title%' or upper(e_collections.title) like '%$title%')";
         }
 
-        if ($request->isbn) {
-            $isbn = str_replace('-', '', $request->isbn);
-            $whereCondition[] = "e_collections.code = '$isbn'";
-        }
-
-        if ($request->qrcbn) {
-            $whereCondition[] = "e_collections.qrcbn = '$request->qrcbn'";
+        if ($request->code) {
+            $code = str_replace('-', '', $request->code);
+            $whereCondition[] = "e_collections.code = '$code'";
         }
 
         if ($request->year) {
@@ -239,7 +235,7 @@ class ProblemController extends Controller
                 ec.*,
                 penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
-                w.name as name_worksheet,
+                w.alias as alias_worksheet,
                 w.category as category_worksheet,
                 propinsi.namapropinsi as namapropinsi,
                 parents.title as title_parent,
@@ -298,16 +294,14 @@ class ProblemController extends Controller
 
         if ($request->ajax()) {
             $validation = Validator::make($request->all(), [
-                'city_id' => 'required',
                 'title' => 'required',
                 'collection_media_id' => 'required',
                 'access' => 'required',
                 'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
             ], [
-                'city_id.required' => 'Kota tidak boleh kosong',
                 'title.required' => 'Judul tidak boleh kosong',
-                'collection_media_id.required' => 'Media tidak boleh kosong',
+                'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
                 'access.required' => 'Akses tidak boleh kosong',
                 'file_cover.image' => 'File cover tidak valid',
                 'file_cover.mimes' => 'File cover harus png, jpg, jpeg',
@@ -327,10 +321,12 @@ class ProblemController extends Controller
                     $userId = session('id');
                     $publishTime = strtotime($request->publish_time);
                     $status = $request->param;
+                    $executorId = $collection->PENERBIT_ID ?? null;
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
 
                     $baseCollectionData = [
                         'id_old' => 0,
-                        'city_id' => $request->city_id,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
                         'title_ori' => $request->title,
                         'album' => $request->album,
                         'slug' => Str::slug($request->title, '-'),
@@ -349,7 +345,7 @@ class ProblemController extends Controller
                         'updated_by' => $userId,
                         'price' => str_replace([',', '.'], '', $request->price),
                         'collection_media_id' => $request->collection_media_id,
-                        'kabupaten_id' => $request->city_id,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $request->title,
                         'author' => implode(';', ($request->author ?? [])),
                         'jilid' => $request->binding,
@@ -472,7 +468,7 @@ class ProblemController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'collection' => $collection,
                 'collectionCategory' => $collectionCategory,

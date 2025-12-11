@@ -79,7 +79,7 @@
                         <th class="text-nowrap">Tujuan</th>
                         <th class="text-nowrap">Jasa Kirim</th>
                         <th class="text-nowrap">Resi</th>
-                        <th class="text-nowrap">Jenis Media</th>
+                        <th class="text-nowrap">Jenis Koleksi</th>
                     </tr>
                 </thead>
             </table>

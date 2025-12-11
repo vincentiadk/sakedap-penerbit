@@ -96,7 +96,7 @@
                             <th class="text-center">No</th>
                             <th class="text-center">Cover</th>
                             <th>Judul</th>
-                            <th>ISBN</th>
+                            <th>Identifier</th>
                             <th>Jilid</th>
                             <th>Edisi</th>
                             <th>Jumlah</th>

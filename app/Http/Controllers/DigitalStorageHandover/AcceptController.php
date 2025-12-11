@@ -24,7 +24,7 @@ class AcceptController extends Controller
     {
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'content' => 'digital-storage-handover.accept',
                 'plugins' => [
                     'datatable',
@@ -40,6 +40,7 @@ class AcceptController extends Controller
         $column = [
             'catalogs.id',
             null,
+            'penerbit.name',
             'catalogs.title',
             'collectionmedias.name',
             'catalogs.isbn',
@@ -64,7 +65,7 @@ class AcceptController extends Controller
             ) and
             worksheets.category = '$this->worksheetCategory' and
             catalogs.edeposit_col_id is not null and
-            catalogs.penerbit_id = " . session('id') . "
+            catalogs.penerbit_id = " . $request->executor_id . "
         ";
 
         if ($request->title) {
@@ -74,6 +75,11 @@ class AcceptController extends Controller
 
         if ($request->year) {
             $whereCondition[] = "catalogs.publishyear = $request->year";
+        }
+
+        if ($request->code) {
+            $code = str_replace('-', '', $request->code);
+            $whereCondition[] = "catalogs.isbn = $code";
         }
 
         if ($request->media_id) {
@@ -124,7 +130,7 @@ class AcceptController extends Controller
                 ) and
                 worksheets.category = '$this->worksheetCategory' and
                 catalogs.edeposit_col_id is not null and
-                catalogs.penerbit_id = " . session('id') . "
+                catalogs.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
         $totalFiltered = QueryAPI::get("
@@ -138,6 +144,8 @@ class AcceptController extends Controller
                 worksheets on worksheets.id = catalogs.worksheet_id
             left join
                 collectionmedias on collectionmedias.id = catalogs.collectionmedia_id
+            left join
+                penerbit on penerbit.id = catalogs.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -155,6 +163,7 @@ class AcceptController extends Controller
                                 catalogs.title,
                                 catalogs.isbn,
                                 catalogs.createdate,
+                                penerbit.name as name_penerbit,
                                 collectionmedias.name as name_media
                             from
                                 catalogs
@@ -164,6 +173,8 @@ class AcceptController extends Controller
                                 worksheets on worksheets.id = catalogs.worksheet_id
                             left join
                                 collectionmedias on collectionmedias.id = catalogs.collectionmedia_id
+                            left join
+                                penerbit on penerbit.id = catalogs.penerbit_id
                             $whereClause
                             $orderBy
                         ) data
@@ -188,6 +199,7 @@ class AcceptController extends Controller
                 $data[] = [
                     $start + 1,
                     $action,
+                    $val->NAME_PENERBIT,
                     $val->TITLE,
                     $val->NAME_MEDIA,
                     $val->ISBN,
@@ -211,6 +223,7 @@ class AcceptController extends Controller
         $collection = QueryAPI::get("
             select
                 c.*,
+                penerbit.name as name_penerbit,
                 k.namakab as namakab,
                 pr.namapropinsi as namapropinsi,
                 ec.code_type as code_type_e_collection,
@@ -238,7 +251,7 @@ class AcceptController extends Controller
                 cfr.mime as mime_catalogfiles,
                 cfr.file_size as file_size_catalogfiles,
                 cfr.method as method_catalogfiles,
-                w.name as name_worksheet,
+                w.alias as alias_worksheet,
                 w.category as category_worksheet
             from
                 catalogs c
@@ -252,6 +265,8 @@ class AcceptController extends Controller
                 propinsi pr on pr.id = k.propinsiid
             left join
                 worksheets w on w.id = c.worksheet_id
+            left join
+                penerbit on penerbit.id = c.penerbit_id
             left join
                 (
                     select
@@ -294,8 +309,7 @@ class AcceptController extends Controller
                 ) ccr on ccr.catalog_id = c.id
             where
                 nvl(c.isdelete, 0) = 0
-                and c.id = $id and
-                c.penerbit_id = " . session('id') . "
+                and c.id = $id
         ", true);
 
         if ($request->ajax()) {
@@ -361,7 +375,7 @@ class AcceptController extends Controller
 
         return view('layouts.index', [
             'data' => [
-                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142)") ?? [],
+                'media' => QueryAPI::get("select * from collectionmedias where (isdelete = 0 or isdelete is null) and worksheet_id in (20,142) and depositformat_code is not null") ?? [],
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'collection' => $collection,
                 'collectionCategory' => $collectionCategory,
@@ -417,8 +431,7 @@ class AcceptController extends Controller
                     ) cfr on cfr.catalog_id = c.id
                 where
                     nvl(c.isdelete, 0) = 0
-                    and c.id = $id and
-                    c.penerbit_id = " . session('id') . "
+                    and c.id = $id
             ", true);
 
             if (!$collection) {

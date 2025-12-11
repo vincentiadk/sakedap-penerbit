@@ -187,7 +187,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label class="form-label">Media :</label>
+                        <label class="form-label">Jenis Koleksi :</label>
                         <select class="form-select" name="media" id="media">
                             <option value="">Semua</option>
                             <option value="cetak">Cetak</option>
@@ -200,7 +200,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label class="form-label">Tgl Terima KCKR :</label>
+                        <label class="form-label">Tgl Terima Perpusnas :</label>
                         <input type="text" class="form-control date-range-picker" name="received_date_kckr" id="received_date_kckr" placeholder="Semua Tanggal" readonly>
                     </div>
                 </div>
@@ -237,9 +237,9 @@
                         <th class="text-nowrap">Kepeng</th>
                         <th class="text-nowrap">Tahun</th>
                         <th class="text-nowrap">ISBN</th>
-                        <th class="text-nowrap">Media</th>
+                        <th class="text-nowrap">Jenis Koleksi</th>
                         <th class="text-nowrap">Pustaka</th>
-                        <th class="text-nowrap">Tgl Terima KCKR</th>
+                        <th class="text-nowrap">Tgl Terima Perpusnas</th>
                         <th class="text-nowrap">Tgl Terima Provinsi</th>
                         <th class="text-nowrap">Sinopsis</th>
                         <th class="text-nowrap">Tgl Terima</th>

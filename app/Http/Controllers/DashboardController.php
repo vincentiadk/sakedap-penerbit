@@ -48,7 +48,7 @@ class DashboardController extends Controller
 
         $query = "
             select
-                cm.name,
+                cm.alias,
                 count(ec.id) as total
             from
                 collectionmedias cm
@@ -59,9 +59,9 @@ class DashboardController extends Controller
                 e_collections ec on ec.collection_media_id = cm.id
                 and ec.penerbit_id = $executorId
             group by
-                cm.name
+                cm.alias
             order by
-                cm.name
+                cm.alias
         ";
 
         $data = QueryAPI::get($query);
@@ -75,7 +75,7 @@ class DashboardController extends Controller
         foreach ($data as $item) {
             if (isset($item->TOTAL) && $item->TOTAL > 0) {
                 $response[] = [
-                    'name'  => $item->NAME ?? 'Unknown',
+                    'name'  => $item->ALIAS ?? 'Unknown',
                     'value' => (int) $item->TOTAL
                 ];
             }
@@ -98,7 +98,7 @@ class DashboardController extends Controller
 
         $query = "
             select
-                w.name,
+                w.alias,
                 count(ec.id) as total
             from
                 worksheets w
@@ -108,9 +108,9 @@ class DashboardController extends Controller
                 w.category in ('$catDigital', '$catPrinted', '$catAnalog')
                 and ec.penerbit_id = $executorId
             group by
-                w.name
+                w.alias
             order by
-                w.name
+                w.alias
         ";
 
         $data = QueryAPI::get($query);
@@ -124,7 +124,7 @@ class DashboardController extends Controller
         foreach ($data as $item) {
             if (isset($item->TOTAL) && $item->TOTAL > 0) {
                 $response[] = [
-                    'name'  => $item->NAME ?? 'Unknown',
+                    'name'  => $item->ALIAS ?? 'Unknown',
                     'value' => (int) $item->TOTAL
                 ];
             }

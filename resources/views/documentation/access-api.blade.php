@@ -430,7 +430,7 @@
                                     <p>Mengunggah karya digital selain koleksi ber-ISBN seperti musik, film, majalah elektronik, dll.</p>
                                 </div>
                                 <div class="mb-3">
-                                    <strong>Jenis Media yang Didukung:</strong>
+                                    <strong>Jenis Koleksi yang Didukung:</strong>
                                     <div class="d-flex flex-wrap gap-2 mt-2">
                                         <span class="badge bg-info">1 - Buku Elektronik</span>
                                         <span class="badge bg-info">2 - Musik Digital</span>
