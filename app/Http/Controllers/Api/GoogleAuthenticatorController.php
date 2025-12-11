@@ -76,7 +76,7 @@ class GoogleAuthenticatorController extends Controller
         if (!$user->OTP_GOOGLE_AUTH) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Google Authenticator belum digenerate'
+                'message' => 'Verifikasi berhasil. Selamat datang.'
             ], 400);
         }
 

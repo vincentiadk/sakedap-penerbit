@@ -153,9 +153,9 @@ return [
 
         'default' => [
             'url' => env('REDIS_URL'),
-            'host' => '127.0.0.1',
-            'username' => null,
-            'password' => null,
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME', null),
+            'password' => env('REDIS_PASSWORD', null),
             'port' => '6379',
             'database' => env('REDIS_DB', '0'),
         ],
