@@ -18,34 +18,55 @@ class GoogleAuthenticatorController extends Controller
 
         return $dataPenerbit;
     }
+
+
+    public function getDataAdmin($id): mixed{
+        $sql = 'SELECT * FROM USERS WHERE ID = ' . $id;
+
+        $dataPenerbit = QueryAPI::get($sql, true);
+
+        return $dataPenerbit;
+    }
+
+
     public function generate(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'penerbit_id' => 'required',
+            'is_admin' => 'nullable|boolean'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 400);
         }
 
-        $dataPenerbit = $this->getDataPenerbit($request->penerbit_id);
 
-        $user = $dataPenerbit;
+
+        if($request->input('is_admin') == 1){
+            $user = $this->getDataAdmin($request->penerbit_id);
+        } else {
+            $user = $this->getDataPenerbit($request->penerbit_id);;
+        }
+
         if($user == []) {
             return response()->json(['error' => 'Penerbit not found'], 404);
         }
-        $email = $user->EMAIL1;
+
+        $email = $request->input('is_admin') == 1 ? $user->EMAILADDRESS : $user->EMAIL1;
 
         $totp = TOTP::create();
         $totp->setLabel($email);
         $totp->setIssuer("E-Deposit");
 
-        $result =  [[
-            'name'  => 'OTP_GOOGLE_AUTH',
-            'Value' => $totp->getSecret()
-        ]];
+        $result =  [
+            "OTP_GOOGLE_AUTH" =>  $totp->getSecret(),
+        ];
 
-        QueryAPI::update('PENERBIT', $request->penerbit_id, $result);
+        if($request->input('is_admin') == 1){
+            QueryAPI::update('USERS', $request->penerbit_id, $result, false);
+        } else {
+            QueryAPI::update('PENERBIT', $request->penerbit_id, $result, false);
+        }
 
         return response()->json([
             'secret'       => $totp->getSecret(),
@@ -57,6 +78,7 @@ class GoogleAuthenticatorController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'penerbit_id' => 'required',
+            'is_admin'    => 'nullable|boolean',
             'otp'         => 'required',
         ]);
 
@@ -66,9 +88,12 @@ class GoogleAuthenticatorController extends Controller
 
         $otp = $request->otp;
 
-        $dataPenerbit = $this->getDataPenerbit($request->penerbit_id);
+        if($request->input('is_admin') == 1){
+            $user = $this->getDataAdmin($request->penerbit_id);
+        } else {
+            $user = $this->getDataPenerbit($request->penerbit_id);;
+        }
 
-        $user = $dataPenerbit;
         if($user == []) {
             return response()->json(['error' => 'Penerbit not found'], 404);
         }
@@ -91,12 +116,15 @@ class GoogleAuthenticatorController extends Controller
             ], 422);
         }
 
-        $result =  [[
-            'name'  => 'GOOGLE_AUTH_ENABLED',
-            'Value' => '1'
-        ]];
+        $result =  [
+            'GOOGLE_AUTH_ENABLED' => 1
+        ];
 
-        QueryAPI::update('PENERBIT', $request->penerbit_id, $result);
+        if($request->input('is_admin') == 1){
+            QueryAPI::update('USERS', $request->penerbit_id, $result, false);
+        } else {
+            QueryAPI::update('PENERBIT', $request->penerbit_id, $result, false);
+        }
 
         return response()->json([
             'status'  => true,
