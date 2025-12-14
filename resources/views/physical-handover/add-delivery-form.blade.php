@@ -5,6 +5,11 @@
                 Serah Simpan Fisik - <span class="fw-normal">Tambah Form Pengiriman</span>
             </h4>
         </div>
+        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page_header">
+            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
+                <div id="remove-btn-autosave"></div>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
@@ -382,7 +387,454 @@
     $(function() {
         datePickerSingle('.date-single');
         typeDelivery();
+        setupAutoSave();
+
+        setTimeout(() => {
+            restoreFormData();
+        }, 500);
     });
+
+    const STORAGE_KEY = 'physical_handover_form_autosave';
+    const SAVE_DELAY = 1000;
+    let saveTimeout;
+
+    function autoSaveForm() {
+        clearTimeout(saveTimeout);
+
+        saveTimeout = setTimeout(() => {
+            const formData = {
+                sender_name: $('#sender_name').val(),
+                executor_id: $('#executor_id').val(),
+                destination: $('#destination').val(),
+                phone: $('#phone').val(),
+                cover_letter_number: $('#cover_letter_number').val(),
+                weight: $('#weight').val(),
+                type_delivery: $('input[name="type_delivery"]:checked').val(),
+                perpusnas_delivery: $('input[name="perpusnas_delivery"]:checked').val(),
+                province_delivery: $('input[name="province_delivery"]:checked').val(),
+                isbn_collections: [],
+                non_isbn_collections: [],
+                periodicals_collections: [],
+                timestamp: new Date().toISOString()
+            };
+
+            $('#data-collection-isbn tr').not('#empty-isbn-row').each(function() {
+                const row = $(this);
+
+                formData.isbn_collections.push({
+                    code: row.find('input[name="ci_code[]"]').val(),
+                    html: row.prop('outerHTML')
+                });
+            });
+
+            $('#data-collection-non-isbn tr').not('#empty-non-isbn-row').each(function() {
+                const row = $(this);
+
+                formData.non_isbn_collections.push({
+                    catalog_id: row.find('input[name="cni_catalog_id[]"]').val(),
+                    executor: row.find('input[name="cni_executor[]"]').val(),
+                    title: row.find('input[name="cni_title[]"]').val(),
+                    author: row.find('input[name="cni_author[]"]').val(),
+                    physical_description: row.find('input[name="cni_physical_description[]"]').val(),
+                    year: row.find('input[name="cni_year[]"]').val(),
+                    binding: row.find('input[name="cni_binding[]"]').val(),
+                    type: row.find('select[name="cni_type[]"]').val(),
+                    qrcbn: row.find('input[name="cni_qrcbn[]"]').val(),
+                    isbd: row.find('input[name="cni_isbd[]"]').val(),
+                    price: row.find('input[name="cni_price[]"]').val()
+                });
+            });
+
+            const processedPeriodicals = new Set();
+
+            $('#data-collection-periodicals tr').each(function() {
+                const row = $(this);
+                const classes = row.attr('class');
+
+                if (classes && classes.includes('periodical-row-')) {
+                    const match = classes.match(/periodical-row-(\w+)/);
+
+                    if (match && !processedPeriodicals.has(match[1])) {
+                        const randStr = match[1];
+
+                        processedPeriodicals.add(randStr);
+
+                        const catalogActive = $(`.periodical-catalog-section-${randStr}`).hasClass('active');
+
+                        const periodicalData = {
+                            randStr: randStr,
+                            mode: catalogActive ? 'catalog' : 'manual',
+                            catalog_id: catalogActive ? $(`.cp_catalog_id_${randStr}`).val() : '',
+                            catalog_text: catalogActive ? $(`.cp_catalog_text_${randStr}`).val() : '',
+                            manual_title: !catalogActive ? row.find(`input[name="cp_manual_title[]"]`).val() : '',
+                            editions: []
+                        };
+
+                        $(`#data-collection-periodicals-edition-${randStr} .card`).each(function() {
+                            const editionCard = $(this);
+                            const editionClasses = editionCard.attr('class');
+
+                            if (editionClasses && editionClasses.includes('edition-card-')) {
+                                periodicalData.editions.push({
+                                    edition: editionCard.find(`input[name="cpe_edition_${randStr}[]"]`).val(),
+                                    first_ttes: editionCard.find(`input[name="cpe_first_ttes_${randStr}[]"]`).val(),
+                                    end_ttes: editionCard.find(`input[name="cpe_end_ttes_${randStr}[]"]`).val()
+                                });
+                            }
+                        });
+
+                        formData.periodicals_collections.push(periodicalData);
+                    }
+                }
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+
+            $('#clear-autosave-btn').fadeIn();
+        }, SAVE_DELAY);
+    }
+
+    function restoreFormData() {
+        try {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+
+            if (!savedData) {
+                return false;
+            }
+
+            const formData = JSON.parse(savedData);
+
+            swalInit.fire({
+                title: 'Data Tersimpan Ditemukan',
+                html: `
+                    Ditemukan data yang tersimpan pada:<br><strong>${new Date(formData.timestamp).toLocaleString('id-ID')}</strong><br><br>Apakah Anda ingin memulihkan data tersebut?
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="ph-arrow-counter-clockwise me-1"></i> Pulihkan Data',
+                cancelButtonText: '<i class="ph-x me-1"></i> Mulai Baru',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    performRestore(formData);
+                } else {
+                    clearAutoSave();
+                }
+            });
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function performRestore(formData) {
+        try {
+            onLoading('show', 'body');
+
+            $('#sender_name').val(formData.sender_name || '');
+            $('#executor_id').val(formData.executor_id || '').trigger('change');
+            $('#destination').val(formData.destination || '3').trigger('change');
+            $('#phone').val(formData.phone || '');
+            $('#cover_letter_number').val(formData.cover_letter_number || '');
+            $('#weight').val(formData.weight || '');
+
+            if (formData.type_delivery) {
+                $(`#type-delivery-${formData.type_delivery}`).prop('checked', true).trigger('change');
+            }
+
+            if (formData.isbn_collections && formData.isbn_collections.length > 0) {
+                $('#empty-isbn-row').remove();
+
+                formData.isbn_collections.forEach(item => {
+                    $('#data-collection-isbn').append(item.html);
+                });
+            }
+
+            if (formData.non_isbn_collections && formData.non_isbn_collections.length > 0) {
+                $('#empty-non-isbn-row').remove();
+
+                formData.non_isbn_collections.forEach(item => {
+                    const randStr = randomString(10);
+
+                    $('#data-collection-non-isbn').append(`
+                        <tr class="animate__animated animate__fadeIn">
+                            <input type="hidden" name="cni[]" value="1">
+                            <td width="5%" class="align-top">
+                                <button type="button" class="btn btn-danger" onclick="removeItem(this)">
+                                    <i class="ph-trash"></i>
+                                </button>
+                            </td>
+                            <td width="95%">
+                                <div class="card border-0 bg-light mb-0">
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">ID Catalog</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="ph-database"></i></span>
+                                                    <input type="text" class="form-control cni_catalog_id_${randStr}" name="cni_catalog_id[]" placeholder="Pilih Katalog" onchange="selectCollectionNonISBN(this)" value="${item.catalog_id || ''}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Pelaksana Serah</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="ph-user"></i></span>
+                                                    <input type="text" class="form-control" name="cni_executor[]" value="${item.executor || ''}" placeholder="Nama pelaksana serah">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Judul</label>
+                                                <input type="text" class="form-control" name="cni_title[]" placeholder="Masukkan judul" value="${item.title || ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Kepengarangan</label>
+                                                <input type="text" class="form-control" name="cni_author[]" placeholder="Masukkan nama pengarang" value="${item.author || ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Deskripsi Fisik</label>
+                                                <input type="text" class="form-control" name="cni_physical_description[]" placeholder="Contoh: viii, 200 hlm. ; 21 cm" value="${item.physical_description || ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Tahun Terbit</label>
+                                                <input type="text" class="form-control" name="cni_year[]" placeholder="Contoh: 2025" value="${item.year || ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">No Jilid</label>
+                                                <input type="text" class="form-control" name="cni_binding[]" placeholder="Nomor jilid" value="${item.binding || ''}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Jenis</label>
+                                                <select class="form-select select2-basic" name="cni_type[]">
+                                                    <option value="">Pilih Jenis</option>
+                                                    @foreach ($media as $m)
+                                                        <option value="{{ $m->NAME }}" ${item.type == '{{ $m->NAME }}' ? 'selected' : ''}>{{ $m->NAME }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">QRCBN</label>
+                                                <input type="text" class="form-control" name="cni_qrcbn[]" placeholder="Masukkan QRCBN" value="${item.qrcbn || ''}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">ISBD</label>
+                                                <input type="text" class="form-control" name="cni_isbd[]" placeholder="Masukkan ISBD" value="${item.isbd || ''}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Harga Jual</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Rp</span>
+                                                    <input type="text" class="form-control" name="cni_price[]" placeholder="0" value="${item.price || ''}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+
+                    lookupCatalog(`.cni_catalog_id_${randStr}`, `.cni_catalog_id_${randStr}`, true);
+                });
+
+                $('input[name="cni_price[]"]').number(true);
+
+                select2Basic();
+            }
+
+            if (formData.periodicals_collections && formData.periodicals_collections.length > 0) {
+                $('#empty-periodicals-row').remove();
+
+                formData.periodicals_collections.forEach(item => {
+                    const randStr = item.randStr || randomString(10);
+
+                    $('#data-collection-periodicals').append(`
+                        <tr class="periodical-row-${randStr} animate__animated animate__fadeIn">
+                            <input type="hidden" name="cp[]" value="1">
+                            <td width="5%" rowspan="2" class="align-top">
+                                <button type="button" class="btn btn-danger" onclick="removeItemPeriodicals('${randStr}')">
+                                    <i class="ph-trash"></i>
+                                </button>
+                            </td>
+                            <td width="95%">
+                                <div class="card border-0 bg-light mb-2">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0"><i class="ph-toggle-left me-1"></i> Katalog</h6>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'catalog' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'catalog')">
+                                                    <i class="ph-database me-1"></i>
+                                                    Pilihan
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'manual' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'manual')">
+                                                    <i class="ph-keyboard me-1"></i>
+                                                    Manual
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="periodical-catalog-section-${randStr} periodical-catalog-section ${item.mode === 'catalog' ? 'active' : ''}" style="${item.mode === 'catalog' ? '' : 'display:none;'}">
+                                            <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[]" value="${item.catalog_id || ''}">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="ph-database"></i></span>
+                                                <input type="text" class="form-control cp_catalog_text_${randStr}" placeholder="Pilih Katalog Terbitan Berkala" value="${item.catalog_text || ''}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="periodical-manual-section-${randStr} periodical-manual-section ${item.mode === 'manual' ? 'active' : ''}" style="${item.mode === 'manual' ? '' : 'display:none;'}">
+                                            <div class="row g-3">
+                                                <div class="col-md-12">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">Judul Terbitan</span>
+                                                        <input type="text" class="form-control" name="cp_manual_title[]" placeholder="Contoh: Majalah Perpustakaan Indonesia" value="${item.manual_title || ''}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="periodical-row-${randStr}">
+                            <td>
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0"><i class="ph-list-numbers me-1"></i> Daftar Edisi</h6>
+                                            <button type="button" class="btn btn-success btn-sm" onclick="addCollectionPeriodicalsEdition('${randStr}')">
+                                                <i class="ph-plus-circle me-1"></i>
+                                                Tambah Edisi
+                                            </button>
+                                        </div>
+                                        <div id="data-collection-periodicals-edition-${randStr}">
+                                            ${item.editions && item.editions.length > 0 ? '' : '<div class="alert alert-info border-0 mb-0"><i class="ph-info me-1"></i>Belum ada edisi yang ditambahkan</div>'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+
+                    lookupCatalog(`.cp_catalog_text_${randStr}`, `.cp_catalog_id_${randStr}`, false, {
+                        worksheet_id: [13, 142]
+                    });
+
+                    if (item.editions && item.editions.length > 0) {
+                        item.editions.forEach(edition => {
+                            const editionRandStr = randomString(10);
+
+                            $(`#data-collection-periodicals-edition-${randStr}`).append(`
+                                <div class="card border mb-2 edition-card-${editionRandStr}">
+                                    <div class="card-body p-3">
+                                        <input type="hidden" name="cpe_${randStr}[]" value="1">
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label small">Edisi Serial</label>
+                                                <input type="text" class="form-control form-control-sm" name="cpe_edition_${randStr}[]" placeholder="Contoh: Vol. 1 No. 1" value="${edition.edition || ''}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small">TTES Awal</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i class="ph-calendar"></i></span>
+                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes_${randStr}[]" value="${edition.first_ttes || ''}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small">TTES Akhir</label>
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text"><i class="ph-calendar"></i></span>
+                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes_${randStr}[]" value="${edition.end_ttes || ''}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItemEdition('${editionRandStr}')">
+                                                    <i class="ph-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    }
+                });
+
+                datePickerSingle('.date-single');
+            }
+
+            if (formData.type_delivery == 2) {
+                setTimeout(() => {
+                    if (formData.perpusnas_delivery) {
+                        $(`input[name="perpusnas_delivery"][value="${formData.perpusnas_delivery}"]`).prop('checked', true);
+                    }
+
+                    if (formData.province_delivery) {
+                        $(`input[name="province_delivery"][value="${formData.province_delivery}"]`).prop('checked', true);
+                    }
+                }, 2000);
+            }
+
+            onLoading('close', 'body');
+            notification('success', 'Data berhasil dipulihkan');
+        } catch (error) {
+            onLoading('close', 'body');
+
+            swalInit.fire({
+                title: 'Gagal Memulihkan Data',
+                text: 'Terjadi kesalahan saat memulihkan data. Silakan mulai dari awal.',
+                icon: 'error'
+            });
+
+            clearAutoSave();
+        }
+    }
+
+    function clearAutoSave() {
+        localStorage.removeItem(STORAGE_KEY);
+
+        $('#clear-autosave-btn').fadeOut();
+    }
+
+    function setupAutoSave() {
+        $('#form-data').on('input change', 'input, textarea, select', function() {
+            autoSaveForm();
+        });
+
+        $('#form-data').on('change', 'input[type="radio"]', function() {
+            autoSaveForm();
+        });
+
+        if ($('#clear-autosave-btn').length === 0) {
+            $('#remove-btn-autosave').append(`
+                <button type="button" id="clear-autosave-btn" class="btn btn-danger btn-sm" onclick="confirmClearAutoSave()" style="display:none;">
+                    <i class="ph-trash me-1"></i>
+                    Hapus Data Tersimpan
+                </button>
+            `);
+        }
+
+        if (localStorage.getItem(STORAGE_KEY)) {
+            $('#clear-autosave-btn').show();
+        }
+    }
+
+    function confirmClearAutoSave() {
+        swalInit.fire({
+            title: 'Hapus Data Tersimpan?',
+            text: 'Data yang tersimpan secara otomatis akan dihapus permanen.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                clearAutoSave();
+
+                notification('success', 'Data tersimpan berhasil dihapus');
+            }
+        });
+    }
 
     function selectDeliveryType(type) {
         $('#type-delivery-' + type).prop('checked', true).trigger('change');
@@ -415,7 +867,6 @@
                 $('#expedition-card-body-province').html(getInfoAlert());
                 $('#weight').attr('oninput', 'loadExpeditionForm()');
                 $('#destination').attr('onchange', 'loadExpeditionForm()');
-
                 loadExpeditionForm();
             } else {
                 $('#expedition-card').slideUp();
@@ -486,15 +937,12 @@
                 success: function(response) {
                     if (response.province || response.perpusnas) {
                         if (response.perpusnas) {
-                            $('#expedition-card-body-perpusnas').html(buildExpeditionOptions(response
-                                .perpusnas, 'perpusnas'));
+                            $('#expedition-card-body-perpusnas').html(buildExpeditionOptions(response.perpusnas, 'perpusnas'));
                         } else {
                             $('#expedition-card-body-perpusnas').html(getWarningAlert());
                         }
-
                         if (response.province) {
-                            $('#expedition-card-body-province').html(buildExpeditionOptions(response
-                                .province, 'province'));
+                            $('#expedition-card-body-province').html(buildExpeditionOptions(response.province, 'province'));
                         } else {
                             $('#expedition-card-body-province').html(getWarningAlert());
                         }
@@ -508,11 +956,10 @@
                         <div class="alert alert-danger border-0">
                             <i class="ph-x-circle me-1"></i>
                             Terjadi kesalahan saat memuat data.
-                            <a href="javascript:void(0);" class="alert-link" onclick="loadExpeditionForm()">
-                                Coba lagi
-                            </a>
+                            <a href="javascript:void(0);" class="alert-link" onclick="loadExpeditionForm()">Coba lagi</a>
                         </div>
                     `;
+
                     $('#expedition-card-body-perpusnas').html(errorHtml);
                     $('#expedition-card-body-province').html(errorHtml);
                 }
@@ -525,6 +972,7 @@
 
     function buildExpeditionOptions(data, type) {
         let html = '<div class="row g-3">';
+
         html += '<div class="col-md-6">';
         html += '<div class="fw-bold border-bottom pb-2 mb-3"><i class="ph-truck me-1"></i> Reguler</div>';
 
@@ -534,7 +982,7 @@
                     <div class="card border expedition-option mb-2">
                         <div class="card-body p-3">
                             <div class="form-check">
-                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_reguler_${i}" ${i == 0 ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}">
+                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_reguler_${i}" ${i == 0 ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}" onchange="autoSaveForm()">
                                 <label class="form-check-label w-100" for="${type}_delivery_reguler_${i}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
@@ -567,7 +1015,7 @@
                     <div class="card border expedition-option mb-2">
                         <div class="card-body p-3">
                             <div class="form-check">
-                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_cargo_${i}" ${i == 0 && (!data.calculate_reguler || data.calculate_reguler.length == 0) ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}">
+                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_cargo_${i}" ${i == 0 && (!data.calculate_reguler || data.calculate_reguler.length == 0) ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}" onchange="autoSaveForm()">
                                 <label class="form-check-label w-100" for="${type}_delivery_cargo_${i}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
@@ -662,7 +1110,6 @@
                     <tr class="animate__animated animate__fadeIn">
                         <input type="hidden" name="ci[]" value="1">
                         <input type="hidden" name="ci_code[]" value="${data.isbn ?? ''}">
-
                         <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
                         <td class="align-middle text-wrap">${data.title ?? '-'}</td>
                         <td class="align-middle text-wrap">${data.kepeng ?? '-'}</td>
@@ -681,6 +1128,8 @@
                 `);
 
                 $('#search_isbn').val('').focus();
+
+                autoSaveForm();
 
                 if (data.is_kdt_valid == 1) {
                     swalInit.fire({
@@ -707,7 +1156,8 @@
             showCancelButton: true,
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#d9534f'
+            allowOutsideClick: false,
+            allowEscapeKey: false,
         }).then((result) => {
             if (result.isConfirmed) {
                 $(param).closest('tr').fadeOut(300, function() {
@@ -749,6 +1199,8 @@
 
                         $('#' + tableId).html(emptyMessage);
                     }
+
+                    autoSaveForm();
                 });
 
                 notification('success', 'Data berhasil dihapus');
@@ -866,6 +1318,8 @@
             lookupCatalog(`.cni_catalog_id_${randStr}`, `.cni_catalog_id_${randStr}`, true);
             select2Basic();
         }
+
+        autoSaveForm();
     }
 
     function selectCollectionNonISBN(param) {
@@ -892,6 +1346,7 @@
                 selector.find('input[name="cni_price[]"]').val(response?.PRICE);
 
                 notification('success', 'Data katalog berhasil dimuat');
+                autoSaveForm();
             },
             error: function(response) {
                 onLoading('close', '#data-collection-non-isbn');
@@ -909,6 +1364,7 @@
                 text: 'Maksimal menambahkan 10 baris sekaligus',
                 icon: 'warning'
             });
+
             return;
         }
 
@@ -999,12 +1455,14 @@
                 worksheet_id: [13, 142]
             });
         }
+
+        autoSaveForm();
     }
 
     function switchInputMode(randStr, mode) {
         $(`.periodical-row-${randStr} .input-mode-switch`).removeClass('active');
         $(`.periodical-row-${randStr} .input-mode-switch`).each(function() {
-            if ((mode === 'catalog' && $(this).text().trim().includes('Katalog')) || (mode === 'manual' && $(this).text().trim().includes('Manual'))) {
+            if ((mode === 'catalog' && $(this).text().trim().includes('Pilihan')) || (mode === 'manual' && $(this).text().trim().includes('Manual'))) {
                 $(this).addClass('active');
             }
         });
@@ -1019,6 +1477,8 @@
             $(`.cp_catalog_id_${randStr}`).val('');
             $(`.cp_catalog_text_${randStr}`).val('');
         }
+
+        autoSaveForm();
     }
 
     function removeItemPeriodicals(param) {
@@ -1029,7 +1489,8 @@
             showCancelButton: true,
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#d9534f'
+            allowOutsideClick: false,
+            allowEscapeKey: false,
         }).then((result) => {
             if (result.isConfirmed) {
                 $('.periodical-row-' + param).fadeOut(300, function() {
@@ -1045,6 +1506,8 @@
                             </tr>
                         `);
                     }
+
+                    autoSaveForm();
                 });
 
                 notification('success', 'Data terbitan berkala berhasil dihapus');
@@ -1091,6 +1554,7 @@
         `);
 
         datePickerSingle('.date-single');
+        autoSaveForm();
     }
 
     function removeItemEdition(param) {
@@ -1101,11 +1565,13 @@
             showCancelButton: true,
             confirmButtonText: 'Ya, Hapus',
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#d9534f'
+            allowOutsideClick: false,
+            allowEscapeKey: false,
         }).then((result) => {
             if (result.isConfirmed) {
                 $('.edition-card-' + param).fadeOut(300, function() {
                     $(this).remove();
+                    autoSaveForm();
                 });
 
                 notification('success', 'Edisi berhasil dihapus');
@@ -1137,7 +1603,8 @@
             showCancelButton: true,
             confirmButtonText: '<i class="ph-paper-plane-right me-1"></i> Ya, Kirim',
             cancelButtonText: 'Periksa Kembali',
-            confirmButtonColor: '#0d6efd'
+            allowOutsideClick: false,
+            allowEscapeKey: false,
         }).then((result) => {
             if (result.isConfirmed) {
                 processSubmit();
@@ -1162,6 +1629,8 @@
                 onLoading('close', 'body');
 
                 if (response.code == 200) {
+                    clearAutoSave();
+
                     swalInit.fire({
                         title: 'Pengiriman Berhasil!',
                         html: response.message,
@@ -1177,7 +1646,6 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
-
                             location.href = '{{ url("physical-handover/add-delivery-form") }}';
                         }
                     });
@@ -1189,7 +1657,9 @@
                         title: 'Perhatian',
                         text: response.message,
                         icon: 'info',
-                        confirmButtonText: 'Mengerti'
+                        confirmButtonText: 'Mengerti',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
                     });
                 }
             },
