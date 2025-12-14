@@ -276,185 +276,208 @@ class SingleUploadISBNController extends Controller
         ]);
 
         if ($validation->fails()) {
-            $response = [
+            return response()->json([
                 'code' => 400,
                 'error' => $validation->errors()->all(),
-            ];
-        } else {
-            $files = $request->file('files');
-            $groupedFiles = [];
-
-            foreach ($files as $file) {
-                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $key = Str::slug($filename);
-                $mime = $file->getMimeType();
-
-                if ($mime === 'application/pdf') {
-                    $groupedFiles[$key]['pdf'] = $file;
-                    $groupedFiles[$key]['original_name'] = $filename;
-                } else if ($mime === 'application/epub+zip' || $file->getClientOriginalExtension() === 'epub') {
-                    $groupedFiles[$key]['epub'] = $file;
-                    $groupedFiles[$key]['original_name'] = $filename;
-                } else if (str_starts_with($mime, 'image/')) {
-                    $groupedFiles[$key]['cover'] = $file;
-                    $groupedFiles[$key]['original_name'] = $filename;
-                }
-            }
-
-            $successCount = 0;
-            $errors = [];
-
-            foreach ($groupedFiles as $key => $group) {
-                $hasCover = isset($group['cover']);
-                $hasPdf = isset($group['pdf']);
-                $hasEpub = isset($group['epub']);
-                $contentIsXOR = ($hasPdf && !$hasEpub) || (!$hasPdf && $hasEpub);
-
-                if ($hasCover && $contentIsXOR) {
-                    $isbn = $group['original_name'];
-                    $isbnReplace = str_replace(['-', '_'], '', $isbn);
-
-                    $checkExists = QueryAPI::get("
-                        select
-                            *
-                        from
-                            e_collections
-                        where
-                            replace(code, '-', '') = '$isbnReplace'
-                    ", true);
-
-                    if (!$checkExists) {
-                        $getISBN = ISBN::get('search', [
-                            'code' => str_replace(['-', '_'], '', $isbn)
-                        ], true);
-
-                        if (($getISBN->jenis_media ?? '') != 'cetak') {
-                            $physicalDescription = [
-                                'paging' => $getISBN->jml_hlm ?? '',
-                                'paging_flag' => 'Halaman',
-                                'ill' => '',
-                                'sizes' => ''
-                            ];
-
-                            $executorId = $getISBN->penerbit_id ?? null;
-                            $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
-
-                            $createCollection = QueryAPI::create('e_collections', [
-                                'id_old' => 0,
-                                'city_id' => $executor->CITY_ID ?? session('city_id'),
-                                'publisher_id' => $executorId,
-                                'title_ori' => $getISBN->title ?? '',
-                                'slug' => Str::slug($getISBN->title ?? '', '-'),
-                                'series' => $getISBN->seri ?? '',
-                                'code' => $getISBN->isbn ?? $isbn,
-                                'code_type' => 1,
-                                'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
-                                'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
-                                'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
-                                'physical_description' => json_encode($physicalDescription),
-                                'sync' => 0,
-                                'manual' => 1,
-                                'akses' => $request->access,
-                                'status' => 4,
-                                'created_by' => session('id'),
-                                'updated_by' => session('id'),
-                                'copyright' => Main::copyright($executorId ?? session('id')),
-                                'worksheet_id' => 20,
-                                'collection_media_id' => 141,
-                                'penerbit_id' => $executorId,
-                                'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
-                                'title' => $getISBN->title ?? '',
-                                'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
-                                'description' => $getISBN->sinopsis ?? '',
-                                'edition' => $getISBN->edisi ?? '',
-                            ]);
-
-                            if ($createCollection) {
-                                if ($getISBN) {
-                                    $statusUploadISBN = 'ISBN Ditemukan';
-                                } else {
-                                    $statusUploadISBN = 'ISBN Tidak Ditemukan';
-                                }
-
-                                QueryAPI::update('e_collections', $createCollection->ID, [
-                                    'status_upload_isbn' => $statusUploadISBN
-                                ]);
-
-                                if (isset($group['cover'])) {
-                                    QueryAPI::uploadFile([
-                                        'type' => 'cover',
-                                        'id' => $createCollection->ID,
-                                        'status' => 1,
-                                        'hash' => md5('FILE-COVER-' . $createCollection->SLUG),
-                                        'mime' => $group['cover']->getMimeType(),
-                                        'filesize' => $group['cover']->getSize(),
-                                        'method' => 3,
-                                        'iszip' => false,
-                                        'file' => $group['cover'],
-                                    ]);
-                                }
-
-                                if ($hasPdf) {
-                                    QueryAPI::uploadFile([
-                                        'type' => 'konten_digital',
-                                        'id' => $createCollection->ID,
-                                        'status' => 1,
-                                        'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
-                                        'mime' => $group['pdf']->getMimeType(),
-                                        'filesize' => $group['pdf']->getSize(),
-                                        'method' => 3,
-                                        'iszip' => false,
-                                        'file' => $group['pdf'],
-                                    ]);
-                                } else if ($hasEpub) {
-                                    QueryAPI::uploadFile([
-                                        'type' => 'konten_digital',
-                                        'id' => $createCollection->ID,
-                                        'status' => 1,
-                                        'hash' => md5('FILE-KONTEN-' . $createCollection->SLUG),
-                                        'mime' => $group['epub']->getMimeType(),
-                                        'filesize' => $group['epub']->getSize(),
-                                        'method' => 3,
-                                        'iszip' => false,
-                                        'file' => $group['epub'],
-                                    ]);
-                                }
-
-                                $successCount++;
-                            }
-                        } else {
-                            $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: isbn tersebut koleksi cetak";
-                        }
-                    } else {
-                        $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: isbn tersebut sudah pernah di upload";
-                    }
-                } else {
-                    $missing = [];
-
-                    if (!$hasCover) $missing[] = 'File Cover tidak ada';
-                    if ($hasPdf && $hasEpub) $missing[] = 'File Konten lebih dari 1 (hanya boleh salah satu)';
-                    if (!$hasPdf && !$hasEpub) $missing[] = 'File Konten tidak ada (wajib PDF atau EPUB)';
-
-                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: " . implode(', ', $missing) . ".";
-                }
-            }
-
-            $code = 404;
-            $message = 'Tidak ada pasangan file yang valid ditemukan.<br>Pastikan setiap koleksi memiliki Cover dan satu Konten (PDF atau EPUB).';
-
-            if ($successCount > 0) {
-                $code = 200;
-                $message = "Berhasil memproses <strong>$successCount</strong> pasangan koleksi (Cover + Konten)";
-            }
-
-            $response = [
-                'code' => $code,
-                'error' => $errors,
-                'message' => $message
-            ];
+            ]);
         }
 
-        return response()->json($response);
+        $files = $request->file('files');
+        $groupedFiles = [];
+
+        foreach ($files as $file) {
+            $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $key = Str::slug($filename);
+            $mime = $file->getMimeType();
+
+            if (!isset($groupedFiles[$key])) {
+                $groupedFiles[$key]['original_name'] = $filename;
+            }
+
+            if ($mime === 'application/pdf') {
+                $groupedFiles[$key]['pdf'] = $file;
+            } else if ($mime === 'application/epub+zip' || $file->getClientOriginalExtension() === 'epub') {
+                $groupedFiles[$key]['epub'] = $file;
+            } else if (str_starts_with($mime, 'image/')) {
+                $groupedFiles[$key]['cover'] = $file;
+            }
+        }
+
+        $successCount = 0;
+        $errors = [];
+
+        foreach ($groupedFiles as $key => $group) {
+            $isbn = $group['original_name'];
+            $isbnReplace = str_replace(['-', '_'], '', $isbn);
+
+            $existingData = QueryAPI::get("
+                select
+                    id,
+                    slug
+                from
+                    e_collections
+                where
+                    replace(code, '-', '') = '$isbnReplace'
+            ", true);
+
+            if ($existingData) {
+                $collectionId = $existingData->ID;
+                $collectionSlug = $existingData->SLUG;
+                $processed = false;
+
+                if (isset($group['cover'])) {
+                    $this->cleanUpOldFile($collectionId, 'cover');
+                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
+
+                    $processed = true;
+                }
+
+                if (isset($group['pdf'])) {
+                    $this->cleanUpOldFile($collectionId, 'konten_digital');
+                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
+
+                    $processed = true;
+                } elseif (isset($group['epub'])) {
+                    $this->cleanUpOldFile($collectionId, 'konten_digital');
+                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
+
+                    $processed = true;
+                }
+
+                if ($processed) {
+                    $successCount++;
+                } else {
+                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: Tidak ada file valid untuk diupdate.";
+                }
+            } else {
+                $getISBN = ISBN::get('search', ['code' => $isbnReplace], true);
+
+                if (!$getISBN) {
+                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: Data ISBN tidak ditemukan.";
+
+                    continue;
+                }
+
+                if (($getISBN->jenis_media ?? '') != 'cetak') {
+                    $executorId = $getISBN->penerbit_id ?? null;
+                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
+
+                    $physicalDescription = [
+                        'paging' => $getISBN->jml_hlm ?? '',
+                        'paging_flag' => 'Halaman'
+                    ];
+
+                    $createCollection = QueryAPI::create('e_collections', [
+                        'id_old' => 0,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
+                        'publisher_id' => $executorId,
+                        'title_ori' => $getISBN->title ?? '',
+                        'slug' => Str::slug($getISBN->title ?? '', '-'),
+                        'series' => $getISBN->seri ?? '',
+                        'code' => $getISBN->isbn ?? $isbn,
+                        'code_type' => 1,
+                        'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
+                        'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
+                        'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
+                        'physical_description' => json_encode($physicalDescription),
+                        'sync' => 0,
+                        'manual' => 1,
+                        'akses' => $request->access,
+                        'status' => 4,
+                        'created_by' => session('id'),
+                        'updated_by' => session('id'),
+                        'copyright' => Main::copyright($executorId ?? session('id')),
+                        'worksheet_id' => 20,
+                        'collection_media_id' => 141,
+                        'penerbit_id' => $executorId,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
+                        'title' => $getISBN->title ?? '',
+                        'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
+                        'description' => $getISBN->sinopsis ?? '',
+                        'edition' => $getISBN->edisi ?? '',
+                        'status_upload_isbn' => 'ISBN Ditemukan'
+                    ]);
+
+                    if ($createCollection) {
+                        $collectionId = $createCollection->ID;
+                        $collectionSlug = $createCollection->SLUG;
+
+                        if (isset($group['cover'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
+                        }
+
+                        if (isset($group['pdf'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
+                        } else if (isset($group['epub'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
+                        }
+
+                        $successCount++;
+                    } else {
+                        $errors[] = "Gagal membuat database untuk <strong>{$group['original_name']}</strong>.";
+                    }
+                } else {
+                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: ISBN terdaftar sebagai media cetak.";
+                }
+            }
+        }
+
+        $code = ($successCount > 0) ? 200 : 404;
+        $message = ($successCount > 0) ? "Berhasil memproses <strong>$successCount</strong> item." : 'Tidak ada file yang berhasil diproses.';
+
+        return response()->json([
+            'code' => $code,
+            'error' => $errors,
+            'message' => $message
+        ]);
+    }
+
+    private function cleanUpOldFile($collectionId, $type)
+    {
+        $targetTable = '';
+
+        if ($type === 'cover') {
+            $targetTable = 'catalogcovers';
+        } else if ($type === 'konten_digital') {
+            $targetTable = 'catalogfiles';
+        } else {
+            return;
+        }
+
+        $oldFiles = QueryAPI::get("
+            select
+                id
+            from
+                $targetTable
+            where
+                e_col_id = $collectionId
+        ", true);
+
+        if ($oldFiles) {
+            $oldFiles = [$oldFiles];
+
+            foreach ($oldFiles as $file) {
+                QueryAPI::removeFile(['type' => $type, 'id' => $file->ID]);
+                QueryAPI::delete($targetTable, $file->ID);
+            }
+        }
+    }
+
+    private function uploadFileToApi($id, $slug, $file, $type)
+    {
+        $prefix = ($type == 'cover') ? 'FILE-COVER-' : 'FILE-KONTEN-';
+
+        return QueryAPI::uploadFile([
+            'type' => $type,
+            'id' => $id,
+            'status' => 1,
+            'hash' => md5($prefix . $slug),
+            'mime' => $file->getMimeType(),
+            'filesize' => $file->getSize(),
+            'method' => 3,
+            'iszip' => false,
+            'file' => $file,
+        ]);
     }
 
     public function submission()
