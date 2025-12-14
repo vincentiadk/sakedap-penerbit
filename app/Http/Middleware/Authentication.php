@@ -4,7 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use App\Helpers\Main;
+use App\Helpers\QueryAPI;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -43,6 +45,10 @@ class Authentication
         if (in_array($status, [1, 2])) {
             return redirect('auth/not-verified');
         }
+
+        $totalPhysicalCollectionReject = QueryAPI::get("select count(id) as total from letter_detail where qty_reject > 0", true);
+
+        Config::set('system.collection_reject', $totalPhysicalCollectionReject->TOTAL ?? 0);
 
         return $next($request);
     }

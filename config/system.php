@@ -20,4 +20,5 @@ return [
     'fo_url' => env('FO_URL'),
     'admin_url' => env('ADMIN_URL'),
     'delivery_method' => 'manual',
+    'collection_reject' => 0,
 ];

@@ -129,7 +129,10 @@
                                     <div class="fw-bold border-bottom ms-3 me-3 mt-2 pb-2 mb-2">Koleksi Fisik</div>
                                     <a href="{{ url('physical-handover/accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'accept' ? 'active' : '' }}">Koleksi Diterima</a>
                                     <a href="{{ url('physical-handover/in-delivery') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'in-delivery' ? 'active' : '' }}">Koleksi Dalam Pengiriman</a>
-                                    <a href="{{ url('physical-handover/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'reject' ? 'active' : '' }}">Koleksi Ditolak</a>
+                                    <a href="{{ url('physical-handover/reject') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'reject' ? 'active' : '' }}">
+                                        <span>Koleksi Ditolak</span>
+                                        <span class="badge bg-primary align-self-center rounded-pill ms-auto">{{ config('system.collection_reject') }}</span>
+                                    </a>
                                     <a href="{{ url('physical-handover/grant') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'grant' ? 'active' : '' }}">Koleksi Dihibahkan</a>
                                     <a href="{{ url('physical-handover/retur') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'retur' ? 'active' : '' }}">Koleksi Dikembalikan</a>
                                 </div>
