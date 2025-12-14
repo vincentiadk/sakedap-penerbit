@@ -40,8 +40,6 @@ class GoogleAuthenticatorController extends Controller
             return response()->json(['error' => $validator->errors()], 400);
         }
 
-
-
         if($request->input('is_admin') == 1){
             $user = $this->getDataAdmin($request->penerbit_id);
         } else {
@@ -58,8 +56,36 @@ class GoogleAuthenticatorController extends Controller
         $totp->setLabel($email);
         $totp->setIssuer("E-Deposit");
 
+        return response()->json([
+            'secret'       => $totp->getSecret(),
+            'otpauth_url'  => $totp->getProvisioningUri()
+        ]);
+    }
+
+    public function verifySecret(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'penerbit_id' => 'required',
+            'is_admin'    => 'nullable|boolean',
+            'secret'      => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        if($request->input('is_admin') == 1){
+            $user = $this->getDataAdmin($request->penerbit_id);
+        } else {
+            $user = $this->getDataPenerbit($request->penerbit_id);;
+        }
+
+        if($user == []) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
         $result =  [
-            "OTP_GOOGLE_AUTH" =>  $totp->getSecret(),
+            "OTP_GOOGLE_AUTH" =>  $request->secret,
         ];
 
         if($request->input('is_admin') == 1){
@@ -69,9 +95,12 @@ class GoogleAuthenticatorController extends Controller
         }
 
         return response()->json([
-            'secret'       => $totp->getSecret(),
-            'otpauth_url'  => $totp->getProvisioningUri()
+            'status'  => true,
+            'message' => 'Google Authenticator berhasil diaktifkan',
+            'data' => '1'
         ]);
+
+
     }
 
     public function verify(Request $request)
