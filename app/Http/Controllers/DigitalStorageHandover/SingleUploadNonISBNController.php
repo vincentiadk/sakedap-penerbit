@@ -81,6 +81,8 @@ class SingleUploadNonISBNController extends Controller
                 'access' => 'required',
                 'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
+                'description' => 'required|string|min:500',
+                'price' => 'required',
             ], [
                 'worksheet_id.required' => 'Jenis bahan tidak boleh kosong',
                 'title.required' => 'Judul tidak boleh kosong',
@@ -92,6 +94,9 @@ class SingleUploadNonISBNController extends Controller
                 'file_content.file' => 'File konten tidak valid',
                 'file_content.mimes' => 'File konten harus pdf, epub, mp3, mp4, wav',
                 'file_content.max' => 'File konten maksimal ' . Main::formatFileSize((int) config('system.catalog_content_max_upload')),
+                'description.required' => 'Sinopsis tidak boleh kosong',
+                'description.min' => 'Sinopsis minimal 500 karakter',
+                'price.required' => 'Harga jual tidak boleh kosong',
             ]);
 
             if ($validation->fails()) {

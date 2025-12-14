@@ -79,12 +79,7 @@
                 <div class="form-group row">
                     <label class="col-form-label col-md-2">Jenis Koleksi <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()">
-                            <option value=""></option>
-                            @foreach($media as $m)
-                                <option value="{{ $m->ID }}">{{ $m->NAME }}</option>
-                            @endforeach
-                        </select>
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()"></select>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -174,7 +169,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Harga</label>
+                    <label class="col-form-label col-md-2">Harga Jual <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <input type="number" class="form-control" name="price" id="price" placeholder="....................">
                     </div>
@@ -209,7 +204,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Sinopsis</label>
+                    <label class="col-form-label col-md-2">Sinopsis <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <textarea name="description" class="form-control" id="description" rows="5" placeholder="...................."></textarea>
                     </div>
@@ -369,8 +364,22 @@
         lookupCatalogParent('#catalog_title', '#catalog_id');
         codeType();
         chooseWorksheet();
-        getCategory();
     });
+
+    function getMedia() {
+        const media = @json($media ?? []);
+        const worksheetId = $('#worksheet_id').val();
+
+        $('#collection_media_id').html('<option value=""></option>');
+
+        const mediaContent = media.filter(val => val.WORKSHEET_ID == worksheetId).map(val => `
+            <option value="${val.ID}">${val.NAME}</option>
+        `).join('');
+
+        $('#collection_media_id').append(mediaContent);
+
+        getCategory();
+    }
 
     function getCategory() {
         const category = @json($category ?? []);
@@ -407,6 +416,8 @@
         }
 
         $('#card-edition #data-edition').html('');
+
+        getMedia();
     }
 
     function catalogParent() {

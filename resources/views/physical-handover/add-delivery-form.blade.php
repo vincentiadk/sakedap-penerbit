@@ -848,7 +848,7 @@
                                         <input type="text" class="form-control" name="cni_isbd[]" placeholder="Masukkan ISBD">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Harga</label>
+                                        <label class="form-label">Harga Jual</label>
                                         <div class="input-group">
                                             <span class="input-group-text">Rp</span>
                                             <input type="text" class="form-control" name="cni_price[]" placeholder="0">

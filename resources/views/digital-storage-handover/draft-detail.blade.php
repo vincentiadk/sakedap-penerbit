@@ -66,7 +66,7 @@
         </div>
         <div class="card">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
+                <h5 class="hstack gap-2 mb-0">Jenis Bahan</h5>
             </div>
             <div class="card-body">
                 {{ $collection->ALIAS_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
@@ -200,7 +200,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Harga</label>
+                    <label class="col-form-label col-md-2">Harga Jual <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="....................">
                     </div>
@@ -235,7 +235,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Sinopsis</label>
+                    <label class="col-form-label col-md-2">Sinopsis <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <textarea name="description" class="form-control" id="description" rows="5" placeholder="....................">{{ $collection->DESCRIPTION }}</textarea>
                     </div>
@@ -436,9 +436,29 @@
             tokenSeparators: [';']
         });
 
-        getCategory();
+        getMedia();
         imageWatermark('#file-cover', '{{ url("stream-file") }}?type=cover&id={{ $collection->ID_CATALOGCOVERS ?? "" }}&filename={{ $collection->FILEURL_CATALOGCOVERS ?? "" }}');
     });
+
+    function getMedia() {
+        const media = @json($media ?? []);
+        const worksheetId = '{{ $collection->WORKSHEET_ID ?? 0 }}';
+        const selectedId = '{{ $collection->COLLECTION_MEDIA_ID ?? 0 }}';
+
+        $('#collection_media_id').html('<option value=""></option>');
+
+        const mediaContent = media.filter(val => val.WORKSHEET_ID == worksheetId).map(val => {
+            const selected = (selectedId == val.ID ? 'selected' : '');
+
+            return `
+                <option value="${val.ID}" `${selected}`>${val.NAME}</option>
+            `;
+        }).join('');
+
+        $('#collection_media_id').append(mediaContent);
+
+        getCategory();
+    }
 
     function getCategory() {
         const category = @json($category ?? []);

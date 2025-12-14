@@ -514,7 +514,9 @@ class SingleUploadISBNController extends Controller
                 ec.publication_month is not null and
                 ec.publication_year is not null and
                 ec.preview is not null and
-                ec.akses is not null
+                ec.akses is not null and
+                cfr.id is not null and
+                ccr.id is not null
         ");
 
         if ($data) {
@@ -606,6 +608,8 @@ class SingleUploadISBNController extends Controller
                 'access' => 'required',
                 'file_cover' => 'nullable|image|mimes:png,jpg,jpeg|max:' . config('system.catalog_cover_max_upload'),
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
+                'description' => 'required|string|min:500',
+                'price' => 'required',
             ], [
                 'title.required' => 'Judul tidak boleh kosong',
                 'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
@@ -616,6 +620,9 @@ class SingleUploadISBNController extends Controller
                 'file_content.file' => 'File konten tidak valid',
                 'file_content.mimes' => 'File konten harus pdf, epub, mp3, mp4, wav',
                 'file_content.max' => 'File konten maksimal ' . Main::formatFileSize((int) config('system.catalog_content_max_upload')),
+                'description.required' => 'Sinopsis tidak boleh kosong',
+                'description.min' => 'Sinopsis minimal 500 karakter',
+                'price.required' => 'Harga jual tidak boleh kosong',
             ]);
 
             if ($validation->fails()) {

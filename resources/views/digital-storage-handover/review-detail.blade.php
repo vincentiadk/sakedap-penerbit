@@ -74,7 +74,7 @@
         </div>
         <div class="card">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
+                <h5 class="hstack gap-2 mb-0">Jenis Bahan</h5>
             </div>
             <div class="card-body">
                 {{ $collection->ALIAS_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
@@ -103,14 +103,14 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-form-label col-md-2">Tanggal Terbit Edisi <span class="text-danger fw-bold">*</span></label>
+                        <label class="col-form-label col-md-2">Tanggal Terbit Edisi</label>
                         <div class="col-md-10">
                             <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" disabled>
                         </div>
                     </div>
                 @endif
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Jenis Koleksi <span class="text-danger fw-bold">*</span></label>
+                    <label class="col-form-label col-md-2">Jenis Koleksi</label>
                     <div class="col-md-10">
                         <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
                             <option value=""></option>
@@ -121,7 +121,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Judul <span class="text-danger fw-bold">*</span></label>
+                    <label class="col-form-label col-md-2">Judul</label>
                     <div class="col-md-10">
                         <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="...................." disabled>
                     </div>
@@ -208,7 +208,7 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Harga</label>
+                    <label class="col-form-label col-md-2">Harga Jual</label>
                     <div class="col-md-10">
                         <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="...................." disabled>
                     </div>
@@ -390,9 +390,29 @@
             tokenSeparators: [';']
         });
 
-        getCategory();
+        getMedia();
         imageWatermark('#file-cover', '{{ url("stream-file") }}?type=cover&id={{ $collection->ID_CATALOGCOVERS ?? "" }}&filename={{ $collection->FILEURL_CATALOGCOVERS ?? "" }}');
     });
+
+    function getMedia() {
+        const media = @json($media ?? []);
+        const worksheetId = '{{ $collection->WORKSHEET_ID ?? 0 }}';
+        const selectedId = '{{ $collection->COLLECTION_MEDIA_ID ?? 0 }}';
+
+        $('#collection_media_id').html('<option value=""></option>');
+
+        const mediaContent = media.filter(val => val.WORKSHEET_ID == worksheetId).map(val => {
+            const selected = (selectedId == val.ID ? 'selected' : '');
+
+            return `
+                <option value="${val.ID}" `${selected}`>${val.NAME}</option>
+            `;
+        }).join('');
+
+        $('#collection_media_id').append(mediaContent);
+
+        getCategory();
+    }
 
     function getCategory() {
         const category = @json($category ?? []);
