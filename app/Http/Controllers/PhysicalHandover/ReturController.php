@@ -37,6 +37,7 @@ class ReturController extends Controller
             'letter_detail.diambil',
             'letter_detail.rencana_ambil',
             'letter_detail.kontak',
+            'letter_detail.nama_pengambil',
             'letter_detail.title',
             'branchs.name',
             'jasa_pengiriman.name',
@@ -180,10 +181,6 @@ class ReturController extends Controller
                     }
                 }
 
-                $remark = '
-                    <button type="button" class="btn btn-light btn-sm" onclick="onPopover(this, ' . "'$listRemark'" . ')">Lihat</button>
-                ';
-
                 $inputHidden = '
                     <input type="hidden" name="data" data-id="' . $val->LETTER_DETAIL_ID . '" data-title="' . $val->TITLE . '" data-qty-retur="' . $val->QTY_RETUR . '" data-receipt="' . $val->RECEIPT_NO_LETTER . '">
                 ';
@@ -214,13 +211,14 @@ class ReturController extends Controller
                     $status,
                     $val->RENCANA_AMBIL,
                     $val->KONTAK,
+                    $val->NAMA_PENGAMBIL,
                     $val->TITLE,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,
                     $val->RECEIPT_NO_LETTER,
                     $val->QTY_RETUR,
                     $val->JENIS_MEDIA,
-                    $remark,
+                    $listRemark,
                     $val->PROSES_BY_LETTER,
                 ];
 

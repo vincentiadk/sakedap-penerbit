@@ -140,7 +140,7 @@
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap' },
             ],
             initComplete: function (settings, json) {

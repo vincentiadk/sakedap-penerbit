@@ -177,10 +177,6 @@ class GrantController extends Controller
                     }
                 }
 
-                $remark = '
-                    <button type="button" class="btn btn-light btn-sm" onclick="onPopover(this, ' . "'$listRemark'" . ')">Lihat</button>
-                ';
-
                 $data[] = [
                     $start + 1,
                     $val->NAME_PENERBIT,
@@ -193,7 +189,7 @@ class GrantController extends Controller
                     $val->QTY_HIBAH_LETTER_DETAIL,
                     $val->JENIS_MEDIA_LETTER_DETAIL,
                     $val->NAME_COLLECTIONSOURCE,
-                    $remark,
+                    $listRemark,
                     $val->PROSES_BY_LETTER,
                 ];
 

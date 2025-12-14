@@ -184,10 +184,6 @@ class RejectController extends Controller
                     }
                 }
 
-                $remark = '
-                    <button type="button" class="btn btn-light btn-sm" onclick="onPopover(this, ' . "'$listRemark'" . ')">Lihat</button>
-                ';
-
                 $inputHidden = '
                     <input type="hidden" name="data" data-id="' . $val->LETTER_DETAIL_ID . '" data-title="' . $val->TITLE . '" data-qty-reject="' . $val->QTY_REJECT . '" data-receipt="' . $val->RECEIPT_NO_LETTER . '">
                 ';
@@ -213,7 +209,7 @@ class RejectController extends Controller
                     $val->RECEIPT_NO_LETTER,
                     $val->QTY_REJECT,
                     $val->JENIS_MEDIA,
-                    $remark,
+                    $listRemark,
                     $val->PROSES_BY_LETTER,
                 ];
 
@@ -300,13 +296,21 @@ class RejectController extends Controller
         ");
 
         if ($dataLetterDetail) {
+            $planning = null;
+            $planningValue = $request->retur_planning;
+
+            if ($planningValue) {
+                $planning = 'Diambil pada ' . Carbon::parse($planningValue)->isoFormat('D MMMM Y') . ', pada jam ' . Carbon::parse($planningValue)->format('H.i');
+            }
+
             foreach ($dataLetterDetail as $dld) {
                 QueryAPI::update('letter_detail', $dld->LETTER_DETAIL_ID, [
                     'qty_retur' => $dld->QTY_REJECT,
                     'qty_hibah' => null,
                     'diambil' => 0,
-                    'rencana_ambil' => $request->retur_planning,
+                    'rencana_ambil' => $planning,
                     'kontak' => $request->contact,
+                    'nama_pengambil' => $request->retur_name,
                 ], false);
             }
         }

@@ -255,7 +255,7 @@
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
             ],
             initComplete: function (settings, json) {
@@ -568,11 +568,15 @@
                         <div class="sweetalert-input-field mt-3">
                             <div class="form-group text-start">
                                 <label class="form-label">Rencana Pengambilan : <span class="text-danger">*</span></label>
-                                <input type="text" name="retur_planning" id="retur_planning" class="form-control" placeholder="..........................">
+                                <input type="datetime-local" name="retur_planning" id="retur_planning" class="form-control">
                             </div>
                             <div class="form-group text-start">
                                 <label class="form-label">No Telp : <span class="text-danger">*</span></label>
                                 <input type="text" name="contact" id="contact" class="form-control" placeholder="..........................">
+                            </div>
+                            <div class="form-group text-start">
+                                <label class="form-label">Nama Pengambil : <span class="text-danger">*</span></label>
+                                <input type="text" name="retur_name" id="retur_name" class="form-control" placeholder="..........................">
                             </div>
                         </div>
                     `,
@@ -589,15 +593,18 @@
                     preConfirm: () => {
                         const returPlanning = $('#retur_planning').val();
                         const contact = $('#contact').val();
+                        const returName = $('#retur_name').val();
 
-                        if (!returPlanning || !contact) {
-                            Swal.showValidationMessage('Mohon mengisi rencana pengambilan & no telp');
+                        if (!returPlanning || !contact || !returName) {
+                            Swal.showValidationMessage('Mohon mengisi rencana pengambilan, no telp, dan nama pengambil');
+
                             return false;
                         }
 
                         return {
                             returPlanning: returPlanning,
-                            contact: contact
+                            contact: contact,
+                            returName: returName,
                         };
                     }
                 }).then((result) => {
@@ -609,6 +616,7 @@
                             data: {
                                 retur_planning: result.value.returPlanning,
                                 contact: result.value.contact,
+                                retur_name: result.value.returName,
                                 id: id
                             },
                             headers: {

@@ -122,6 +122,7 @@
                         <th class="text-nowrap">Status</th>
                         <th class="text-nowrap">Rencana Ambil</th>
                         <th class="text-nowrap">Kontak</th>
+                        <th class="text-nowrap">Nama Pengambil</th>
                         <th class="text-nowrap">Judul</th>
                         <th class="text-nowrap">Tujuan</th>
                         <th class="text-nowrap">Jasa Kirim</th>
@@ -245,10 +246,11 @@
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
+                { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
             ],
             initComplete: function (settings, json) {
