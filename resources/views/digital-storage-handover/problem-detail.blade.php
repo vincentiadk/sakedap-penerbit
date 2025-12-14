@@ -318,7 +318,7 @@
                             <div><b>Ukuran :</b> {{ Main::formatFileSize($collection->FILE_SIZE_CATALOGCOVERS ?? 0) }}</div>
                             <div><b>Metode :</b> {{ Main::method($collection->METHOD_CATALOGCOVERS ?? 0) }}</div>
                         </div>
-                        <img src="{{ url('stream-file') }}?type=cover&id={{ $collection->ID_CATALOGCOVERS ?? '' }}&filename={{ $collection->FILEURL_CATALOGCOVERS ?? '' }}" class="img-fluid w-100" style="object-fit: contain; max-height: 600px;" alt="Cover Catalog">
+                        <img src="" class="img-fluid w-100" id="file-cover" style="object-fit: contain; max-width: 600px;" alt="Cover Catalog">
                     </div>
                     <div class="col-md-6">
                         <div class="fw-bold border-bottom pb-2 mb-2">Konten</div>
@@ -449,6 +449,7 @@
         });
 
         getCategory();
+        imageWatermark('#file-cover', '{{ url("stream-file") }}?type=cover&id={{ $collection->ID_CATALOGCOVERS ?? "" }}&filename={{ $collection->FILEURL_CATALOGCOVERS ?? "" }}');
     });
 
     function getCategory() {

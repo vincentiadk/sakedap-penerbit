@@ -792,3 +792,50 @@ function responseError(response) {
         showCloseButton: false
     });
 }
+
+function imageWatermark(selectorSrc, path) {
+    onLoading('show', 'body');
+
+    var imageUrl = path;
+    var img = new Image();
+
+    img.crossOrigin = 'Anonymous';
+    img.src = imageUrl;
+
+    img.onload = function () {
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        ctx.drawImage(img, 0, 0);
+
+        var text = 'Perpustakaan Nasional Indonesia';
+        var fontSize = Math.max(40, canvas.width * 0.04);
+
+        ctx.font = 'bold ' + fontSize + 'px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        var centerX = canvas.width / 2;
+        var centerY = canvas.height / 2;
+
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(-45 * Math.PI / 180);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+
+        var dataURL = canvas.toDataURL('image/png', 0.8);
+
+        $(selectorSrc).attr('src', dataURL);
+    };
+
+    img.onerror = function () {
+        $(selectorSrc).attr('src', window.gBaseUrl + 'assets/no-file.jpg');
+    };
+
+    onLoading('close', 'body');
+}
