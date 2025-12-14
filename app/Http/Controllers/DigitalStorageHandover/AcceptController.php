@@ -508,7 +508,7 @@ class AcceptController extends Controller
             $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
 
             $dataParseTemplate = [
-                'publisher' => session('username'),
+                'publisher' => session('name'),
                 'createdate' => Carbon::parse($collection->CREATEDATE)->isoFormat('D MMMM Y'),
                 'title' => $collection->TITLE,
                 'identifier' => $collection->CONTROLNUMBER,
