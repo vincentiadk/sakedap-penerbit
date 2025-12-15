@@ -179,32 +179,25 @@
         }
 
         .col-no {
-            width: 4%;
             text-align: center;
-            font-weight: bold;
             color: #023BAD;
         }
 
         .col-isbn {
-            width: 18%;
-            font-family: 'Courier New',
-            monospace;
-            font-weight: bold;
+            font-family: 'Courier New', monospace;
         }
 
         .col-title {
-            width: 60%;
+            font-family: 'Courier New', monospace;
         }
 
         .col-qty {
-            width: 10%;
             text-align: center;
-            font-weight: bold;
             color: #06732A;
         }
 
-        .total-row {
-            background-color: #06732A;
+        .total-row td {
+            background: #06732A;
             color: white;
             font-weight: bold;
         }
@@ -328,10 +321,11 @@
                 <thead>
                     <tr>
                         <th>No.</th>
-                        <th>Cek</th>
                         <th>Identifier</th>
                         <th>Judul</th>
-                        <th>Jumlah</th>
+                        <th>Tgl Terbit</th>
+                        <th>Jns Koleksi</th>
+                        <th>Jml</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -341,21 +335,26 @@
                             @php $total += $ld->COPY ?: 0; @endphp
                             <tr>
                                 <td class="col-no">{{ $key + 1 }}</td>
-                                <td class="col-no"></td>
-                                <td class="col-isbn">{{ $ld->ISBN }}</td>
+                                <td class="col-isbn">
+                                    <div>ISBN: {{ $ld->ISBN ?: '-' }}</div>
+                                    <div>QRCBN: {{ $ld->QRCBN ?: '-' }}</div>
+                                    <div>ISSN: {{ $ld->ISSN ?: '-' }}</div>
+                                </td>
                                 <td class="col-title">{{ $ld->TITLE }}</td>
+                                <td class="col-title">{{ $ld->TANGGAL_TERBIT ? Carbon::parse($ld->TANGGAL_TERBIT)->format('d/m/Y') : '' }}</td>
+                                <td class="col-title">{{ $ld->JENIS_MEDIA }}</td>
                                 <td class="col-qty">{{ $ld->COPY }}</td>
                             </tr>
                         @endforeach
                         <tr class="total-row">
-                            <td colspan="4" style="text-align:right;">TOTAL KESELURUHAN EKSEMPLAR :</td>
+                            <td colspan="5" style="text-align:right;">TOTAL KESELURUHAN EKSEMPLAR</td>
                             <td style="text-align:center;">
                                 <strong>{{ $total }}</strong>
                             </td>
                         </tr>
                     @else
                         <tr>
-                            <td colspan="5" style="text-align:center;">Tidak ada data</td>
+                            <td colspan="6" style="text-align:center;">Tidak ada data</td>
                         </tr>
                     @endif
                 </tbody>
