@@ -143,37 +143,31 @@ class DeliveryAcceptController extends Controller
                         data.*
                     from
                         (
-                            select
-                                l.letter_id,
-                                l.status,
-                                l.receipt_no,
-                                l.proses_by,
-                                l.penerbit_id,
-                                l.accept_date,
-                                l.letter_date,
+                            select distinct
+                                l.*,
                                 b.name as name_branch,
                                 p.name as name_penerbit,
                                 jp.name as name_jasa_pengiriman,
-                                coalesce(td.total_eks_receipt, 0) as total_eks_receipt,
-                                coalesce(td.total_title_receipt, 0) as total_title_receipt,
+                                nvl(td.total_eks_receipt, 0) as total_eks_receipt,
+                                nvl(td.total_title_receipt, 0) as total_title_receipt,
                                 case
                                     when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
-                                    then coalesce(td.total_eks_delivery, 0)
+                                    then nvl(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
                                     when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
-                                    then coalesce(td.total_title_delivery, 0)
+                                    then nvl(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery,
                                 case
                                     when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
-                                    then coalesce(td.total_eks_grant, 0)
+                                    then nvl(td.total_eks_grant, 0)
                                     else 0
                                 end as total_eks_grant,
                                 case
                                     when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
-                                    then coalesce(td.total_title_grant, 0)
+                                    then nvl(td.total_title_grant, 0)
                                     else 0
                                 end as total_title_grant
                             from
@@ -202,9 +196,11 @@ class DeliveryAcceptController extends Controller
                             $whereClause
                             $orderBy
                         ) data
+                    where
+                        rownum <= $length
                 )
             where
-                rnum > $start and rownum <= $length
+                rnum > $start
         ");
 
         if ($queryData) {

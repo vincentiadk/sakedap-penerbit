@@ -17,6 +17,7 @@ class DeliveryMonitoringController extends Controller
     {
         return view('layouts.index', [
             'data' => [
+                'deliveryService' => QueryAPI::get("select * from jasa_pengiriman where id != 1") ?? [],
                 'content' => 'physical-handover.delivery-monitoring',
                 'plugins' => [
                     'datatable',
@@ -37,6 +38,10 @@ class DeliveryMonitoringController extends Controller
             'l.letter_number',
             'l.letter_date',
             'b.name',
+            'l.receipt_no',
+            'jp.name',
+            'l.sender',
+            'l.phone',
             null,
             null,
         ];
@@ -109,9 +114,9 @@ class DeliveryMonitoringController extends Controller
             left join
                 branchs b on b.id = l.branch_id
             left join
-                letter_detail ld on ld.letter_id = l.letter_id
-            left join
                 penerbit p on p.id = l.penerbit_id
+            left join
+                jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -125,21 +130,19 @@ class DeliveryMonitoringController extends Controller
                         data.*
                     from
                         (
-                            select
-                                l.letter_id,
-                                l.status,
-                                l.letter_number,
-                                l.letter_date,
+                            select distinct
+                                l.*,
                                 b.name as name_branch,
                                 p.name as name_penerbit,
+                                jp.name as name_jasa_pengiriman,
                                 case
                                     when l.status in ('DIKIRIM', 'DALAM PENGIRIMAN')
-                                    then coalesce(td.total_eks_delivery, 0)
+                                    then nvl(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
                                     when l.status in ('DIKIRIM', 'DALAM PENGIRIMAN')
-                                    then coalesce(td.total_title_delivery, 0)
+                                    then nvl(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery
                             from
@@ -148,6 +151,8 @@ class DeliveryMonitoringController extends Controller
                                 branchs b on b.id = l.branch_id
                             left join
                                 penerbit p on p.id = l.penerbit_id
+                            left join
+                                jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
                             left join
                                 (
                                     select
@@ -159,14 +164,14 @@ class DeliveryMonitoringController extends Controller
                                     group by
                                         letter_id
                                 ) td on td.letter_id = l.letter_id
-                            left join
-                                letter_detail ld on ld.letter_id = l.letter_id
                             $whereClause
                             $orderBy
                         ) data
+                    where
+                        rownum <= $length
                 )
             where
-                rnum > $start and rownum <= $length
+                rnum > $start
         ");
 
         if ($queryData) {
@@ -175,6 +180,10 @@ class DeliveryMonitoringController extends Controller
                     <a href="' . url('physical-handover/delivery-monitoring/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-info me-1"></i>
                         Detail
+                    </a>
+                    <a href="javascript:void(0);" class="btn btn-teal btn-sm text-nowrap" onclick="showData(' . $val->LETTER_ID . ')">
+                        <i class="ph-notepad me-1"></i>
+                        Resi
                     </a>
                     <a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
                         <i class="ph-printer me-1"></i>
@@ -195,6 +204,10 @@ class DeliveryMonitoringController extends Controller
                     $val->LETTER_NUMBER,
                     ($val->LETTER_DATE ?: null) ? $letterDate : '',
                     $val->NAME_BRANCH,
+                    $val->RECEIPT_NO,
+                    $val->NAME_JASA_PENGIRIMAN,
+                    $val->SENDER,
+                    $val->PHONE,
                     $val->TOTAL_TITLE_DELIVERY,
                     $val->TOTAL_EKS_DELIVERY,
                 ];
@@ -211,6 +224,79 @@ class DeliveryMonitoringController extends Controller
         ]);
     }
 
+    public function showData(Request $request)
+    {
+        $id = $request->id;
+        $data = QueryAPI::get("select * from letter where letter_id = $id", true) ?? [];
+
+        return response()->json($data);
+    }
+
+    public function updateData(Request $request)
+    {
+        $id = $request->table_id;
+        $validation = Validator::make($request->all(), [
+            'receipt_no' => 'required',
+            'delivery_service_id' => 'required',
+            'delivery_fee' => 'required',
+            'sender_name' => 'required',
+        ], [
+            'receipt_no.required' => 'No resi tidak boleh kosong',
+            'delivery_service_id.required' => 'Jasa kirim tidak boleh kosong',
+            'delivery_fee.required' => 'Biaya kirim tidak boleh kosong',
+            'sender_name.required' => 'Nama pengirim tidak boleh kosong',
+        ]);
+
+        if ($validation->fails()) {
+            $response = [
+                'code' => 400,
+                'error' => $validation->errors()->all(),
+            ];
+        } else {
+            try {
+                $receiptNo = $request->receipt_no;
+                $deliveryServiceId = $request->delivery_service_id;
+                $deliveryService = QueryAPI::get("select * from jasa_pengiriman where id = $deliveryServiceId", true);
+
+                $buildQuery = http_build_query([
+                    'awb' => $receiptNo,
+                    'courier' => $deliveryService->CODE ?? ''
+                ]);
+
+                $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
+
+                if ($receipt) {
+                    QueryAPI::update('letter', $id, [
+                        'type_of_delivery' => $deliveryService->NAME ?? '',
+                        'receipt_no' => $receiptNo,
+                        'biaya_kirim' => $request->delivery_fee,
+                        'jasa_pengiriman_id' => $deliveryServiceId,
+                        'sender' => $request->sender_name,
+                        'berat' => $receipt->details->weight ?? 0,
+                        'status' => 'DALAM PENGIRIMAN'
+                    ], false);
+
+                    $response = [
+                        'code' => 200,
+                        'message' => 'Data resi telah diubah'
+                    ];
+                } else {
+                    return response()->json([
+                        'code' => 404,
+                        'message' => 'No resi ' . $receiptNo . ' dengan jasa kirim ' . ($deliveryService->NAME ?? '') . ' tidak ditemukan'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $response = [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage()
+                ];
+            }
+        }
+
+        return response()->json($response);
+    }
+
     public function detail(Request $request, $id)
     {
         if (!is_numeric($id)) {
@@ -220,13 +306,20 @@ class DeliveryMonitoringController extends Controller
         try {
             $letterSql = "
                 select
-                    *
+                    letter.*,
+                    jasa_pengiriman.name as name_jasa_pengiriman,
+                    jasa_pengiriman.code as code_jasa_pengiriman,
+                    branchs.name as name_branch
                 from
                     letter
+                left join
+                    jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
+                left join
+                    branchs on branchs.id = letter.branch_id
                 where
-                    letter_id = $id and
-                    status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
-                    order_no is null
+                    letter.letter_id = $id and
+                    letter.status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
+                    letter.order_no is null
             ";
 
             $letter = QueryAPI::get($letterSql, true);
@@ -244,70 +337,6 @@ class DeliveryMonitoringController extends Controller
                     letter_id = $id
             ", false);
 
-            if ($request->ajax()) {
-                $validation = Validator::make($request->all(), [
-                    'receipt_no' => 'required',
-                    'delivery_service_id' => 'required',
-                    'delivery_fee' => 'required',
-                ], [
-                    'receipt_no.required' => 'No resi tidak boleh kosong',
-                    'delivery_service_id.required' => 'Jasa pengiriman tidak boleh kosong',
-                    'delivery_fee.required' => 'Biaya kirim tidak boleh kosong',
-                ]);
-
-                if ($validation->fails()) {
-                    return response()->json([
-                        'code' => 400,
-                        'error' => $validation->errors()->all(),
-                    ]);
-                }
-
-                try {
-                    $receiptNo = $request->receipt_no;
-                    $deliveryServiceId = $request->delivery_service_id;
-                    $deliveryService = QueryAPI::get("select * from jasa_pengiriman where id = $deliveryServiceId", true);
-
-                    $buildQuery = http_build_query([
-                        'awb' => $receiptNo,
-                        'courier' => $deliveryService->CODE ?? ''
-                    ]);
-
-                    $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
-
-                    if ($receipt) {
-                        QueryAPI::update('letter', $id, [
-                            'type_of_delivery' => $deliveryService->NAME ?? '',
-                            'receipt_no' => $receiptNo,
-                            'jasa_pengiriman_id' => $deliveryServiceId,
-                            'biaya_kirim' => $request->delivery_fee,
-                            'berat' => $receipt->details->weight ?? 0,
-                            'status' => 'DALAM PENGIRIMAN'
-                        ], false);
-
-                        return response()->json([
-                            'code' => 200,
-                            'message' => 'Data telah disimpan'
-                        ]);
-                    } else {
-                        return response()->json([
-                            'code' => 404,
-                            'message' => 'No resi dengan ekspedisi tersebut tidak ditemukan'
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error in AJAX request: ' . $e->getMessage(), [
-                        'letter_id' => $id,
-                        'param' => $request->input('param'),
-                        'trace' => $e->getTraceAsString()
-                    ]);
-
-                    return response()->json([
-                        'code' => 500,
-                        'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-                    ], 500);
-                }
-            }
-
             $buildQuery = http_build_query([
                 'awb' => $letter->RECEIPT_NO ?? '',
                 'courier' => $letter->CODE_JASA_PENGIRIMAN ?? ''
@@ -320,7 +349,6 @@ class DeliveryMonitoringController extends Controller
                     'letter' => $letter,
                     'letterDetail' => $letterDetail,
                     'receipt' => $receipt,
-                    'deliveryService' => QueryAPI::get("select * from jasa_pengiriman where id != 1") ?? [],
                     'content' => 'physical-handover.delivery-monitoring-detail',
                     'plugins' => [
                         'select2',

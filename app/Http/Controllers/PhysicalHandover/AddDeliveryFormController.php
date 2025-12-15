@@ -103,7 +103,7 @@ class AddDeliveryFormController extends Controller
                     letter on letter.letter_id = collections.letter_id
                 where
                     letter.branch_id in (37, $currentBranchId) and
-                    replace(collections.isbn, '-', '') = $code
+                    replace(collections.isbn, '-', '') = '$code'
                 group by
                     letter.branch_id
                 union all
@@ -117,7 +117,7 @@ class AddDeliveryFormController extends Controller
                     letter on letter.letter_id = letter_detail.letter_id
                 where
                     letter.branch_id in (37, $currentBranchId) and
-                    replace(letter_detail.isbn, '-', '') = $code
+                    replace(letter_detail.isbn, '-', '') = '$code'
                 group by
                     letter.branch_id
             )

@@ -161,7 +161,7 @@ class DataTableServersideController extends Controller
             left join
                 penerbit p on p.id = c.penerbit_id
             where
-                c.rnum > $start and rownum <= $length
+                c.rnum > $start
             $orderBy
         ");
 
@@ -356,7 +356,7 @@ class DataTableServersideController extends Controller
             left join
                 penerbit p on p.id = c.penerbit_id
             where
-                c.rnum > $start and rownum <= $length
+                c.rnum > $start
             $orderBy
         ");
 
@@ -486,9 +486,11 @@ class DataTableServersideController extends Controller
                             $whereClause
                             $orderBy
                         ) data
+                    where
+                        rownum <= $length
                 )
             where
-                rnum > $start and rownum <= $length
+                rnum > $start
         ");
 
         if ($queryData) {

@@ -143,8 +143,10 @@ Route::middleware('authentication')->group(function () {
         Route::prefix('delivery-monitoring')->group(function () {
             Route::get('/', 'DeliveryMonitoringController@index');
             Route::get('datatable', 'DeliveryMonitoringController@datatable');
-            Route::match(['get', 'post'], 'detail/{id}', 'DeliveryMonitoringController@detail');
-            Route::match(['get', 'post'], 'print-label/{id}', 'DeliveryMonitoringController@printLabel');
+            Route::get('show-data', 'DeliveryMonitoringController@showData');
+            Route::post('update-data', 'DeliveryMonitoringController@updateData');
+            Route::get('detail/{id}', 'DeliveryMonitoringController@detail');
+            Route::get('print-label/{id}', 'DeliveryMonitoringController@printLabel');
         });
 
         Route::prefix('delivery-accept')->group(function () {

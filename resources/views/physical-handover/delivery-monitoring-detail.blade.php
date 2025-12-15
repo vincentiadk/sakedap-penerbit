@@ -18,47 +18,46 @@
     </div>
 </div>
 <div class="content pt-0">
-    <div class="alert alert-danger alert-dismissible fade d-none" id="validation-element">
-        <ul class="mb-0" id="validation-data"></ul>
-    </div>
     <form id="form-data">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Informasi Pengiriman</h5>
+                <h5 class="mb-0">Informasi Data</h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Nomor Resi : <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" value="{{ $letter->RECEIPT_NO ?? '' }}" placeholder="...........................">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Jasa Kirim : <span class="text-danger">*</span></label>
-                            <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id">
-                                <option value=""></option>
-                                @foreach($deliveryService as $ds)
-                                    <option value="{{ $ds->ID }}" {{ ($letter->JASA_PENGIRIMAN_ID ?? '') == $ds->ID ? 'selected' : '' }}>{{ $ds->NAME }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Biaya Kirim : <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" value="{{ $letter->BIAYA_KIRIM ?? '' }}" placeholder="...........................">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group mb-0"><hr></div>
-                <div class="text-end">
-                    <button type="button" class="btn btn-success" onclick="submitted()">
-                        <i class="ph-floppy-disk me-1"></i>
-                        Simpan Data
-                    </button>
-                </div>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th class="table-success" width="20%">Tanggal</th>
+                            <td width="30%">{{ Carbon::parse($letter->LETTER_DATE)->isoFormat('D MMM Y') }}, {{ Carbon::parse($letter->LETTER_DATE)->format('H:i') }}</td>
+                            <th class="table-success" width="20%">No Surat</th>
+                            <td width="30%">{{ $letter->LETTER_NUMBER }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Pengirim</th>
+                            <td width="30%">{{ $letter->SENDER }}</td>
+                            <th class="table-success" width="20%">Telp</th>
+                            <td width="30%">{{ $letter->PHONE }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Jasa Kirim</th>
+                            <td width="30%">{{ $letter->NAME_JASA_PENGIRIMAN }}</td>
+                            <th class="table-success" width="20%">Tujuan</th>
+                            <td width="30%">{{ $letter->NAME_BRANCH }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Resi</th>
+                            <td width="30%">{{ $letter->RECEIPT_NO }}</td>
+                            <th class="table-success" width="20%">Biaya Kirim</th>
+                            <td width="30%">Rp {{ number_format($letter->BIAYA_KIRIM) }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Berat</th>
+                            <td width="30%">{{ number_format(($letter->BERAT ?? 0) / 1000, 2, ',', '.') }} Kg</td>
+                            <th class="table-success" width="20%">Status</th>
+                            <td width="30%">{{ $letter->STATUS }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="card">
@@ -154,71 +153,4 @@
             scrollCollapse: true,
         });
     });
-
-    function clearValidation() {
-        $('#validation-element').removeClass('show').addClass('d-none');
-        $('#validation-data').html('');
-    }
-
-    function showValidation(data) {
-        $('#validation-element').removeClass('d-none').addClass('show');
-        $('#validation-data').html('');
-
-        $.each(data, function(index, value) {
-            $('#validation-data').append('<li>' + value + '</li>');
-        });
-
-        $('.btn-to-top button').click();
-    }
-
-    function submitted() {
-        $.ajax({
-            url: '{{ url("physical-handover/delivery-monitoring/detail/" . $letter->LETTER_ID) }}',
-            type: 'POST',
-            dataType: 'JSON',
-            data: $('#form-data').serialize(),
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            beforeSend: function() {
-                onLoading('show', 'body');
-            },
-            success: function(response) {
-                onLoading('close', 'body');
-
-                if(response.code == 200) {
-                    swalInit.fire({
-                        title: 'Berhasil',
-                        text: response.message,
-                        icon: 'success',
-                        showDenyButton: false,
-                        showCancelButton: false,
-                        confirmButtonText: 'Oke',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            onLoading('show', 'body');
-
-                            location.href = '{{ url("physical-handover/delivery-monitoring") }}';
-                        }
-                    });
-                } else if (response.code == 400) {
-                    showValidation(response.error);
-                    showToast('error', 'Terdapat kesalahan pada form. Mohon periksa kembali.');
-                } else {
-                    swalInit.fire({
-                        title: 'Error',
-                        text: response.message,
-                        icon: 'error',
-                        showCloseButton: true
-                    });
-                }
-            },
-            error: function(response) {
-                onLoading('close', 'body');
-                responseError(response);
-            }
-        });
-    }
 </script>

@@ -85,6 +85,10 @@
                         <th class="text-nowrap" rowspan="2">No Surat</th>
                         <th class="text-nowrap" rowspan="2">Tanggal</th>
                         <th class="text-nowrap" rowspan="2">Tujuan</th>
+                        <th class="text-nowrap" rowspan="2">Resi</th>
+                        <th class="text-nowrap" rowspan="2">Jasa Kirim</th>
+                        <th class="text-nowrap" rowspan="2">Pengirim</th>
+                        <th class="text-nowrap" rowspan="2">Telp</th>
                         <th class="text-nowrap text-center" colspan="2">Pengiriman</th>
                     </tr>
                     <tr>
@@ -97,11 +101,98 @@
     </div>
 </div>
 
+<div id="modal-form" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Form Resi</h5>
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">
+                    <i class="ph-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="validation-element">
+                    <ul class="mb-0" id="validation-data"></ul>
+                </div>
+                <form id="form-data">
+                    <input type="hidden" name="table_id" id="table_id">
+                    <div class="form-group">
+                        <label class="form-label">Nama Pengirim : <span class="text-danger fw-bold">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="sender_name" id="sender_name" placeholder="Contoh : John Doe">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">No Resi : <span class="text-danger fw-bold">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" placeholder="Contoh : JNE1234567890">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Biaya Kirim : <span class="text-danger fw-bold">*</span></label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jasa Kirim : <span class="text-danger fw-bold">*</span></label>
+                        <div class="input-group">
+                            <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-dropdown-parent="#modal-form">
+                                <option value=""></option>
+                                @foreach($deliveryService as $ds)
+                                    <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-end">
+                <button class="btn btn-warning" id="btn-create" onclick="updateData()">
+                    <i class="ph-floppy-disk me-1"></i>
+                    Simpan Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     $(function() {
         datePickerBasic('#date');
         loadData();
     });
+
+    function onReloadTable() {
+        loadData();
+    }
+
+    function onReset() {
+        clearValidation();
+
+        $('#modal-form').modal('hide');
+        $('#form-data').trigger('reset');
+        $('#delivery_service_id').val('').change();
+    }
+
+    function clearValidation() {
+        $('#validation-element').addClass('d-none');
+        $('#validation-data').html('');
+    }
+
+    function showValidation(data) {
+        $('#validation-element').removeClass('d-none');
+        $('#validation-data').html('');
+
+        $.each(data, function(index, value) {
+            $('#validation-data').append('<li>' + value + '</li>');
+        });
+    }
+
+    function formSuccess() {
+        onReset();
+        onReloadTable();
+    }
 
     function loadData() {
         window.gDataTable = $('#datatable-serverside').DataTable({
@@ -138,6 +229,10 @@
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle' },
             ],
             initComplete: function (settings, json) {
@@ -155,5 +250,73 @@
         });
 
         window.gDataTable.columns.adjust().draw();
+    }
+
+    function showData(id) {
+        $.ajax({
+            url: '{{ url("physical-handover/delivery-monitoring/show-data") }}',
+            type: 'GET',
+            dataType: 'JSON',
+            data: {
+                id: id
+            },
+            beforeSend: function() {
+                onLoading('show', '.modal-content');
+                onReset();
+
+                $('#modal-form').modal('show');
+            },
+            success: function(response) {
+                onLoading('close', '.modal-content');
+
+                $('#table_id').val(response.LETTER_ID);
+                $('#sender_name').val(response.SENDER);
+                $('#receipt_no').val(response.RECEIPT_NO);
+                $('#delivery_fee').val(response.BIAYA_KIRIM);
+                $('#delivery_service_id').val(response.JASA_PENGIRIMAN_ID).change();
+            },
+            error: function(response) {
+                onLoading('close', '.modal-content');
+                responseError(response);
+            }
+        });
+    }
+
+    function updateData() {
+        $.ajax({
+            url: '{{ url("physical-handover/delivery-monitoring/update-data") }}',
+            type: 'POST',
+            dataType: 'JSON',
+            data: $('#form-data').serialize(),
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            beforeSend: function() {
+                onLoading('show', '.modal-content');
+                clearValidation();
+            },
+            success: function(response) {
+                onLoading('close', '.modal-content');
+
+                if(response.code == 200) {
+                    formSuccess();
+                    notification('success', response.message);
+                } else if(response.code == 400) {
+                    $('#modal-form .modal-body').scrollTop(0);
+                    showValidation(response.error);
+                } else {
+                    swalInit.fire({
+                        title: response.code == 404 ? 'Oops ...' : 'Error',
+                        text: response.message,
+                        icon: response.code == 404 ? 'warning' : 'error',
+                        showCloseButton: false
+                    });
+                }
+            },
+            error: function(response) {
+                onLoading('close', '.modal-content');
+                responseError(response);
+            }
+        });
     }
 </script>

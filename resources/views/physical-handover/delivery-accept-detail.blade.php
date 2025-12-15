@@ -21,28 +21,40 @@
     <form id="form-data">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Informasi</h5>
+                <h5 class="mb-0">Informasi Data</h5>
             </div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <tbody>
                         <tr>
-                            <th class="table-success align-top" width="15%">Resi</th>
-                            <td class="align-top" width="35%">{{ $letter->RECEIPT_NO }}</td>
-                            <th class="table-success align-top" width="15%">Jasa Kirim</th>
-                            <td class="align-top" width="35%">{{ $letter->NAME_JASA_PENGIRIMAN }}</td>
+                            <th class="table-success" width="20%">Tanggal</th>
+                            <td width="30%">{{ Carbon::parse($letter->LETTER_DATE)->isoFormat('D MMM Y') }}, {{ Carbon::parse($letter->LETTER_DATE)->format('H:i') }}</td>
+                            <th class="table-success" width="20%">No Surat</th>
+                            <td width="30%">{{ $letter->LETTER_NUMBER }}</td>
                         </tr>
                         <tr>
-                            <th class="table-success align-top" width="15%">Tgl Kirim</th>
-                            <td class="align-top" width="35%">{{ $letter->LETTER_DATE ? Carbon::parse($letter->LETTER_DATE)->isoFormat('dddd, D MMMM Y') : '' }}</td>
-                            <th class="table-success align-top" width="15%">No Surat</th>
-                            <td class="align-top" width="35%">{{ $letter->LETTER_NUMBER }}</td>
+                            <th class="table-success" width="20%">Pengirim</th>
+                            <td width="30%">{{ $letter->SENDER }}</td>
+                            <th class="table-success" width="20%">Telp</th>
+                            <td width="30%">{{ $letter->PHONE }}</td>
                         </tr>
                         <tr>
-                            <th class="table-success align-top" width="15%">Jumlah Paket</th>
-                            <td class="align-top" width="35%">{{ $letter->JUMLAH_PAKET }}</td>
-                            <th class="table-success align-top" width="15%">Tujuan</th>
-                            <td class="align-top" width="35%">{{ $letter->NAME_BRANCH }}</td>
+                            <th class="table-success" width="20%">Jasa Kirim</th>
+                            <td width="30%">{{ $letter->NAME_JASA_PENGIRIMAN }}</td>
+                            <th class="table-success" width="20%">Tujuan</th>
+                            <td width="30%">{{ $letter->NAME_BRANCH }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Resi</th>
+                            <td width="30%">{{ $letter->RECEIPT_NO }}</td>
+                            <th class="table-success" width="20%">Biaya Kirim</th>
+                            <td width="30%">Rp {{ number_format($letter->BIAYA_KIRIM) }}</td>
+                        </tr>
+                        <tr>
+                            <th class="table-success" width="20%">Berat</th>
+                            <td width="30%">{{ number_format(($letter->BERAT ?? 0) / 1000, 2, ',', '.') }} Kg</td>
+                            <th class="table-success" width="20%">Status</th>
+                            <td width="30%">{{ $letter->STATUS }}</td>
                         </tr>
                     </tbody>
                 </table>

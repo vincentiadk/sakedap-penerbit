@@ -348,14 +348,14 @@
                             </tr>
                         @endforeach
                         <tr class="total-row">
-                            <td colspan="4" style="text-align:right; color:#023BAD;">TOTAL KESELURUHAN EKSEMPLAR :</td>
-                            <td style="text-align:center; color:#023BAD;">
+                            <td colspan="4" style="text-align:right;">TOTAL KESELURUHAN EKSEMPLAR :</td>
+                            <td style="text-align:center;">
                                 <strong>{{ $total }}</strong>
                             </td>
                         </tr>
                     @else
                         <tr>
-                            <td colspan="5" style="text-align:center; color:#023BAD;">Tidak ada data</td>
+                            <td colspan="5" style="text-align:center;">Tidak ada data</td>
                         </tr>
                     @endif
                 </tbody>
