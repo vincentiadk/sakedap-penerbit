@@ -116,7 +116,6 @@
                         <th class="text-nowrap text-center" colspan="2">Penerimaan</th>
                         <th class="text-nowrap text-center" colspan="2">Ditolak (Hibah)</th>
                         <th class="text-nowrap" rowspan="2">Status</th>
-                        <th class="text-nowrap" rowspan="2">Proses By</th>
                     </tr>
                     <tr>
                         <th class="text-nowrap text-center">Judul</th>
@@ -182,7 +181,6 @@
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle text-wrap' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();

@@ -130,7 +130,6 @@
                         <th class="text-nowrap">Jumlah</th>
                         <th class="text-nowrap">Jenis Koleksi</th>
                         <th class="text-nowrap">Alasan Ditolak</th>
-                        <th class="text-nowrap">Proses By</th>
                     </tr>
                 </thead>
             </table>
@@ -251,7 +250,6 @@
                 { orderable: true, className: 'align-middle allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
-                { orderable: true, className: 'align-middle text-wrap allow-select' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();

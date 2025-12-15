@@ -39,7 +39,6 @@ class GrantController extends Controller
             'letter_detail.jenis_media',
             'collectionsources.name',
             'letter_detail.remark',
-            'letter.proses_by',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -142,7 +141,6 @@ class GrantController extends Controller
                                 penerbit.name as name_penerbit,
                                 letter.receipt_no as receipt_no_letter,
                                 letter.status as status_letter,
-                                letter.proses_by as proses_by_letter,
                                 letter.letter_date as letter_date_letter
                             from
                                 hibah_detail
@@ -202,7 +200,6 @@ class GrantController extends Controller
                     $val->JENIS_MEDIA_LETTER_DETAIL,
                     $val->NAME_COLLECTIONSOURCE,
                     $listRemark,
-                    $val->PROSES_BY_LETTER,
                 ];
 
                 $start++;

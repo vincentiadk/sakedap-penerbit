@@ -45,7 +45,6 @@ class DeliveryAcceptController extends Controller
             null,
             null,
             'l.status',
-            'l.proses_by',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -242,7 +241,6 @@ class DeliveryAcceptController extends Controller
                     $val->TOTAL_TITLE_GRANT,
                     $val->TOTAL_EKS_GRANT,
                     $val->STATUS,
-                    $val->PROSES_BY,
                 ];
 
                 $start++;

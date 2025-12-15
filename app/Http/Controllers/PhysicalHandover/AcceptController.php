@@ -37,7 +37,6 @@ class AcceptController extends Controller
             'letter.receipt_no',
             'letter_detail.qty_accept',
             'letter_detail.jenis_media',
-            'letter.proses_by',
         ];
 
         $draw = intval($request->draw ?? 0);
@@ -133,7 +132,6 @@ class AcceptController extends Controller
                                 branchs.name as name_branch,
                                 letter.receipt_no as receipt_no_letter,
                                 letter.status as status_letter,
-                                letter.proses_by as proses_by_letter,
                                 letter.accept_date as accept_date_letter,
                                 letter.letter_date as letter_date_letter,
                                 penerbit.name as name_penerbit
@@ -180,7 +178,6 @@ class AcceptController extends Controller
                     $val->RECEIPT_NO_LETTER,
                     $val->QTY_ACCEPT,
                     $val->JENIS_MEDIA,
-                    $val->PROSES_BY_LETTER,
                 ];
 
                 $start++;
