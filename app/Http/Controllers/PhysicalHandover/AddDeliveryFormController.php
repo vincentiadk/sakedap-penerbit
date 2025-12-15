@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\PhysicalHandover;
 
+use Carbon\Carbon;
 use App\Helpers\ISBN;
 use App\Helpers\Main;
 use App\Helpers\Komship;
@@ -40,6 +41,7 @@ class AddDeliveryFormController extends Controller
                     'datatable',
                     'daterangepicker',
                     'lightbox',
+                    'readmore',
                 ]
             ]
         ]);
@@ -49,6 +51,11 @@ class AddDeliveryFormController extends Controller
     {
         $code = str_replace('-', '', $request->code);
         $executorId = $request->executor_id;
+        $currentBranchId = Main::getBranch()->ID ?? 0;
+        $publishDate = '';
+
+        $qtyPerpusnas = 2;
+        $qtyProvince = 1;
 
         $data = ISBN::get('search', [
             'code' => $code,
@@ -56,26 +63,107 @@ class AddDeliveryFormController extends Controller
         ], true);
 
         $linkCover = asset('assets/no-file.jpg');
+        $title = '';
+
+        if (!$data) {
+            return response()->json([
+                'data' => null,
+                'fileCover' => $this->generateFileCoverHtml($linkCover, $code, $title),
+                'qty_perpusnas' => 0,
+                'qty_province' => 0,
+            ]);
+        }
+
+        if (!empty($data->cover_file_name)) {
+            $linkCover = $data->cover_file_name;
+        }
+
+        if ($data->tanggal_terbit) {
+            $publishDate = Carbon::parse($data->tanggal_terbit)->format('Y-m-d');
+        }
+
         $title = $data->title ?? '';
 
-        if ($data) {
-            if (isset($data->cover_file_name)) {
-                if ($data->cover_file_name) {
-                    $linkCover = $data->cover_file_name;
-                }
+        $sql = "
+            select
+                nvl(sum(case when branch_id = 37 then collection_count else 0 end), 0) as perpusnas_collection,
+                nvl(sum(case when branch_id = 37 then letter_detail_copy else 0 end), 0) as perpusnas_letter_detail,
+                nvl(sum(case when branch_id = $currentBranchId then collection_count else 0 end), 0) as province_collection,
+                nvl(sum(case when branch_id = $currentBranchId then letter_detail_copy else 0 end), 0) as province_letter_detail
+            from (
+                select
+                    letter.branch_id,
+                    count(collections.id) as collection_count,
+                    0 as letter_detail_copy
+                from
+                    collections
+                left join
+                    letter_detail on letter_detail.letter_detail_id = collections.letter_detail_id
+                left join
+                    letter on letter.letter_id = collections.letter_id
+                where
+                    letter.branch_id in (37, $currentBranchId) and
+                    replace(collections.isbn, '-', '') = $code
+                group by
+                    letter.branch_id
+                union all
+                select
+                    letter.branch_id,
+                    0 as collection_count,
+                    nvl(sum(letter_detail.copy), 0) as letter_detail_copy
+                from
+                    letter_detail
+                left join
+                    letter on letter.letter_id = letter_detail.letter_id
+                where
+                    letter.branch_id in (37, $currentBranchId) and
+                    replace(letter_detail.isbn, '-', '') = $code
+                group by
+                    letter.branch_id
+            )
+        ";
+
+        $quantities = QueryAPI::get($sql, true, [
+            'code' => $code,
+            'branch_id' => $currentBranchId
+        ]);
+
+        if ($quantities) {
+            $checkOnLetterDetailPerpusnas = (int) ($quantities->PERPUSNAS_LETTER_DETAIL ?? 0);
+            $checkOnCollectionPerpusnas = (int) ($quantities->PERPUSNAS_COLLECTION ?? 0);
+
+            if ($checkOnLetterDetailPerpusnas > 0) {
+                $qtyPerpusnas = $checkOnLetterDetailPerpusnas >= 2 ? 0 : 1;
+            } elseif ($checkOnCollectionPerpusnas > 0) {
+                $qtyPerpusnas = $checkOnCollectionPerpusnas >= 2 ? 0 : 1;
+            }
+
+            $checkOnLetterDetailProvince = (int) ($quantities->PROVINCE_LETTER_DETAIL ?? 0);
+            $checkOnCollectionProvince = (int) ($quantities->PROVINCE_COLLECTION ?? 0);
+
+            if ($checkOnLetterDetailProvince > 0) {
+                $qtyProvince = $checkOnLetterDetailProvince >= 1 ? 0 : 1;
+            } elseif ($checkOnCollectionProvince > 0) {
+                $qtyProvince = $checkOnCollectionProvince >= 1 ? 0 : 1;
             }
         }
 
-        $fileCover = '
-            <a href="' . $linkCover . '" data-lightbox="cover-' . $code . '" data-title="' . $title . '">
-                <img src="' . $linkCover . '" class="img img-fluid img-thumbnail" style="max-width:70px;">
-            </a>
-        ';
-
         return response()->json([
             'data' => $data,
-            'fileCover' => $fileCover,
+            'fileCover' => $this->generateFileCoverHtml($linkCover, $code, $title),
+            'qtyPerpusnas' => $qtyPerpusnas,
+            'qtyProvince' => $qtyProvince,
+            'publishDate' => $publishDate,
         ]);
+    }
+
+    private function generateFileCoverHtml($linkCover, $code, $title)
+    {
+        return sprintf('
+            <a href="%s" data-lightbox="cover-%s" data-title="%s">
+                <img src="%s" class="img img-fluid img-thumbnail" style="max-width:70px;">
+            </a>
+        ', e($linkCover), e($code), e($title), e($linkCover));
     }
 
     public function selectCatalog(Request $request)
@@ -586,6 +674,9 @@ class AddDeliveryFormController extends Controller
         $ciCodeArray = $request->has('ci_code') && is_array($request->ci_code) ? array_values($request->ci_code) : [];
         $ciQrcbnArray = $request->has('ci_qrcbn') && is_array($request->ci_qrcbn) ? array_values($request->ci_qrcbn) : [];
         $ciIsbdArray = $request->has('ci_isbd') && is_array($request->ci_isbd) ? array_values($request->ci_isbd) : [];
+        $ciQtyPerpusnasArray = $request->has('ci_qty_perpusnas') && is_array($request->ci_qty_perpusnas) ? array_values($request->ci_qty_perpusnas) : [];
+        $ciQtyProvinceArray = $request->has('ci_qty_province') && is_array($request->ci_qty_province) ? array_values($request->ci_qty_province) : [];
+        $ciPublishDateArray = $request->has('ci_publish_date') && is_array($request->ci_publish_date) ? array_values($request->ci_publish_date) : [];
 
         foreach ($ciArray as $key => $ci) {
             $code = isset($ciCodeArray[$key]) ? $ciCodeArray[$key] : null;
@@ -609,6 +700,9 @@ class AddDeliveryFormController extends Controller
 
                 $qrcbn = isset($ciQrcbnArray[$key]) ? $ciQrcbnArray[$key] : 0;
                 $isbd = isset($ciIsbdArray[$key]) ? $ciIsbdArray[$key] : 0;
+                $qtyPerpusnas = isset($ciQtyPerpusnasArray[$key]) ? $ciQtyPerpusnasArray[$key] : 0;
+                $qtyProvince = isset($ciQtyProvinceArray[$key]) ? $ciQtyProvinceArray[$key] : 0;
+                $publishDate = isset($ciPublishDateArray[$key]) ? $ciPublishDateArray[$key] : null;
                 $catalog = null;
 
                 if ($isbn->is_kdt_valid == 1) {
@@ -621,7 +715,7 @@ class AddDeliveryFormController extends Controller
 
                 $letterDetailData = [
                     'title' => $isbn->title ?? null,
-                    'copy' => $copyType,
+                    'copy' => $copyType == 2 ? $qtyPerpusnas : $qtyProvince,
                     'quantity' => 1,
                     'letter_id' => $letter->LETTER_ID ?? null,
                     'author' => $isbn->kepeng ?? null,
@@ -644,6 +738,7 @@ class AddDeliveryFormController extends Controller
                     'nomorpanggiljilid' => $isbn->keterangan ?? null,
                     'qrcbn' => $qrcbn,
                     'isbd' => $isbd,
+                    'tanggal_terbit' => $publishDate,
                 ];
 
                 QueryAPI::create('letter_detail', $letterDetailData, false);

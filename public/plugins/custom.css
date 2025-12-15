@@ -81,3 +81,9 @@
 .dt-top-scroll-wrapper>div {
     height: 1px;
 }
+
+.readmore-block {
+    overflow: hidden;
+    display: block;
+    position: relative;
+}

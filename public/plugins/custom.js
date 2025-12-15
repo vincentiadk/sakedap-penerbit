@@ -12,6 +12,7 @@ $(function () {
     disableEnterFormAjax();
     select2Basic();
     iframeable();
+    readmoreJS();
 
     $(document).on('init.dt', function (e, settings) {
         if (!settings.oInit.scrollX) {
@@ -838,4 +839,17 @@ function imageWatermark(selectorSrc, path) {
     };
 
     onLoading('close', 'body');
+}
+
+function readmoreJS() {
+    if (typeof $.fn.readmore !== 'undefined') {
+        $('.readmore-block').readmore('destroy');
+
+        $('.readmore-block').readmore({
+            speed: 75,
+            collapsedHeight: 100,
+            moreLink: '<a href="javascript:void(0);" class="d-inline-block mt-2">Selengkapnya...</a>',
+            lessLink: '<a href="javascript:void(0);" class="d-inline-block mt-2">Tutup</a>',
+        });
+    }
 }

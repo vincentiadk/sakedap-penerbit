@@ -128,6 +128,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="text-center text-nowrap" width="80">Cover</th>
+                                <th class="text-nowrap">Tgl Terbit</th>
                                 <th class="text-nowrap">Judul</th>
                                 <th class="text-nowrap">Kepengarangan</th>
                                 <th class="text-nowrap">Pelaksana Serah</th>
@@ -141,7 +142,7 @@
                         </thead>
                         <tbody id="data-collection-isbn">
                             <tr id="empty-isbn-row">
-                                <td colspan="10" class="text-center text-muted py-4">
+                                <td colspan="11" class="text-center text-muted py-4">
                                     <i class="ph-books ph-3x d-block mb-2 opacity-50"></i>
                                     Belum ada data ISBN
                                 </td>
@@ -425,6 +426,8 @@
                     code: row.find('input[name="ci_code[]"]').val(),
                     html: row.prop('outerHTML')
                 });
+
+                readmoreJS();
             });
 
             $('#data-collection-non-isbn tr').not('#empty-non-isbn-row').each(function() {
@@ -556,6 +559,8 @@
                     if (item && item.html) {
                         $('#data-collection-isbn').append(item.html);
                     }
+
+                    readmoreJS();
                 });
             }
 
@@ -760,14 +765,14 @@
                                                 <label class="form-label small">TTES Awal</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" value="${edition.first_ttes || ''}" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" value="${edition.first_ttes || ''}" placeholder="Pilih Tanggal" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small">TTES Akhir</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" value="${edition.end_ttes || ''}" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" value="${edition.end_ttes || ''}" placeholder="Pilih Tanggal" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-2 d-flex align-items-end">
@@ -1152,6 +1157,7 @@
             data: {
                 code: isbnValue,
                 executor_id: $('#executor_id').val(),
+                destination: $('#destination').val(),
             },
             beforeSend: function() {
                 onLoading('show', 'body');
@@ -1200,12 +1206,14 @@
 
                         return false;
                     }
+
+                    readmoreJS();
                 });
 
                 if (isDuplicate) {
                     swalInit.fire({
                         title: 'ISBN Sudah Ditambahkan',
-                        text: 'ISBN ini sudah ada dalam daftar koleksi',
+                        text: 'ISBN ini sudah ada dalam daftar tabel',
                         icon: 'warning'
                     });
 
@@ -1225,14 +1233,27 @@
                         <input type="hidden" name="ci[]" value="1">
                         <input type="hidden" name="ci_code[]" value="${safeISBN}">
                         <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
+                        <td class="align-middle" nowrap>
+                            <input type="date" class="form-control" name="ci_publish_date[]" value="${response.publishDate}">
+                        </td>
                         <td class="align-middle text-wrap">${safeTitle}</td>
                         <td class="align-middle text-wrap">${safeKepeng}</td>
                         <td class="align-middle text-wrap">${safePenerbit}</td>
                         <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
                         <td class="align-middle text-nowrap">${safeISBN}</td>
-                        <td class="align-middle text-wrap">${safeSinopsis}</td>
-                        <td class="align-middle">2</td>
-                        <td class="align-middle">1</td>
+                        <td class="align-middle text-wrap">
+                            <div class="readmore-block">
+                                ${safeSinopsis}
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <input type="hidden" name="ci_qty_perpusnas[]" value="${response.qtyPerpusnas}">
+                            ${response.qtyPerpusnas}
+                        </td>
+                        <td class="align-middle">
+                            <input type="hidden" name="ci_qty_province[]" value="${response.qtyProvince}">
+                            ${response.qtyProvince}
+                        </td>
                         <td class="text-center align-middle">
                             <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
                                 <i class="ph-trash"></i>
@@ -1243,6 +1264,7 @@
 
                 $('#search_isbn').val('').focus();
 
+                readmoreJS();
                 autoSaveForm();
 
                 if (data.is_kdt_valid == 1) {
@@ -1285,7 +1307,7 @@
                         if (tableId === 'data-collection-isbn') {
                             emptyMessage = `
                                 <tr id="empty-isbn-row">
-                                    <td colspan="10" class="text-center text-muted py-4">
+                                    <td colspan="11" class="text-center text-muted py-4">
                                         <i class="ph-books ph-3x d-block mb-2 opacity-50"></i>
                                         Belum ada data ISBN
                                     </td>
@@ -1681,14 +1703,14 @@
                             <label class="form-label small">TTES Awal</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" placeholder="Pilih Tanggal" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Akhir</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" placeholder="Pilih Tanggal" readonly>
                             </div>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">

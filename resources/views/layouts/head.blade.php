@@ -39,6 +39,7 @@
     @stack('howlerjs-js')
     @stack('epubjs-js')
     @stack('videojs-js')
+    @stack('readmore-js')
     @stack('lookup-js')
 	<script src="{{ asset('plugins/custom.js') }}?v={{ uniqid() }}"></script>
 </head>
