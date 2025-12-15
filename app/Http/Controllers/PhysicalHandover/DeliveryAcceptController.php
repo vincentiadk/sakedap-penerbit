@@ -220,12 +220,22 @@ class DeliveryAcceptController extends Controller
                     </a>
                 ';
 
+                $letterDate = '
+                    <div>' . Carbon::parse($val->LETTER_DATE)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->LETTER_DATE)->format('H.i') . ' WIB</small>
+                ';
+
+                $acceptDate = '
+                    <div>' . Carbon::parse($val->ACCEPT_DATE)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->ACCEPT_DATE)->format('H.i') . ' WIB</small>
+                ';
+
                 $data[] = [
                     $start + 1,
                     $action,
                     $val->NAME_PENERBIT,
-                    ($val->LETTER_DATE ?: null) ? Carbon::parse($val->LETTER_DATE)->isoFormat('dddd, D MMMM Y') : '',
-                    ($val->ACCEPT_DATE ?: null) ? Carbon::parse($val->ACCEPT_DATE)->isoFormat('dddd, D MMMM Y') : '',
+                    ($val->LETTER_DATE ?: null) ? $letterDate : '',
+                    ($val->ACCEPT_DATE ?: null) ? $acceptDate : '',
                     $val->RECEIPT_NO,
                     $val->NAME_JASA_PENGIRIMAN,
                     $val->NAME_BRANCH,

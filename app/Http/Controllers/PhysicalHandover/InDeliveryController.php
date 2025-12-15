@@ -149,10 +149,15 @@ class InDeliveryController extends Controller
 
         if ($queryData) {
             foreach ($queryData as $val) {
+                $letterDate = '
+                    <div>' . Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->LETTER_DATE_LETTER)->format('H.i') . ' WIB</small>
+                ';
+
                 $data[] = [
                     $start + 1,
                     $val->NAME_PENERBIT,
-                    Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMMM Y'),
+                    ($val->LETTER_DATE_LETTER ?: null) ? $letterDate : '',
                     $val->TITLE,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,

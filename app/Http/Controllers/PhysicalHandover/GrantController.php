@@ -177,11 +177,21 @@ class GrantController extends Controller
                     }
                 }
 
+                $letterDate = '
+                    <div>' . Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->LETTER_DATE_LETTER)->format('H.i') . ' WIB</small>
+                ';
+
+                $acceptDate = '
+                    <div>' . Carbon::parse($val->CREATEDATE)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->CREATEDATE)->format('H.i') . ' WIB</small>
+                ';
+
                 $data[] = [
                     $start + 1,
                     $val->NAME_PENERBIT,
-                    Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('dddd, D MMMM Y'),
-                    Carbon::parse($val->CREATEDATE)->isoFormat('dddd, D MMMM Y'),
+                    ($val->LETTER_DATE_LETTER ?: null) ? $letterDate : '',
+                    ($val->CREATEDATE ?: null) ? $acceptDate : '',
                     $val->JUDUL,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,

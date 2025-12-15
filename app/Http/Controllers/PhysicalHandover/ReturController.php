@@ -201,12 +201,17 @@ class ReturController extends Controller
                     $timeAutoGrant = $future->diffForHumans();
                 }
 
+                $letterDate = '
+                    <div>' . Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->LETTER_DATE_LETTER)->format('H.i') . ' WIB</small>
+                ';
+
                 $data[] = [
                     $inputHidden,
                     $start + 1,
                     $action,
                     $val->NAME_PENERBIT,
-                    Carbon::parse($val->LETTER_DATE_LETTER)->isoFormat('dddd, D MMMM Y'),
+                    ($val->LETTER_DATE_LETTER ?: null) ? $letterDate : '',
                     $timeAutoGrant,
                     $status,
                     $val->RENCANA_AMBIL,

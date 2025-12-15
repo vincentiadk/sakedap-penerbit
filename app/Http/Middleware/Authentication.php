@@ -46,7 +46,17 @@ class Authentication
             return redirect('auth/not-verified');
         }
 
-        $totalPhysicalCollectionReject = QueryAPI::get("select count(id) as total from letter_detail where qty_reject > 0", true);
+        $totalPhysicalCollectionReject = QueryAPI::get("
+            select
+                count(letter_detail_id) as total
+            from
+                letter_detail
+            where
+                penerbit_id = $id and
+                qty_reject > 0 and
+                (qty_accept = 0 or qty_accept is null) and
+                (qty_hibah = 0 or qty_hibah is null)
+        ", true);
 
         Config::set('system.collection_reject', $totalPhysicalCollectionReject->TOTAL ?? 0);
 

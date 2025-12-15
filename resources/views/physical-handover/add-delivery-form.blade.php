@@ -394,7 +394,7 @@
         }, 500);
     });
 
-    const STORAGE_KEY = 'physical_handover_form_autosave';
+    const STORAGE_KEY = 'physical_handover_form_autosave_' + '{{ session("id") }}';
     const SAVE_DELAY = 1000;
     let saveTimeout;
 
@@ -449,42 +449,43 @@
 
             $('#data-collection-periodicals tr').each(function() {
                 const row = $(this);
-                const classes = row.attr('class');
+                const cpIndex = row.data('cp-index');
 
-                if (classes && classes.includes('periodical-row-')) {
-                    const match = classes.match(/periodical-row-(\w+)/);
+                if (cpIndex && !processedPeriodicals.has(cpIndex)) {
+                    processedPeriodicals.add(cpIndex);
 
-                    if (match && !processedPeriodicals.has(match[1])) {
-                        const randStr = match[1];
+                    const classes = row.attr('class');
+                    const match = classes ? classes.match(/periodical-row-(\w+)/) : null;
+                    const randStr = match ? match[1] : null;
 
-                        processedPeriodicals.add(randStr);
+                    if (!randStr) return;
 
-                        const catalogActive = $(`.periodical-catalog-section-${randStr}`).hasClass('active');
+                    const catalogActive = $(`.periodical-catalog-section-${randStr}`).hasClass('active');
 
-                        const periodicalData = {
-                            randStr: randStr,
-                            mode: catalogActive ? 'catalog' : 'manual',
-                            catalog_id: catalogActive ? $(`.cp_catalog_id_${randStr}`).val() : '',
-                            catalog_text: catalogActive ? $(`.cp_catalog_text_${randStr}`).val() : '',
-                            manual_title: !catalogActive ? row.find(`input[name="cp_manual_title[]"]`).val() : '',
-                            editions: []
-                        };
+                    const periodicalData = {
+                        randStr: randStr,
+                        cpIndex: cpIndex,
+                        mode: catalogActive ? 'catalog' : 'manual',
+                        catalog_id: catalogActive ? $(`.cp_catalog_id_${randStr}`).val() : '',
+                        catalog_text: catalogActive ? $(`.cp_catalog_text_${randStr}`).val() : '',
+                        manual_title: !catalogActive ? row.find(`input[name="cp_manual_title[${cpIndex}]"]`).val() : '',
+                        editions: []
+                    };
 
-                        $(`#data-collection-periodicals-edition-${randStr} .card`).each(function() {
-                            const editionCard = $(this);
-                            const editionClasses = editionCard.attr('class');
+                    $(`#data-collection-periodicals-edition-${cpIndex} .card`).each(function() {
+                        const editionCard = $(this);
+                        const editionClasses = editionCard.attr('class');
 
-                            if (editionClasses && editionClasses.includes('edition-card-')) {
-                                periodicalData.editions.push({
-                                    edition: editionCard.find(`input[name="cpe_edition_${randStr}[]"]`).val(),
-                                    first_ttes: editionCard.find(`input[name="cpe_first_ttes_${randStr}[]"]`).val(),
-                                    end_ttes: editionCard.find(`input[name="cpe_end_ttes_${randStr}[]"]`).val()
-                                });
-                            }
-                        });
+                        if (editionClasses && editionClasses.includes('edition-card-')) {
+                            periodicalData.editions.push({
+                                edition: editionCard.find(`input[name="cpe_edition[${cpIndex}][]"]`).val(),
+                                first_ttes: editionCard.find(`input[name="cpe_first_ttes[${cpIndex}][]"]`).val(),
+                                end_ttes: editionCard.find(`input[name="cpe_end_ttes[${cpIndex}][]"]`).val()
+                            });
+                        }
+                    });
 
-                        formData.periodicals_collections.push(periodicalData);
-                    }
+                    formData.periodicals_collections.push(periodicalData);
                 }
             });
 
@@ -533,6 +534,10 @@
         try {
             onLoading('show', 'body');
 
+            if (!formData || typeof formData !== 'object') {
+                throw new Error('Invalid form data structure');
+            }
+
             $('#sender_name').val(formData.sender_name || '');
             $('#executor_id').val(formData.executor_id || '').trigger('change');
             $('#destination').val(formData.destination || '3').trigger('change');
@@ -544,19 +549,28 @@
                 $(`#type-delivery-${formData.type_delivery}`).prop('checked', true).trigger('change');
             }
 
-            if (formData.isbn_collections && formData.isbn_collections.length > 0) {
+            if (Array.isArray(formData.isbn_collections) && formData.isbn_collections.length > 0) {
                 $('#empty-isbn-row').remove();
 
                 formData.isbn_collections.forEach(item => {
-                    $('#data-collection-isbn').append(item.html);
+                    if (item && item.html) {
+                        $('#data-collection-isbn').append(item.html);
+                    }
                 });
             }
 
-            if (formData.non_isbn_collections && formData.non_isbn_collections.length > 0) {
+            if (Array.isArray(formData.non_isbn_collections) && formData.non_isbn_collections.length > 0) {
                 $('#empty-non-isbn-row').remove();
 
                 formData.non_isbn_collections.forEach(item => {
+                    if (!item || typeof item !== 'object') {
+                        return;
+                    }
+
                     const randStr = randomString(10);
+                    var safeTitle = $('<div>').text(item.title || '').html();
+                    var safeAuthor = $('<div>').text(item.author || '').html();
+                    var safeExecutor = $('<div>').text(item.executor || '').html();
 
                     $('#data-collection-non-isbn').append(`
                         <tr class="animate__animated animate__fadeIn">
@@ -581,16 +595,16 @@
                                                 <label class="form-label">Pelaksana Serah</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="ph-user"></i></span>
-                                                    <input type="text" class="form-control" name="cni_executor[]" value="${item.executor || ''}" placeholder="Nama pelaksana serah">
+                                                    <input type="text" class="form-control" name="cni_executor[]" value="${safeExecutor}" placeholder="Nama pelaksana serah">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Judul</label>
-                                                <input type="text" class="form-control" name="cni_title[]" placeholder="Masukkan judul" value="${item.title || ''}">
+                                                <input type="text" class="form-control" name="cni_title[]" placeholder="Masukkan judul" value="${safeTitle}">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Kepengarangan</label>
-                                                <input type="text" class="form-control" name="cni_author[]" placeholder="Masukkan nama pengarang" value="${item.author || ''}">
+                                                <input type="text" class="form-control" name="cni_author[]" placeholder="Masukkan nama pengarang" value="${safeAuthor}">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Deskripsi Fisik</label>
@@ -643,15 +657,21 @@
                 select2Basic();
             }
 
-            if (formData.periodicals_collections && formData.periodicals_collections.length > 0) {
+            if (Array.isArray(formData.periodicals_collections) && formData.periodicals_collections.length > 0) {
                 $('#empty-periodicals-row').remove();
 
                 formData.periodicals_collections.forEach(item => {
+                    if (!item || typeof item !== 'object') {
+                        return;
+                    }
+
                     const randStr = item.randStr || randomString(10);
+                    const cpIndex = item.cpIndex || (Date.now() + '_' + Math.random());
+                    var safeTitle = $('<div>').text(item.manual_title || '').html();
 
                     $('#data-collection-periodicals').append(`
-                        <tr class="periodical-row-${randStr} animate__animated animate__fadeIn">
-                            <input type="hidden" name="cp[]" value="1">
+                        <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
+                            <input type="hidden" name="cp[${cpIndex}]" value="1">
                             <td width="5%" rowspan="2" class="align-top">
                                 <button type="button" class="btn btn-danger" onclick="removeItemPeriodicals('${randStr}')">
                                     <i class="ph-trash"></i>
@@ -663,18 +683,18 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="mb-0"><i class="ph-toggle-left me-1"></i> Katalog</h6>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'catalog' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'catalog')">
+                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'catalog' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'catalog', '${cpIndex}')">
                                                     <i class="ph-database me-1"></i>
                                                     Pilihan
                                                 </button>
-                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'manual' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'manual')">
+                                                <button type="button" class="btn btn-outline-primary input-mode-switch ${item.mode === 'manual' ? 'active' : ''}" onclick="switchInputMode('${randStr}', 'manual', '${cpIndex}')">
                                                     <i class="ph-keyboard me-1"></i>
                                                     Manual
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="periodical-catalog-section-${randStr} periodical-catalog-section ${item.mode === 'catalog' ? 'active' : ''}" style="${item.mode === 'catalog' ? '' : 'display:none;'}">
-                                            <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[]" value="${item.catalog_id || ''}">
+                                            <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[${cpIndex}]" value="${item.catalog_id || ''}">
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="ph-database"></i></span>
                                                 <input type="text" class="form-control cp_catalog_text_${randStr}" placeholder="Pilih Katalog Terbitan Berkala" value="${item.catalog_text || ''}" readonly>
@@ -685,7 +705,7 @@
                                                 <div class="col-md-12">
                                                     <div class="input-group">
                                                         <span class="input-group-text">Judul Terbitan</span>
-                                                        <input type="text" class="form-control" name="cp_manual_title[]" placeholder="Contoh: Majalah Perpustakaan Indonesia" value="${item.manual_title || ''}">
+                                                        <input type="text" class="form-control" name="cp_manual_title[${cpIndex}]" placeholder="Contoh: Majalah Perpustakaan Indonesia" value="${safeTitle}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -694,19 +714,19 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr class="periodical-row-${randStr}">
+                        <tr class="periodical-row-${randStr}" data-cp-index="${cpIndex}">
                             <td>
                                 <div class="card border-0 bg-light">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="mb-0"><i class="ph-list-numbers me-1"></i> Daftar Edisi</h6>
-                                            <button type="button" class="btn btn-success btn-sm" onclick="addCollectionPeriodicalsEdition('${randStr}')">
+                                            <button type="button" class="btn btn-success btn-sm" onclick="addCollectionPeriodicalsEdition('${cpIndex}')">
                                                 <i class="ph-plus-circle me-1"></i>
                                                 Tambah Edisi
                                             </button>
                                         </div>
-                                        <div id="data-collection-periodicals-edition-${randStr}">
-                                            ${item.editions && item.editions.length > 0 ? '' : '<div class="alert alert-info border-0 mb-0"><i class="ph-info me-1"></i>Belum ada edisi yang ditambahkan</div>'}
+                                        <div id="data-collection-periodicals-edition-${cpIndex}">
+                                            ${Array.isArray(item.editions) && item.editions.length > 0 ? '' : '<div class="alert alert-info border-0 mb-0"><i class="ph-info me-1"></i>Belum ada edisi yang ditambahkan</div>'}
                                         </div>
                                     </div>
                                 </div>
@@ -718,31 +738,36 @@
                         worksheet_id: [13, 142]
                     });
 
-                    if (item.editions && item.editions.length > 0) {
+                    if (Array.isArray(item.editions) && item.editions.length > 0) {
                         item.editions.forEach(edition => {
-                            const editionRandStr = randomString(10);
+                            if (!edition || typeof edition !== 'object') {
+                                return;
+                            }
 
-                            $(`#data-collection-periodicals-edition-${randStr}`).append(`
+                            const editionRandStr = randomString(10);
+                            var safeEdition = $('<div>').text(edition.edition || '').html();
+
+                            $(`#data-collection-periodicals-edition-${cpIndex}`).append(`
                                 <div class="card border mb-2 edition-card-${editionRandStr}">
                                     <div class="card-body p-3">
-                                        <input type="hidden" name="cpe_${randStr}[]" value="1">
+                                        <input type="hidden" name="cpe[${cpIndex}][]" value="1">
                                         <div class="row g-2">
                                             <div class="col-md-4">
                                                 <label class="form-label small">Edisi Serial</label>
-                                                <input type="text" class="form-control form-control-sm" name="cpe_edition_${randStr}[]" placeholder="Contoh: Vol. 1 No. 1" value="${edition.edition || ''}">
+                                                <input type="text" class="form-control form-control-sm" name="cpe_edition[${cpIndex}][]" placeholder="Contoh: Vol. 1 No. 1" value="${safeEdition}">
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small">TTES Awal</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes_${randStr}[]" value="${edition.first_ttes || ''}" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" value="${edition.first_ttes || ''}" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small">TTES Akhir</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes_${randStr}[]" value="${edition.end_ttes || ''}" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" value="${edition.end_ttes || ''}" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-2 d-flex align-items-end">
@@ -867,6 +892,7 @@
                 $('#expedition-card-body-province').html(getInfoAlert());
                 $('#weight').attr('oninput', 'loadExpeditionForm()');
                 $('#destination').attr('onchange', 'loadExpeditionForm()');
+
                 loadExpeditionForm();
             } else {
                 $('#expedition-card').slideUp();
@@ -906,22 +932,40 @@
         `;
     }
 
+    var expeditionLoadTimeout;
+
     function loadExpeditionForm() {
-        var weight = $('#weight').val();
-        var destination = $('#destination').val();
+        clearTimeout(expeditionLoadTimeout);
 
-        if (destination == 3) {
-            $('#expedition-card-perpusnas').slideDown();
-            $('#expedition-card-province').slideDown();
-        } else if (destination == 1) {
-            $('#expedition-card-perpusnas').slideDown();
-            $('#expedition-card-province').slideUp();
-        } else if (destination == 2) {
-            $('#expedition-card-perpusnas').slideUp();
-            $('#expedition-card-province').slideDown();
-        }
+        expeditionLoadTimeout = setTimeout(function() {
+            var weight = $('#weight').val();
+            var destination = $('#destination').val();
 
-        if (weight != '' && weight > 0 && destination != '') {
+            if (!weight || isNaN(weight) || parseFloat(weight) <= 0) {
+                $('#expedition-card-body-perpusnas').html(getInfoAlert());
+                $('#expedition-card-body-province').html(getInfoAlert());
+
+                return;
+            }
+
+            if (!destination || !['1', '2', '3'].includes(destination)) {
+                $('#expedition-card-body-perpusnas').html(getInfoAlert());
+                $('#expedition-card-body-province').html(getInfoAlert());
+
+                return;
+            }
+
+            if (destination == 3) {
+                $('#expedition-card-perpusnas').slideDown();
+                $('#expedition-card-province').slideDown();
+            } else if (destination == 1) {
+                $('#expedition-card-perpusnas').slideDown();
+                $('#expedition-card-province').slideUp();
+            } else if (destination == 2) {
+                $('#expedition-card-perpusnas').slideUp();
+                $('#expedition-card-province').slideDown();
+            }
+
             $.ajax({
                 url: '{{ url("physical-handover/add-delivery-form/calculate-cost") }}',
                 type: 'GET',
@@ -935,12 +979,20 @@
                     $('#expedition-card-body-province').html(getLoadingSpinner());
                 },
                 success: function(response) {
+                    if (!response || typeof response !== 'object') {
+                        $('#expedition-card-body-perpusnas').html(getWarningAlert('Response tidak valid'));
+                        $('#expedition-card-body-province').html(getWarningAlert('Response tidak valid'));
+
+                        return;
+                    }
+
                     if (response.province || response.perpusnas) {
                         if (response.perpusnas) {
                             $('#expedition-card-body-perpusnas').html(buildExpeditionOptions(response.perpusnas, 'perpusnas'));
                         } else {
                             $('#expedition-card-body-perpusnas').html(getWarningAlert());
                         }
+
                         if (response.province) {
                             $('#expedition-card-body-province').html(buildExpeditionOptions(response.province, 'province'));
                         } else {
@@ -951,11 +1003,21 @@
                         $('#expedition-card-body-province').html(getWarningAlert());
                     }
                 },
-                error: function(response) {
+                error: function(xhr, status, error) {
+                    var errorMessage = 'Terjadi kesalahan saat memuat data.';
+
+                    if (status === 'timeout') {
+                        errorMessage = 'Request timeout. Mohon coba lagi.';
+                    } else if (xhr.status === 404) {
+                        errorMessage = 'Endpoint tidak ditemukan.';
+                    } else if (xhr.status === 500) {
+                        errorMessage = 'Terjadi kesalahan di server.';
+                    }
+
                     var errorHtml = `
                         <div class="alert alert-danger border-0">
                             <i class="ph-x-circle me-1"></i>
-                            Terjadi kesalahan saat memuat data.
+                            ${errorMessage}
                             <a href="javascript:void(0);" class="alert-link" onclick="loadExpeditionForm()">Coba lagi</a>
                         </div>
                     `;
@@ -964,36 +1026,43 @@
                     $('#expedition-card-body-province').html(errorHtml);
                 }
             });
-        } else {
-            $('#expedition-card-body-perpusnas').html(getInfoAlert());
-            $('#expedition-card-body-province').html(getInfoAlert());
-        }
+        }, 500);
     }
 
     function buildExpeditionOptions(data, type) {
+        if (!data || typeof data !== 'object') {
+            return getWarningAlert('Data tidak valid');
+        }
+
         let html = '<div class="row g-3">';
 
         html += '<div class="col-md-6">';
         html += '<div class="fw-bold border-bottom pb-2 mb-3"><i class="ph-truck me-1"></i> Reguler</div>';
 
-        if (data.calculate_reguler && data.calculate_reguler.length > 0) {
+        if (Array.isArray(data.calculate_reguler) && data.calculate_reguler.length > 0) {
             $.each(data.calculate_reguler, function(i, val) {
+                var safeShippingName = $('<div>').text(val.shipping_name || '').html();
+                var safeServiceName = $('<div>').text(val.service_name || '').html();
+                var safeEtd = $('<div>').text(val.etd || '').html();
+                var shippingCost = parseFloat(val.shipping_cost) || 0;
+                var grandTotal = parseFloat(val.grandtotal) || 0;
+
                 html += `
                     <div class="card border expedition-option mb-2">
                         <div class="card-body p-3">
                             <div class="form-check">
-                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_reguler_${i}" ${i == 0 ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}" onchange="autoSaveForm()">
+                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_reguler_${i}" ${i == 0 ? 'checked' : ''} value="${safeShippingName};${safeServiceName};${grandTotal};${shippingCost}" onchange="autoSaveForm()">
                                 <label class="form-check-label w-100" for="${type}_delivery_reguler_${i}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h6 class="mb-1">${val.shipping_name}</h6>
-                                            <div class="text-muted small">${val.service_name}</div>
+                                            <h6 class="mb-1">${safeShippingName}</h6>
+                                            <div class="text-muted small">${safeServiceName}</div>
                                         </div>
-                                        <span class="badge bg-primary">Rp ${$.number(val.shipping_cost)}</span>
+                                        <span class="badge bg-primary">Rp ${$.number(shippingCost)}</span>
                                     </div>
                                     <div class="mt-2 small text-muted">
                                         <i class="ph-clock me-1"></i>
-                                        Estimasi: ${val.etd}
+                                        Estimasi: ${safeEtd}
                                     </div>
                                 </label>
                             </div>
@@ -1009,24 +1078,30 @@
         html += '<div class="col-md-6">';
         html += '<div class="fw-bold border-bottom pb-2 mb-3"><i class="ph-package me-1"></i> Kargo</div>';
 
-        if (data.calculate_cargo && data.calculate_cargo.length > 0) {
+        if (Array.isArray(data.calculate_cargo) && data.calculate_cargo.length > 0) {
             $.each(data.calculate_cargo, function(i, val) {
+                var safeShippingName = $('<div>').text(val.shipping_name || '').html();
+                var safeServiceName = $('<div>').text(val.service_name || '').html();
+                var safeEtd = $('<div>').text(val.etd || '').html();
+                var shippingCost = parseFloat(val.shipping_cost) || 0;
+                var grandTotal = parseFloat(val.grandtotal) || 0;
+
                 html += `
                     <div class="card border expedition-option mb-2">
                         <div class="card-body p-3">
                             <div class="form-check">
-                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_cargo_${i}" ${i == 0 && (!data.calculate_reguler || data.calculate_reguler.length == 0) ? 'checked' : ''} value="${val.shipping_name};${val.service_name};${val.grandtotal};${val.shipping_cost}" onchange="autoSaveForm()">
+                                <input type="radio" class="form-check-input" name="${type}_delivery" id="${type}_delivery_cargo_${i}" ${i == 0 && (!Array.isArray(data.calculate_reguler) || data.calculate_reguler.length == 0) ? 'checked' : ''} value="${safeShippingName};${safeServiceName};${grandTotal};${shippingCost}" onchange="autoSaveForm()">
                                 <label class="form-check-label w-100" for="${type}_delivery_cargo_${i}">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
-                                            <h6 class="mb-1">${val.shipping_name}</h6>
-                                            <div class="text-muted small">${val.service_name}</div>
+                                            <h6 class="mb-1">${safeShippingName}</h6>
+                                            <div class="text-muted small">${safeServiceName}</div>
                                         </div>
-                                        <span class="badge bg-primary">Rp ${$.number(val.shipping_cost)}</span>
+                                        <span class="badge bg-primary">Rp ${$.number(shippingCost)}</span>
                                     </div>
                                     <div class="mt-2 small text-muted">
                                         <i class="ph-clock me-1"></i>
-                                        Estimasi: ${val.etd}
+                                        Estimasi: ${safeEtd}
                                     </div>
                                 </label>
                             </div>
@@ -1046,11 +1121,24 @@
 
     function searchISBN() {
         var isbnValue = $('#search_isbn').val().trim();
+        isbnValue = isbnValue.replace(/[^0-9X\-]/gi, '');
 
         if (!isbnValue) {
             swalInit.fire({
                 title: 'Perhatian',
                 text: 'Mohon masukkan nomor ISBN terlebih dahulu',
+                icon: 'warning'
+            });
+
+            return;
+        }
+
+        var cleanISBN = isbnValue.replace(/-/g, '');
+
+        if (cleanISBN.length !== 10 && cleanISBN.length !== 13) {
+            swalInit.fire({
+                title: 'Format ISBN Tidak Valid',
+                text: 'ISBN harus terdiri dari 10 atau 13 digit',
                 icon: 'warning'
             });
 
@@ -1104,19 +1192,45 @@
                     return;
                 }
 
+                var isDuplicate = false;
+
+                $('#data-collection-isbn input[name="ci_code[]"]').each(function() {
+                    if ($(this).val() === (data.isbn ?? '')) {
+                        isDuplicate = true;
+
+                        return false;
+                    }
+                });
+
+                if (isDuplicate) {
+                    swalInit.fire({
+                        title: 'ISBN Sudah Ditambahkan',
+                        text: 'ISBN ini sudah ada dalam daftar koleksi',
+                        icon: 'warning'
+                    });
+
+                    return;
+                }
+
                 $('#empty-isbn-row').remove();
+
+                var safeTitle = $('<div>').text(data.title ?? '-').html();
+                var safeKepeng = $('<div>').text(data.kepeng ?? '-').html();
+                var safePenerbit = $('<div>').text(data.nama_penerbit ?? '-').html();
+                var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
+                var safeISBN = $('<div>').text(data.isbn ?? '-').html();
 
                 $('#data-collection-isbn').append(`
                     <tr class="animate__animated animate__fadeIn">
                         <input type="hidden" name="ci[]" value="1">
-                        <input type="hidden" name="ci_code[]" value="${data.isbn ?? ''}">
+                        <input type="hidden" name="ci_code[]" value="${safeISBN}">
                         <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
-                        <td class="align-middle text-wrap">${data.title ?? '-'}</td>
-                        <td class="align-middle text-wrap">${data.kepeng ?? '-'}</td>
-                        <td class="align-middle text-wrap">${data.nama_penerbit ?? '-'}</td>
+                        <td class="align-middle text-wrap">${safeTitle}</td>
+                        <td class="align-middle text-wrap">${safeKepeng}</td>
+                        <td class="align-middle text-wrap">${safePenerbit}</td>
                         <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
-                        <td class="align-middle text-nowrap">${data.isbn ?? '-'}</td>
-                        <td class="align-middle text-wrap">${data.sinopsis ?? '-'}</td>
+                        <td class="align-middle text-nowrap">${safeISBN}</td>
+                        <td class="align-middle text-wrap">${safeSinopsis}</td>
                         <td class="align-middle">2</td>
                         <td class="align-middle">1</td>
                         <td class="text-center align-middle">
@@ -1211,6 +1325,18 @@
     function addCollectionNonISBN() {
         var total = parseInt($('#add-number-collection-non-isbn').val());
 
+        if (isNaN(total) || total < 1) {
+            swalInit.fire({
+                title: 'Perhatian',
+                text: 'Minimal menambahkan 1 baris',
+                icon: 'warning'
+            });
+
+            $('#add-number-collection-non-isbn').val(1);
+
+            return;
+        }
+
         if (total > 10) {
             swalInit.fire({
                 title: 'Perhatian',
@@ -1218,15 +1344,7 @@
                 icon: 'warning'
             });
 
-            return;
-        }
-
-        if (total < 1) {
-            swalInit.fire({
-                title: 'Perhatian',
-                text: 'Minimal menambahkan 1 baris',
-                icon: 'warning'
-            });
+            $('#add-number-collection-non-isbn').val(10);
 
             return;
         }
@@ -1313,22 +1431,28 @@
                 </tr>
             `);
 
-            $('input[name="cni_price[]"]').number(true);
-
             lookupCatalog(`.cni_catalog_id_${randStr}`, `.cni_catalog_id_${randStr}`, true);
-            select2Basic();
         }
 
+        $('input[name="cni_price[]"]').number(true);
+
+        select2Basic();
         autoSaveForm();
     }
 
     function selectCollectionNonISBN(param) {
+        var catalogId = $(param).val();
+
+        if (!catalogId || catalogId === '') {
+            return;
+        }
+
         $.ajax({
             url: '{{ url("physical-handover/add-delivery-form/select-catalog") }}',
             type: 'GET',
             dataType: 'JSON',
             data: {
-                id: $(param).val()
+                id: catalogId
             },
             beforeSend: function() {
                 onLoading('show', '#data-collection-non-isbn');
@@ -1336,21 +1460,44 @@
             success: function(response) {
                 onLoading('close', '#data-collection-non-isbn');
 
+                if (!response || typeof response !== 'object') {
+                    swalInit.fire({
+                        title: 'Data Tidak Valid',
+                        text: 'Response dari server tidak valid',
+                        icon: 'error'
+                    });
+
+                    return;
+                }
+
                 let selector = $(param).closest('tr');
 
-                selector.find('input[name="cni_title[]"]').val(response?.TITLE);
-                selector.find('input[name="cni_author[]"]').val(response?.AUTHOR);
-                selector.find('input[name="cni_physical_description[]"]').val(response?.DESCRIPTION);
-                selector.find('input[name="cni_year[]"]').val(response?.PUBLISHYEAR);
-                selector.find('select[name="cni_type[]"]').val(response?.ALIAS_WORKSHEET).trigger('change');
-                selector.find('input[name="cni_price[]"]').val(response?.PRICE);
+                selector.find('input[name="cni_title[]"]').val(response?.TITLE || '');
+                selector.find('input[name="cni_author[]"]').val(response?.AUTHOR || '');
+                selector.find('input[name="cni_physical_description[]"]').val(response?.DESCRIPTION || '');
+                selector.find('input[name="cni_year[]"]').val(response?.PUBLISHYEAR || '');
+                selector.find('select[name="cni_type[]"]').val(response?.ALIAS_WORKSHEET || '').trigger('change');
+                selector.find('input[name="cni_price[]"]').val(response?.PRICE || '');
 
                 notification('success', 'Data katalog berhasil dimuat');
                 autoSaveForm();
             },
-            error: function(response) {
+            error: function(xhr, status, error) {
                 onLoading('close', '#data-collection-non-isbn');
-                responseError(response);
+
+                var errorMessage = 'Terjadi kesalahan saat memuat data katalog';
+
+                if (status === 'timeout') {
+                    errorMessage = 'Request timeout. Mohon coba lagi.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'Katalog tidak ditemukan.';
+                }
+
+                swalInit.fire({
+                    title: 'Gagal Memuat Data',
+                    text: errorMessage,
+                    icon: 'error'
+                });
             }
         });
     }
@@ -1382,10 +1529,11 @@
 
         for (var i = 1; i <= total; i++) {
             var randStr = randomString(10);
+            var cpIndex = Date.now() + '_' + i;
 
             $('#data-collection-periodicals').append(`
-                <tr class="periodical-row-${randStr} animate__animated animate__fadeIn">
-                    <input type="hidden" name="cp[]" value="1">
+                <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
+                    <input type="hidden" name="cp[${cpIndex}]" value="1">
                     <td width="5%" rowspan="2" class="align-top">
                         <button type="button" class="btn btn-danger" onclick="removeItemPeriodicals('${randStr}')">
                             <i class="ph-trash"></i>
@@ -1397,18 +1545,18 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0"><i class="ph-toggle-left me-1"></i> Katalog</h6>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary input-mode-switch active" onclick="switchInputMode('${randStr}', 'catalog')">
+                                        <button type="button" class="btn btn-outline-primary input-mode-switch active" onclick="switchInputMode('${randStr}', 'catalog', '${cpIndex}')">
                                             <i class="ph-database me-1"></i>
                                             Pilihan
                                         </button>
-                                        <button type="button" class="btn btn-outline-primary input-mode-switch" onclick="switchInputMode('${randStr}', 'manual')">
+                                        <button type="button" class="btn btn-outline-primary input-mode-switch" onclick="switchInputMode('${randStr}', 'manual', '${cpIndex}')">
                                             <i class="ph-keyboard me-1"></i>
                                             Manual
                                         </button>
                                     </div>
                                 </div>
                                 <div class="periodical-catalog-section-${randStr} periodical-catalog-section active">
-                                    <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[]">
+                                    <input type="hidden" class="cp_catalog_id_${randStr}" name="cp_catalog_id[${cpIndex}]">
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="ph-database"></i></span>
                                         <input type="text" class="form-control cp_catalog_text_${randStr}" placeholder="Pilih Katalog Terbitan Berkala" readonly>
@@ -1419,7 +1567,7 @@
                                         <div class="col-md-12">
                                             <div class="input-group">
                                                 <span class="input-group-text">Judul Terbitan</span>
-                                                <input type="text" class="form-control" name="cp_manual_title[]" placeholder="Contoh: Majalah Perpustakaan Indonesia">
+                                                <input type="text" class="form-control" name="cp_manual_title[${cpIndex}]" placeholder="Contoh: Majalah Perpustakaan Indonesia">
                                             </div>
                                         </div>
                                     </div>
@@ -1428,18 +1576,18 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="periodical-row-${randStr}">
+                <tr class="periodical-row-${randStr}" data-cp-index="${cpIndex}">
                     <td>
                         <div class="card border-0 bg-light">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0"><i class="ph-list-numbers me-1"></i> Daftar Edisi</h6>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addCollectionPeriodicalsEdition('${randStr}')">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addCollectionPeriodicalsEdition('${cpIndex}')">
                                         <i class="ph-plus-circle me-1"></i>
                                         Tambah Edisi
                                     </button>
                                 </div>
-                                <div id="data-collection-periodicals-edition-${randStr}">
+                                <div id="data-collection-periodicals-edition-${cpIndex}">
                                     <div class="alert alert-info border-0 mb-0">
                                         <i class="ph-info me-1"></i>
                                         Belum ada edisi yang ditambahkan
@@ -1459,7 +1607,7 @@
         autoSaveForm();
     }
 
-    function switchInputMode(randStr, mode) {
+    function switchInputMode(randStr, mode, cpIndex) {
         $(`.periodical-row-${randStr} .input-mode-switch`).removeClass('active');
         $(`.periodical-row-${randStr} .input-mode-switch`).each(function() {
             if ((mode === 'catalog' && $(this).text().trim().includes('Pilihan')) || (mode === 'manual' && $(this).text().trim().includes('Manual'))) {
@@ -1515,32 +1663,32 @@
         });
     }
 
-    function addCollectionPeriodicalsEdition(param) {
+    function addCollectionPeriodicalsEdition(cpIndex) {
         var randStr = randomString(10);
 
-        $('#data-collection-periodicals-edition-' + param + ' .alert-info').remove();
+        $('#data-collection-periodicals-edition-' + cpIndex + ' .alert-info').remove();
 
-        $('#data-collection-periodicals-edition-' + param).append(`
+        $('#data-collection-periodicals-edition-' + cpIndex).append(`
             <div class="card border mb-2 animate__animated animate__fadeIn edition-card-${randStr}">
                 <div class="card-body p-3">
-                    <input type="hidden" name="cpe_${param}[]" value="1">
+                    <input type="hidden" name="cpe[${cpIndex}][]" value="1">
                     <div class="row g-2">
                         <div class="col-md-4">
                             <label class="form-label small">Edisi Serial</label>
-                            <input type="text" class="form-control form-control-sm" name="cpe_edition_${param}[]" placeholder="Contoh: Vol. 1 No. 1">
+                            <input type="text" class="form-control form-control-sm" name="cpe_edition[${cpIndex}][]" placeholder="Contoh: Vol. 1 No. 1">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Awal</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_first_ttes_${param}[]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Akhir</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_end_ttes_${param}[]" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" readonly>
                             </div>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">

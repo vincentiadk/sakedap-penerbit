@@ -182,13 +182,18 @@ class DeliveryMonitoringController extends Controller
                     </a>
                 ';
 
+                $letterDate = '
+                    <div>' . Carbon::parse($val->LETTER_DATE)->isoFormat('D MMM Y') . '</div>
+                    <small>Jam : ' . Carbon::parse($val->LETTER_DATE)->format('H.i') . ' WIB</small>
+                ';
+
                 $data[] = [
                     $start + 1,
                     $action,
                     $val->NAME_PENERBIT,
                     $val->STATUS,
                     $val->LETTER_NUMBER,
-                    Carbon::parse($val->LETTER_DATE)->isoFormat('D MMMM Y'),
+                    ($val->LETTER_DATE ?: null) ? $letterDate : '',
                     $val->NAME_BRANCH,
                     $val->TOTAL_TITLE_DELIVERY,
                     $val->TOTAL_EKS_DELIVERY,
