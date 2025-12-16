@@ -115,7 +115,11 @@ function initLightBox() {
 
 function iframeable() {
     try {
-        if (window.self !== window.top) {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.get('mode') === 'iframe') {
+            $('.iframeable').hide();
+        } else if (window.self !== window.top) {
             $('.iframeable').hide();
         }
     } catch (e) {
