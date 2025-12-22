@@ -48,7 +48,7 @@ class DashboardController extends Controller
 
         $query = "
             select
-                cm.alias,
+                cm.name,
                 count(ec.id) as total
             from
                 collectionmedias cm
@@ -59,9 +59,9 @@ class DashboardController extends Controller
                 e_collections ec on ec.collection_media_id = cm.id
                 and ec.penerbit_id = $executorId
             group by
-                cm.alias
+                cm.name
             order by
-                cm.alias
+                cm.name
         ";
 
         $data = QueryAPI::get($query);
@@ -75,7 +75,7 @@ class DashboardController extends Controller
         foreach ($data as $item) {
             if (isset($item->TOTAL) && $item->TOTAL > 0) {
                 $response[] = [
-                    'name'  => $item->ALIAS ?? 'Unknown',
+                    'name'  => $item->NAME ?? 'Unknown',
                     'value' => (int) $item->TOTAL
                 ];
             }
