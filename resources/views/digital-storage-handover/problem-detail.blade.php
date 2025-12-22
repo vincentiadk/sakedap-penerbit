@@ -463,7 +463,7 @@
             const selected = (selectedId == val.ID ? 'selected' : '');
 
             return `
-                <option value="${val.ID}" `${selected}`>${val.NAME}</option>
+                <option value="${val.ID}" ${selected}>${val.NAME}</option>
             `;
         }).join('');
 
