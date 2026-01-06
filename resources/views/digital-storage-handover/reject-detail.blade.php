@@ -8,7 +8,7 @@
         <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
             <div class="d-sm-flex align-items-center mb-lg-0 ms-lg-3">
                 <div class="d-inline-flex mt-3 mt-sm-0 gap-2">
-                    <button type="button" class="btn btn-secondary" onclick="lookupCatalogHistory('E_COLLECTIONS', {{ $collection->EDEPOSIT_COL_ID }})">
+                    <button type="button" class="btn btn-secondary" onclick="lookupCatalogHistory('E_COLLECTIONS', {{ $collection->ID }})">
                         <i class="ph-books me-1"></i>
                         Histori E-Collection
                     </button>
