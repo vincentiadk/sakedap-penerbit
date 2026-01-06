@@ -1,93 +1,167 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Fisik - <span class="fw-normal">Koleksi Dihibahkan</span>
             </h4>
         </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-success p-2 bg-opacity-10 text-success">
+                    Koleksi Dihibahkan
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="hstack gap-2 mb-0">Filter Data</h5>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <div class="input-group">
-                    <span class="input-group-text">Pelaksana Serah</span>
-                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
-                        <option value=""></option>
-                        @if(Main::getExecutorGroup())
-                            @foreach(Main::getExecutorGroup() as $geg)
-                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
-                            @endforeach
-                        @else
-                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
-                        @endif
-                    </select>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-funnel me-1 text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Filter Pencarian</h6>
                 </div>
+                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="ph-caret-down"></i>
+                </button>
             </div>
-            <hr class="py-1 mb-1">
-            <div class="row">
-                <div class="col-md-6">
+        </div>
+        <div class="collapse" id="filterCollapse">
+            <div class="card-body">
+                <form id="form-filter">
                     <div class="form-group">
-                        <label class="form-label">Tanggal :</label>
-                        <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="date_type" id="date_type">
-                                <option value="accept_date">Diterima</option>
-                                <option value="letter_date">Pengiriman</option>
-                            </select>
-                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Jasa Kirim :</label>
-                        <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-user-circle me-1"></i>
+                            Pelaksana Serah
+                        </label>
+                        <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Pilih Pelaksana" data-width="100%">
                             <option value=""></option>
-                            @foreach($deliveryService as $ds)
-                                <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
-                            @endforeach
+                            @if(Main::getExecutorGroup())
+                                @foreach(Main::getExecutorGroup() as $geg)
+                                    <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                                @endforeach
+                            @else
+                                <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                            @endif
                         </select>
                     </div>
-                </div>
+                    <hr class="my-3">
+                    <div class="row g-3">
+                        <div class="col-lg-6 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-calendar me-1"></i>
+                                Tanggal
+                            </label>
+                            <div class="input-group">
+                                <select class="form-select w-auto flex-grow-0" name="date_type" id="date_type" style="max-width: 150px;">
+                                    <option value="accept_date">Diterima</option>
+                                    <option value="letter_date">Pengiriman</option>
+                                </select>
+                                <span class="input-group-text">
+                                    <i class="ph-calendar-blank"></i>
+                                </span>
+                                <input type="text" class="form-control" name="date" id="date" placeholder="Pilih tanggal" readonly>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-truck me-1"></i>
+                                Jasa Kirim
+                            </label>
+                            <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua Jasa Kirim">
+                                <option value=""></option>
+                                @foreach($deliveryService as $ds)
+                                    <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </div>
-        <div class="card-footer bg-white">
-            <div class="text-end">
-                <a href="{{ url('physical-handover/grant') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
-                    <i class="ph-arrows-clockwise me-1"></i>
-                    Reset Filter
-                </a>
-                <a href="javascript:void(0);" class="btn btn-success" onclick="loadData()">
-                    <i class="ph-magnifying-glass me-1"></i>
-                    Cari Data
-                </a>
+            <div class="card-footer border-top">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url('physical-handover/grant') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                        <i class="ph-arrow-counter-clockwise me-1"></i>
+                        Reset Filter
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="loadData()">
+                        <i class="ph-magnifying-glass me-1"></i>
+                        Cari Data
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-    <div class="card">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-gift me-1 text-success"></i>
+                    <h6 class="mb-0 fw-semibold">Daftar Koleksi Dihibahkan</h6>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success" id="total-records">
+                    <i class="ph-gift me-1"></i>
+                    <span id="record-count">0</span> Koleksi
+                </span>
+            </div>
+        </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
-                <thead class="text-bg-light">
-                    <tr>
-                        <th class="text-nowrap">No</th>
-                        <th class="text-nowrap">Pelaksana Serah</th>
-                        <th class="text-nowrap">Tgl Kirim</th>
-                        <th class="text-nowrap">Tgl Hibah</th>
-                        <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Tujuan</th>
-                        <th class="text-nowrap">Jasa Kirim</th>
-                        <th class="text-nowrap">Resi</th>
-                        <th class="text-nowrap">Jumlah</th>
-                        <th class="text-nowrap">Jenis Koleksi</th>
-                        <th class="text-nowrap">Sumber</th>
-                        <th class="text-nowrap">Alasan Ditolak</th>
-                    </tr>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered display nowrap w-100" id="datatable-serverside">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center text-nowrap" style="width: 60px">
+                                <i class="ph-hash"></i>
+                            </th>
+                            <th class="text-nowrap" style="min-width: 180px">
+                                <i class="ph-user-circle me-1"></i>
+                                Pelaksana Serah
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 130px">
+                                <i class="ph-calendar-check me-1"></i>
+                                Tgl Kirim
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 130px">
+                                <i class="ph-calendar-plus me-1"></i>
+                                Tgl Hibah
+                            </th>
+                            <th class="text-nowrap" style="min-width: 250px">
+                                <i class="ph-book me-1"></i>
+                                Judul
+                            </th>
+                            <th class="text-nowrap" style="min-width: 200px">
+                                <i class="ph-map-pin me-1"></i>
+                                Tujuan
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-truck me-1"></i>
+                                Jasa Kirim
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-barcode me-1"></i>
+                                Resi
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 100px">
+                                <i class="ph-stack me-1"></i>
+                                Jumlah
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-books me-1"></i>
+                                Jenis Koleksi
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-archive me-1"></i>
+                                Sumber
+                            </th>
+                            <th class="text-nowrap" style="min-width: 200px">
+                                <i class="ph-warning-circle me-1"></i>
+                                Alasan Ditolak
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -113,11 +187,12 @@
             ajax: {
                 url: '{{ url("physical-handover/grant/datatable") }}',
                 dataType: 'JSON',
-                data: {
-                    delivery_service_id: $('#delivery_service_id').val(),
-                    date: $('#date').val(),
-                    date_type: $('#date_type').val(),
-                    executor_id: $('#executor_id').val(),
+                data: function (d) {
+                    $('#form-filter').serializeArray().forEach(function(item) {
+                        d[item.name] = item.value;
+                    });
+
+                    return d;
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -128,15 +203,15 @@
                 }
             },
             columns: [
+                { orderable: true, className: 'align-middle text-center fw-semibold' },
+                { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-center' },
-                { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle' },
-                { orderable: false, className: 'align-middle' },
+                { orderable: false, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle allow-select' },
@@ -146,15 +221,25 @@
                 const searchInput = $('div.dataTables_filter input');
 
                 searchInput.off().unbind();
-
                 searchInput.on('keyup', debounce(function () {
                     table.search(this.value).draw();
                 }, 500));
+
+                updateRecordCount(json.recordsTotal);
             },
+            drawCallback: function(settings) {
+                var api = this.api();
+
+                updateRecordCount(api.page.info().recordsTotal);
+            }
         }).on('draw.dt', function() {
             onLoading('close', '#datatable-serverside_wrapper');
         });
 
         window.gDataTable.columns.adjust().draw();
+    }
+
+    function updateRecordCount(count) {
+        $('#record-count').text(count || 0);
     }
 </script>

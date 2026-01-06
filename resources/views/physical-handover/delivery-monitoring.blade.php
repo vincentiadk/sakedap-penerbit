@@ -1,23 +1,41 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Fisik - <span class="fw-normal">Monitoring Pengiriman</span>
             </h4>
         </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-info p-2 bg-opacity-10 text-info">
+                    Pantau Status Pengiriman
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="hstack gap-2 mb-0">Filter Data</h5>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-funnel me-1 text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Filter Pencarian</h6>
+                </div>
+                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="ph-caret-down"></i>
+                </button>
+            </div>
         </div>
-        <div class="card-body">
-            <form id="form-filter">
-                <div class="form-group">
-                    <div class="input-group">
-                        <span class="input-group-text">Pelaksana Serah</span>
-                        <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+        <div class="collapse" id="filterCollapse">
+            <div class="card-body">
+                <form id="form-filter">
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-user-circle me-1"></i>
+                            Pelaksana Serah
+                        </label>
+                        <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Pilih Pelaksana" data-width="100%">
                             <option value=""></option>
                             @if(Main::getExecutorGroup())
                                 @foreach(Main::getExecutorGroup() as $geg)
@@ -28,127 +46,224 @@
                             @endif
                         </select>
                     </div>
-                </div>
-                <hr class="py-1 mb-1">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Tujuan :</label>
+                    <hr class="my-3">
+                    <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-map-pin me-1"></i>
+                                Tujuan Pengiriman
+                            </label>
                             <select class="form-select" name="branch_id" id="branch_id">
-                                <option value="">Semua</option>
+                                <option value="">Semua Tujuan</option>
                                 <option value="37">Perpustakaan Nasional Republik Indonesia</option>
                                 @if(Main::getBranch())
                                     <option value="{{ Main::getBranch()->ID }}">{{ Main::getBranch()->NAME }}</option>
                                 @endif
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Jenis Tanggal :</label>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-calendar-blank me-1"></i>
+                                Jenis Tanggal
+                            </label>
                             <select class="form-select" name="date_type" id="date_type">
-                                <option value="letter_date" selected>Pengiriman</option>
+                                <option value="letter_date" selected>Tanggal Pengiriman</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="form-label">Tanggal :</label>
-                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="card-footer bg-white">
-            <div class="text-end">
-                <a href="{{ url('physical-handover/delivery-monitoring') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
-                    <i class="ph-arrows-clockwise me-1"></i>
-                    Reset Filter
-                </a>
-                <a href="javascript:void(0);" class="btn btn-success" onclick="loadData()">
-                    <i class="ph-magnifying-glass me-1"></i>
-                    Cari Data
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
-                <thead class="text-bg-light">
-                    <tr>
-                        <th class="text-nowrap" rowspan="2">No</th>
-                        <th class="text-nowrap" rowspan="2">Aksi</th>
-                        <th class="text-nowrap" rowspan="2">Pelaksana Serah</th>
-                        <th class="text-nowrap" rowspan="2">Status</th>
-                        <th class="text-nowrap" rowspan="2">No Surat</th>
-                        <th class="text-nowrap" rowspan="2">Tanggal</th>
-                        <th class="text-nowrap" rowspan="2">Tujuan</th>
-                        <th class="text-nowrap" rowspan="2">Resi</th>
-                        <th class="text-nowrap" rowspan="2">Jasa Kirim</th>
-                        <th class="text-nowrap" rowspan="2">Pengirim</th>
-                        <th class="text-nowrap" rowspan="2">Telp</th>
-                        <th class="text-nowrap text-center" colspan="2">Pengiriman</th>
-                    </tr>
-                    <tr>
-                        <th class="text-nowrap text-center">Judul</th>
-                        <th class="text-nowrap text-center">Eksemplar</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div id="modal-form" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Form Resi</h5>
-                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">
-                    <i class="ph-x"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger d-none" id="validation-element">
-                    <ul class="mb-0" id="validation-data"></ul>
-                </div>
-                <form id="form-data">
-                    <input type="hidden" name="table_id" id="table_id">
-                    <div class="form-group">
-                        <label class="form-label">Nama Pengirim : <span class="text-danger fw-bold">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="sender_name" id="sender_name" placeholder="Contoh : John Doe">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">No Resi : <span class="text-danger fw-bold">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" placeholder="Contoh : JNE1234567890">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Biaya Kirim : <span class="text-danger fw-bold">*</span></label>
-                        <div class="input-group">
-                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" placeholder="0">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Jasa Kirim : <span class="text-danger fw-bold">*</span></label>
-                        <div class="input-group">
-                            <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-dropdown-parent="#modal-form">
-                                <option value=""></option>
-                                @foreach($deliveryService as $ds)
-                                    <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
-                                @endforeach
-                            </select>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-calendar me-1"></i>
+                                Tanggal
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="ph-calendar-blank"></i>
+                                </span>
+                                <input type="text" class="form-control" name="date" id="date" placeholder="Pilih tanggal" readonly>
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer justify-content-end">
-                <button class="btn btn-warning" id="btn-create" onclick="updateData()">
+            <div class="card-footer border-top">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url('physical-handover/delivery-monitoring') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                        <i class="ph-arrow-counter-clockwise me-1"></i>
+                        Reset Filter
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="loadData()">
+                        <i class="ph-magnifying-glass me-1"></i>
+                        Cari Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-package me-1 text-success"></i>
+                    <h6 class="mb-0 fw-semibold">Daftar Pengiriman</h6>
+                </div>
+                <span class="badge bg-info bg-opacity-10 text-info" id="total-records">
+                    <i class="ph-truck me-1"></i>
+                    <span id="record-count">0</span> Pengiriman
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered display nowrap w-100" id="datatable-serverside">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center text-nowrap" rowspan="2" style="width: 60px">
+                                <i class="ph-hash"></i>
+                            </th>
+                            <th class="text-center text-nowrap" rowspan="2" style="width: 100px">
+                                <i class="ph-gear"></i>
+                                Aksi
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 180px">
+                                <i class="ph-user-circle me-1"></i>
+                                Pelaksana Serah
+                            </th>
+                            <th class="text-center text-nowrap" rowspan="2" style="min-width: 120px">
+                                <i class="ph-flag me-1"></i>
+                                Status
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 150px">
+                                <i class="ph-file-text me-1"></i>
+                                No Surat
+                            </th>
+                            <th class="text-center text-nowrap" rowspan="2" style="min-width: 130px">
+                                <i class="ph-calendar me-1"></i>
+                                Tanggal
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 200px">
+                                <i class="ph-map-pin me-1"></i>
+                                Tujuan
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 150px">
+                                <i class="ph-barcode me-1"></i>
+                                Resi
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 150px">
+                                <i class="ph-truck me-1"></i>
+                                Jasa Kirim
+                            </th>
+                            <th class="text-nowrap" rowspan="2" style="min-width: 150px">
+                                <i class="ph-user me-1"></i>
+                                Pengirim
+                            </th>
+                            <th class="text-center text-nowrap" rowspan="2" style="min-width: 130px">
+                                <i class="ph-phone me-1"></i>
+                                Telepon
+                            </th>
+                            <th class="text-center" colspan="2">
+                                <i class="ph-package me-1"></i>
+                                Detail Pengiriman
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="text-center text-nowrap" style="min-width: 100px">
+                                <i class="ph-book me-1"></i>
+                                Judul
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 100px">
+                                <i class="ph-stack me-1"></i>
+                                Eksemplar
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-form" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header text-bg-warning">
+                <h5 class="modal-title">
+                    <i class="ph-receipt me-1"></i>
+                    Form Data Resi Pengiriman
+                </h5>
+                <button type="button" class="btn btn-light btn-sm btn-icon rounded-pill" data-bs-dismiss="modal">
+                    <i class="ph-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger alert-dismissible fade show border-0 d-none" id="validation-element">
+                    <div class="d-flex align-items-start">
+                        <i class="ph-warning-circle ph-2x me-3"></i>
+                        <div class="flex-fill">
+                            <h6 class="alert-heading fw-semibold mb-2">Terdapat kesalahan pada form:</h6>
+                            <ul class="mb-0" id="validation-data"></ul>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="clearValidation()"></button>
+                    </div>
+                </div>
+                <form id="form-data">
+                    <input type="hidden" name="table_id" id="table_id">
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-user me-1"></i>
+                            Nama Pengirim
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-identification-card"></i>
+                            </span>
+                            <input type="text" class="form-control" name="sender_name" id="sender_name" placeholder="Contoh: John Doe">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-barcode me-1"></i>
+                            Nomor Resi
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-hash"></i>
+                            </span>
+                            <input type="text" class="form-control" name="receipt_no" id="receipt_no" placeholder="Contoh: JNE1234567890">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-currency-circle-dollar me-1"></i>
+                            Biaya Kirim
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">IDR</span>
+                            <input type="number" class="form-control" name="delivery_fee" id="delivery_fee" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-truck me-1"></i>
+                            Jasa Pengiriman
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-dropdown-parent="#modal-form" data-placeholder="Pilih Jasa Pengiriman">
+                            <option value=""></option>
+                            @foreach($deliveryService as $ds)
+                                <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="ph-x me-1"></i>
+                    Batal
+                </button>
+                <button type="button" class="btn btn-warning" id="btn-create" onclick="updateData()">
                     <i class="ph-floppy-disk me-1"></i>
                     Simpan Data
                 </button>
@@ -185,7 +300,7 @@
         $('#validation-data').html('');
 
         $.each(data, function(index, value) {
-            $('#validation-data').append('<li>' + value + '</li>');
+            $('#validation-data').append('<li class="mb-1">' + value + '</li>');
         });
     }
 
@@ -209,7 +324,6 @@
                     $('#form-filter').serializeArray().forEach(function(item) {
                         d[item.name] = item.value;
                     });
-
                     return d;
                 },
                 beforeSend: function() {
@@ -221,35 +335,45 @@
                 }
             },
             columns: [
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-center fw-semibold' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap' },
+                { orderable: true, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-center' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();
                 const searchInput = $('div.dataTables_filter input');
 
                 searchInput.off().unbind();
-
                 searchInput.on('keyup', debounce(function () {
                     table.search(this.value).draw();
                 }, 500));
+
+                updateRecordCount(json.recordsTotal);
             },
+            drawCallback: function(settings) {
+                var api = this.api();
+
+                updateRecordCount(api.page.info().recordsTotal);
+            }
         }).on('draw.dt', function() {
             onLoading('close', '#datatable-serverside_wrapper');
         });
 
         window.gDataTable.columns.adjust().draw();
+    }
+
+    function updateRecordCount(count) {
+        $('#record-count').text(count || 0);
     }
 
     function showData(id) {
@@ -300,16 +424,23 @@
 
                 if(response.code == 200) {
                     formSuccess();
-                    notification('success', response.message);
+
+                    swalInit.fire({
+                        title: 'Berhasil',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
                 } else if(response.code == 400) {
                     $('#modal-form .modal-body').scrollTop(0);
+
                     showValidation(response.error);
                 } else {
                     swalInit.fire({
-                        title: response.code == 404 ? 'Oops ...' : 'Error',
+                        title: response.code == 404 ? 'Oops...' : 'Error',
                         text: response.message,
                         icon: response.code == 404 ? 'warning' : 'error',
-                        showCloseButton: false
+                        confirmButtonText: 'OK'
                     });
                 }
             },

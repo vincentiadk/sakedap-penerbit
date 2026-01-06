@@ -1,23 +1,33 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Fisik - <span class="fw-normal">Koleksi Dikembalikan</span>
             </h4>
         </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-info p-2 bg-opacity-10 text-info">
+                    Koleksi Dikembalikan
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="card">
-        <div class="card-header d-flex align-items-center py-0">
-            <h5 class="py-3 mb-0">Daftar Koleksi Yang Akan Dihibahkan</h5>
-            <div class="ms-auto my-auto">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-list-checks me-1 text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Daftar Koleksi Yang Akan Dihibahkan</h6>
+                </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-teal dropdown-toggle" data-bs-toggle="dropdown">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
                         <i class="ph-hand-pointing me-1"></i>
                         Aksi
                     </button>
-                    <div class="dropdown-menu">
+                    <div class="dropdown-menu dropdown-menu-end">
                         <a href="javascript:void(0);" class="dropdown-item" onclick="grant()">
                             <i class="ph-gift me-1"></i>
                             Hibahkan
@@ -27,112 +37,198 @@
             </div>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover w-100 display" id="datatable-action">
-                <thead class="text-bg-light">
-                    <tr>
-                        <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Jumlah</th>
-                        <th class="text-nowrap">Resi</th>
-                        <th class="text-nowrap">Hapus</th>
-                    </tr>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered display nowrap w-100" id="datatable-action">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-nowrap" style="min-width: 250px">
+                                <i class="ph-book me-1"></i>
+                                Judul
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 100px">
+                                <i class="ph-stack me-1"></i>
+                                Jumlah
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-barcode me-1"></i>
+                                Resi
+                            </th>
+                            <th class="text-center text-nowrap" style="width: 100px">
+                                <i class="ph-trash me-1"></i>
+                                Hapus
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header">
-            <h5 class="hstack gap-2 mb-0">Filter Data</h5>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <div class="input-group">
-                    <span class="input-group-text">Pelaksana Serah</span>
-                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
-                        <option value=""></option>
-                        @if(Main::getExecutorGroup())
-                            @foreach(Main::getExecutorGroup() as $geg)
-                                <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
-                            @endforeach
-                        @else
-                            <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
-                        @endif
-                    </select>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-funnel me-1 text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Filter Pencarian</h6>
                 </div>
+                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="ph-caret-down"></i>
+                </button>
             </div>
-            <hr class="py-1 mb-1">
-            <div class="row">
-                <div class="col-md-6">
+        </div>
+        <div class="collapse show" id="filterCollapse">
+            <div class="card-body">
+                <form id="form-filter">
                     <div class="form-group">
-                        <label class="form-label">Tanggal :</label>
-                        <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="date_type" id="date_type">
-                                <option value="accept_date">Diterima</option>
-                                <option value="letter_date">Pengiriman</option>
-                            </select>
-                            <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label">Jasa Kirim :</label>
-                        <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-user-circle me-1"></i>
+                            Pelaksana Serah
+                        </label>
+                        <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Pilih Pelaksana" data-width="100%">
                             <option value=""></option>
-                            @foreach($deliveryService as $ds)
-                                <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
-                            @endforeach
+                            @if(Main::getExecutorGroup())
+                                @foreach(Main::getExecutorGroup() as $geg)
+                                    <option value="{{ $geg->ID }}" {{ session('id') == $geg->ID ? 'selected' : '' }}>{{ $geg->NAME }}</option>
+                                @endforeach
+                            @else
+                                <option value="{{ session('id') }}" selected>{{ session('name') }}</option>
+                            @endif
                         </select>
                     </div>
+                    <hr class="my-3">
+                    <div class="row g-3">
+                        <div class="col-lg-6 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-calendar me-1"></i>
+                                Tanggal
+                            </label>
+                            <div class="input-group">
+                                <select class="form-select w-auto flex-grow-0" name="date_type" id="date_type" style="max-width: 150px;">
+                                    <option value="accept_date">Diterima</option>
+                                    <option value="letter_date">Pengiriman</option>
+                                </select>
+                                <span class="input-group-text">
+                                    <i class="ph-calendar-blank"></i>
+                                </span>
+                                <input type="text" class="form-control" name="date" id="date" placeholder="Pilih tanggal" readonly>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <label class="form-label fw-semibold">
+                                <i class="ph-truck me-1"></i>
+                                Jasa Kirim
+                            </label>
+                            <select class="form-select select2-basic" name="delivery_service_id" id="delivery_service_id" data-placeholder="Semua Jasa Kirim">
+                                <option value=""></option>
+                                @foreach($deliveryService as $ds)
+                                    <option value="{{ $ds->ID }}">{{ $ds->NAME }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer border-top">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url('physical-handover/retur') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                        <i class="ph-arrow-counter-clockwise me-1"></i>
+                        Reset Filter
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="loadData()">
+                        <i class="ph-magnifying-glass me-1"></i>
+                        Cari Data
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="card-footer bg-white">
-            <div class="text-end">
-                <a href="{{ url('physical-handover/retur') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
-                    <i class="ph-arrows-clockwise me-1"></i>
-                    Reset Filter
-                </a>
-                <a href="javascript:void(0);" class="btn btn-success" onclick="loadData()">
-                    <i class="ph-magnifying-glass me-1"></i>
-                    Cari Data
-                </a>
-            </div>
-        </div>
     </div>
-    <div class="card">
-        <div class="card-header d-flex align-items-center py-0">
-            <h5 class="py-3 mb-0">Daftar Koleksi Dikembalikan</h5>
-            <div class="ms-auto my-auto">
-                <button type="button" class="btn btn-teal" onclick="addListAction()">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-arrow-u-down-left me-1 text-info"></i>
+                    <h6 class="mb-0 fw-semibold">Daftar Koleksi Dikembalikan</h6>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addListAction()">
                     <i class="ph-list-plus me-1"></i>
                     Tambahkan ke Daftar Atas
                 </button>
             </div>
         </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
-                <thead class="text-bg-light">
-                    <tr>
-                        <th class="text-nowrap">#</th>
-                        <th class="text-nowrap">No</th>
-                        <th class="text-nowrap"><i class="ph-gear"></i></th>
-                        <th class="text-nowrap">Pelaksana Serah</th>
-                        <th class="text-nowrap">Tgl Kirim</th>
-                        <th class="text-nowrap">Auto Hibah</th>
-                        <th class="text-nowrap">Status</th>
-                        <th class="text-nowrap">Rencana Ambil</th>
-                        <th class="text-nowrap">Kontak</th>
-                        <th class="text-nowrap">Nama Pengambil</th>
-                        <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Tujuan</th>
-                        <th class="text-nowrap">Jasa Kirim</th>
-                        <th class="text-nowrap">Resi</th>
-                        <th class="text-nowrap">Jumlah</th>
-                        <th class="text-nowrap">Jenis Koleksi</th>
-                        <th class="text-nowrap">Alasan Ditolak</th>
-                    </tr>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered display nowrap w-100" id="datatable-serverside">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center text-nowrap" style="width: 50px">
+                                <i class="ph-check-square"></i>
+                            </th>
+                            <th class="text-center text-nowrap" style="width: 60px">
+                                <i class="ph-hash"></i>
+                            </th>
+                            <th class="text-center text-nowrap" style="width: 100px">
+                                <i class="ph-gear"></i>
+                                Aksi
+                            </th>
+                            <th class="text-nowrap" style="min-width: 180px">
+                                <i class="ph-user-circle me-1"></i>
+                                Pelaksana Serah
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 130px">
+                                <i class="ph-calendar me-1"></i>
+                                Tgl Kirim
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 120px">
+                                <i class="ph-gift me-1"></i>
+                                Auto Hibah
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 120px">
+                                <i class="ph-flag me-1"></i>
+                                Status
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 160px">
+                                <i class="ph-calendar-check me-1"></i>
+                                Rencana Ambil
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 130px">
+                                <i class="ph-phone me-1"></i>
+                                Kontak
+                            </th>
+                            <th class="text-nowrap" style="min-width: 180px">
+                                <i class="ph-user me-1"></i>
+                                Nama Pengambil
+                            </th>
+                            <th class="text-nowrap" style="min-width: 250px">
+                                <i class="ph-book me-1"></i>
+                                Judul
+                            </th>
+                            <th class="text-nowrap" style="min-width: 200px">
+                                <i class="ph-map-pin me-1"></i>
+                                Tujuan
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-truck me-1"></i>
+                                Jasa Kirim
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-barcode me-1"></i>
+                                Resi
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 100px">
+                                <i class="ph-stack me-1"></i>
+                                Jumlah
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-books me-1"></i>
+                                Jenis Koleksi
+                            </th>
+                            <th class="text-nowrap" style="min-width: 200px">
+                                <i class="ph-warning-circle me-1"></i>
+                                Alasan Ditolak
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -140,7 +236,6 @@
 <script>
     $(function() {
         datePickerBasic('#date');
-
         loadDataAction();
         loadData();
     });
@@ -172,6 +267,7 @@
                 {
                     extend: 'collection',
                     text: '<i class="ph-microsoft-excel-logo me-1"></i> Download Excel',
+                    className: 'btn btn-success',
                     buttons: [
                         {
                             extend: 'excelHtml5',
@@ -206,7 +302,7 @@
                 },
                 {
                     extend: 'selectAll',
-                    className: 'btn btn-success',
+                    className: 'btn btn-info',
                     text: '<i class="ph-checks me-1"></i> Centang Semua'
                 },
                 {
@@ -218,11 +314,12 @@
             ajax: {
                 url: '{{ url("physical-handover/retur/datatable") }}',
                 dataType: 'JSON',
-                data: {
-                    delivery_service_id: $('#delivery_service_id').val(),
-                    date: $('#date').val(),
-                    date_type: $('#date_type').val(),
-                    executor_id: $('#executor_id').val(),
+                data: function (d) {
+                    $('#form-filter').serializeArray().forEach(function(item) {
+                        d[item.name] = item.value;
+                    });
+
+                    return d;
                 },
                 beforeSend: function() {
                     onLoading('show', '#datatable-serverside_wrapper');
@@ -234,20 +331,20 @@
             },
             columns: [
                 { orderable: false, className: 'align-middle text-center allow-select' },
-                { orderable: true, className: 'align-middle text-center allow-select' },
+                { orderable: true, className: 'align-middle text-center fw-semibold allow-select' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: false, className: 'align-middle allow-select' },
-                { orderable: false, className: 'align-middle allow-select' },
-                { orderable: false, className: 'align-middle' },
+                { orderable: false, className: 'align-middle text-center allow-select' },
+                { orderable: false, className: 'align-middle text-center allow-select' },
+                { orderable: false, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-center text-wrap allow-select' },
+                { orderable: true, className: 'align-middle text-center allow-select' },
+                { orderable: true, className: 'align-middle text-wrap allow-select' },
+                { orderable: true, className: 'align-middle text-wrap allow-select' },
+                { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
-                { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle text-wrap allow-select' },
-                { orderable: true, className: 'align-middle allow-select' },
-                { orderable: true, className: 'align-middle allow-select' },
+                { orderable: true, className: 'align-middle text-center allow-select' },
                 { orderable: true, className: 'align-middle text-wrap allow-select' },
                 { orderable: true, className: 'align-middle allow-select' },
             ],
@@ -256,7 +353,6 @@
                 const searchInput = $('div.dataTables_filter input');
 
                 searchInput.off().unbind();
-
                 searchInput.on('keyup', debounce(function () {
                     table.search(this.value).draw();
                 }, 500));
@@ -275,7 +371,7 @@
             destroy: true,
             columns: [
                 { className: 'align-middle text-wrap' },
-                { className: 'align-middle' },
+                { className: 'align-middle text-center' },
                 { className: 'align-middle' },
                 { className: 'align-middle text-center' },
             ]
@@ -288,7 +384,7 @@
 
         $.each(data, function(i, val) {
             var btnRemove = `
-                <button type="button" class="btn btn-danger btn-sm col-12" onclick="removeListAction(${ val[0] })">
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeListAction(${ val[0] })">
                     <i class="ph-trash"></i>
                 </button>
             `;
@@ -325,6 +421,7 @@
             for (var i = 0; i < currentDataStorage.length; i++) {
                 if (currentDataStorage[i][0] === id) {
                     isDuplicate = true;
+
                     break;
                 }
             }

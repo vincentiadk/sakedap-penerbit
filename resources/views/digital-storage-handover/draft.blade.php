@@ -1,22 +1,40 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Digital - <span class="fw-normal">Koleksi Draft</span>
             </h4>
         </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center">
+                <span class="badge bg-info p-2 bg-opacity-10 text-info">
+                    Kelola koleksi draft sebelum diproses lebih lanjut
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="hstack gap-2 mb-0">Filter Data</h5>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-funnel me-1 text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Filter Pencarian</h6>
+                </div>
+                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                    <i class="ph-caret-down"></i>
+                </button>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="form-group">
-                <div class="input-group">
-                    <span class="input-group-text">Pelaksana Serah</span>
-                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Semua" data-width="1%">
+        <div class="collapse" id="filterCollapse">
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label fw-semibold">
+                        <i class="ph-user-circle me-1"></i>
+                        Pelaksana Serah
+                    </label>
+                    <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Pilih Pelaksana" data-width="100%">
                         <option value=""></option>
                         @if(Main::getExecutorGroup())
                             @foreach(Main::getExecutorGroup() as $geg)
@@ -27,74 +45,133 @@
                         @endif
                     </select>
                 </div>
-            </div>
-            <hr class="py-1 mb-1">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label class="form-label">Judul :</label>
-                        <input type="text" class="form-control" name="title" id="title" placeholder="....................">
+                <hr class="my-3">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-text-aa me-1"></i>
+                            Judul Koleksi
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-magnifying-glass"></i>
+                            </span>
+                            <input type="text" class="form-control" name="title" id="title" placeholder="Cari berdasarkan judul...">
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label">Tanggal :</label>
-                        <input type="text" class="form-control" name="date" id="date" placeholder="Semua Tanggal" readonly>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-calendar me-1"></i>
+                            Tanggal
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-calendar-blank"></i>
+                            </span>
+                            <input type="text" class="form-control" name="date" id="date" placeholder="Pilih tanggal" readonly>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label">Jenis Koleksi :</label>
-                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-folders me-1"></i>
+                            Jenis Koleksi
+                        </label>
+                        <select class="form-select select2-basic" name="media_id" id="media_id" data-placeholder="Semua Jenis" data-width="100%">
                             <option value=""></option>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}">{{ $m->NAME }}</option>
                             @endforeach
                         </select>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label">Identifier :</label>
-                        <input type="text" class="form-control" name="code" id="code" placeholder="....................">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-barcode me-1"></i>
+                            Identifier
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-hash"></i>
+                            </span>
+                            <input type="text" class="form-control" name="code" id="code" placeholder="Kode identifier...">
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label">Tahun :</label>
-                        <input type="number" class="form-control" name="year" id="year" placeholder="....................">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="ph-calendar-blank me-1"></i>
+                            Tahun
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="ph-clock-counter-clockwise"></i>
+                            </span>
+                            <input type="number" class="form-control" name="year" id="year" placeholder="YYYY" min="1900" max="2100">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="card-footer bg-white">
-            <div class="text-end">
-                <a href="{{ url('digital-storage-handover/draft') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
-                    <i class="ph-arrows-clockwise me-1"></i>
-                    Reset Filter
-                </a>
-                <a href="javascript:void(0);" class="btn btn-success" onclick="loadData()">
-                    <i class="ph-magnifying-glass me-1"></i>
-                    Cari Data
-                </a>
+            <div class="card-footer border-top">
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ url('digital-storage-handover/draft') }}" class="btn btn-danger" onclick="onLoading('show', 'body')">
+                        <i class="ph-arrow-counter-clockwise me-1"></i>
+                        Reset
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="loadData()">
+                        <i class="ph-magnifying-glass me-1"></i>
+                        Cari Data
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-    <div class="card">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="ph-table me-1 text-info"></i>
+                    <h6 class="mb-0 fw-semibold">Daftar Draft Koleksi</h6>
+                </div>
+                <span class="badge bg-info bg-opacity-10 text-info" id="total-records">
+                    <i class="ph-database me-1"></i>
+                    <span id="record-count">0</span> Data
+                </span>
+            </div>
+        </div>
         <div class="card-body">
-            <table class="table table-bordered table-hover w-100 display" id="datatable-serverside">
-                <thead class="text-bg-light">
-                    <tr>
-                        <th class="text-nowrap">No</th>
-                        <th class="text-nowrap"><i class="ph-gear"></i></th>
-                        <th class="text-nowrap">Pelaksana Serah</th>
-                        <th class="text-nowrap">Judul</th>
-                        <th class="text-nowrap">Jenis Koleksi</th>
-                        <th class="text-nowrap">Identifier</th>
-                        <th class="text-nowrap">Tgl Update</th>
-                    </tr>
-                </thead>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered display nowrap w-100" id="datatable-serverside">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center text-nowrap" style="width: 60px">
+                                <i class="ph-hash"></i>
+                            </th>
+                            <th class="text-center text-nowrap" style="width: 100px">
+                                <i class="ph-gear"></i>
+                                Aksi
+                            </th>
+                            <th class="text-nowrap" style="min-width: 180px">
+                                <i class="ph-user-circle me-1"></i>
+                                Pelaksana Serah
+                            </th>
+                            <th class="text-nowrap" style="min-width: 250px">
+                                <i class="ph-text-aa me-1"></i>
+                                Judul
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-folders me-1"></i>
+                                Jenis Koleksi
+                            </th>
+                            <th class="text-nowrap" style="min-width: 150px">
+                                <i class="ph-barcode me-1"></i>
+                                Identifier
+                            </th>
+                            <th class="text-center text-nowrap" style="min-width: 120px">
+                                <i class="ph-calendar me-1"></i>
+                                Tgl Update
+                            </th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -134,28 +211,38 @@
                 }
             },
             columns: [
-                { orderable: true, className: 'align-middle text-center' },
+                { orderable: true, className: 'align-middle text-center fw-semibold' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-wrap' },
-                { orderable: true, className: 'align-middle' },
-                { orderable: true, className: 'align-middle' },
+                { orderable: true, className: 'align-middle text-nowrap' },
+                { orderable: true, className: 'align-middle text-center text-nowrap' },
             ],
             initComplete: function (settings, json) {
                 var table = this.api();
                 const searchInput = $('div.dataTables_filter input');
 
                 searchInput.off().unbind();
-
                 searchInput.on('keyup', debounce(function () {
                     table.search(this.value).draw();
                 }, 500));
+
+                updateRecordCount(json.recordsTotal);
             },
+            drawCallback: function(settings) {
+                var api = this.api();
+
+                updateRecordCount(api.page.info().recordsTotal);
+            }
         }).on('draw.dt', function() {
             onLoading('close', '#datatable-serverside_wrapper');
         });
 
         window.gDataTable.columns.adjust().draw();
+    }
+
+    function updateRecordCount(count) {
+        $('#record-count').text(count || 0);
     }
 </script>

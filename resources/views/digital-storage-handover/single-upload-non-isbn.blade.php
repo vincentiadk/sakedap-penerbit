@@ -1,25 +1,43 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Digital - <span class="fw-normal">Unggah Tunggal Non ISBN</span>
             </h4>
         </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary p-2">
+                    Form Unggah Koleksi
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="alert alert-danger d-none" id="validation-element">
-        <ul class="mb-0" id="validation-data"></ul>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm d-none" id="validation-element">
+        <div class="d-flex align-items-start">
+            <i class="ph-warning-circle ph-2x me-3"></i>
+            <div class="flex-fill">
+                <h6 class="alert-heading fw-semibold mb-2">Terdapat kesalahan pada form:</h6>
+                <ul class="mb-0" id="validation-data"></ul>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="clearValidation()"></button>
+        </div>
     </div>
     <form id="form-data">
         <input type="hidden" name="upload_id_cover" id="upload_id_cover" value="{{ $uploadIDCover }}">
         <input type="hidden" name="upload_id_content" id="upload_id_content" value="{{ $uploadIDCover }}">
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Pelaksana Serah <span class="text-danger fw-bold">*</span></h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-user-circle me-1 text-primary"></i>
+                    Pelaksana Serah
+                    <span class="text-danger fw-bold">*</span>
+                </h5>
             </div>
             <div class="card-body">
-                <select class="form-select select2-basic" name="executor_id" id="executor_id">
+                <select class="form-select select2-basic" name="executor_id" id="executor_id" data-placeholder="Pilih Pelaksana">
                     <option value=""></option>
                     @if(Main::getExecutorGroup())
                         @foreach(Main::getExecutorGroup() as $geg)
@@ -31,12 +49,16 @@
                 </select>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Jenis Bahan <span class="text-danger fw-bold">*</span></h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-folders me-1 text-success"></i>
+                    Jenis Bahan
+                    <span class="text-danger fw-bold">*</span>
+                </h5>
             </div>
             <div class="card-body">
-                <select class="form-select select2-basic" name="worksheet_id" id="worksheet_id" onchange="chooseWorksheet()">
+                <select class="form-select select2-basic" name="worksheet_id" id="worksheet_id" onchange="chooseWorksheet()" data-placeholder="Pilih Jenis Bahan">
                     <option value=""></option>
                     @foreach($worksheet as $w)
                         <option value="{{ $w->ID }}">{{ $w->ALIAS }}</option>
@@ -44,12 +66,18 @@
                 </select>
             </div>
         </div>
-        <div class="card d-none" id="form-parent">
+        <div class="card shadow-sm d-none" id="form-parent">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Parent</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-tree-structure me-1 text-warning"></i>
+                    Parent (Induk Koleksi)
+                </h5>
             </div>
             <div class="card-body">
                 <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="ph-link"></i>
+                    </span>
                     <input type="hidden" name="catalog_id" id="catalog_id">
                     <input type="text" class="form-control" name="catalog_title" id="catalog_title" placeholder="Tidak Ada" onchange="catalogParent()" readonly>
                     <button type="button" class="btn btn-danger d-none" onclick="onLoading('show', 'body'); location.reload(true);" id="btn-cancel-parent">
@@ -59,83 +87,118 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Meta Data</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-note-pencil me-1 text-info"></i>
+                    Meta Data Koleksi
+                </h5>
             </div>
             <div class="card-body">
                 <div class="d-none" id="column-edition">
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-2">Edisi</label>
-                        <div class="col-md-10">
-                            <input type="text" class="form-control" name="edition" id="edition" placeholder="....................">
+                    <div class="row form-group">
+                        <label class="col-form-label col-md-3 fw-semibold">
+                            <i class="ph-newspaper me-1"></i>
+                            Edisi
+                        </label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" name="edition" id="edition" placeholder="Masukkan edisi koleksi">
                         </div>
                     </div>
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-2">Tanggal Terbit Edisi <span class="text-danger fw-bold">*</span></label>
-                        <div class="col-md-10">
-                            <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" placeholder="Pilih Tanggal" readonly>
+                    <div class="row form-group">
+                        <label class="col-form-label col-md-3 fw-semibold">
+                            <i class="ph-calendar-check me-1"></i>
+                            Tanggal Terbit Edisi
+                            <span class="text-danger fw-bold">*</span>
+                        </label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="ph-calendar-blank"></i>
+                                </span>
+                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" placeholder="Pilih Tanggal" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Jenis Koleksi <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()"></select>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-folders me-1"></i>
+                        Jenis Koleksi
+                        <span class="text-danger fw-bold">*</span>
+                    </label>
+                    <div class="col-md-9">
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" data-placeholder="Pilih Jenis Koleksi"></select>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Judul <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="title" id="title" placeholder="....................">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-text-aa me-1"></i>
+                        Judul
+                        <span class="text-danger fw-bold">*</span>
+                    </label>
+                    <div class="col-md-9">
+                        <textarea name="title" class="form-control" id="title" rows="5" placeholder="Masukkan judul koleksi"></textarea>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Identifier</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-barcode me-1"></i>
+                        Identifier
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" onchange="codeType()">
+                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" onchange="codeType()" style="max-width: 150px;">
                                 <option value="">Tidak Ada</option>
                                 <option value="2">ISMN</option>
                                 <option value="3">ISRC</option>
                                 <option value="4">ISSN</option>
                                 <option value="5">ISAN</option>
                             </select>
-                            <input type="text" class="form-control" name="code" id="code" placeholder="....................">
+                            <input type="text" class="form-control" name="code" id="code" placeholder="Masukkan kode identifier">
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">QRCBN</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-qr-code me-1"></i>
+                        QRCBN
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true) : $('#qrcbn').attr('disabled', false)" checked>
-                                    Tidak Ada
-                                </label>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true).val('') : $('#qrcbn').attr('disabled', false)" checked>
+                                    <label class="form-check-label">Tidak Ada</label>
+                                </div>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="...................." disabled>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="Masukkan kode QRCBN" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Seri</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-books me-1"></i>
+                        Seri
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true) : $('#series').attr('disabled', false)" checked>
-                                    Tidak Ada
-                                </label>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true).val('') : $('#series').attr('disabled', false)" checked>
+                                    <label class="form-check-label">Tidak Ada</label>
+                                </div>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" placeholder="...................." disabled>
+                            <input type="text" class="form-control" name="series" id="series" placeholder="Masukkan seri koleksi" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row" id="form-input-serial">
-                    <label class="col-form-label col-md-2">Kala Terbit</label>
-                    <div class="col-md-10">
+                <div class="row form-group" id="form-input-serial">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-clock-clockwise me-1"></i>
+                        Kala Terbit
+                    </label>
+                    <div class="col-md-9">
                         <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada">
                             <option value=""></option>
                             <option value="1">Harian</option>
@@ -150,183 +213,272 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Waktu Terbit</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" readonly>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Preview</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="preview" id="preview" placeholder="cth : 1-5 / 00:01-00:20">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Mata Uang</label>
-                    <div class="col-md-10">
-                        <select class="form-select" name="currency" id="currency">
-                            <option value="IDR" selected>IDR</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Harga Jual <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <input type="number" class="form-control" name="price" id="price" placeholder="....................">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Jilid</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="binding" id="binding" placeholder="....................">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Keterangan Fisik</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-calendar me-1"></i>
+                        Waktu Terbit
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
-                            <span class="input-group-text">Total Halaman / Durasi</span>
-                            <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" placeholder="....................">
-                            <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]">
-                                <option value="Halaman" selected>Halaman</option>
-                                <option value="Menit">Menit</option>
-                                <option value="Jam">Jam</option>
-                            </select>
-                            <span class="input-group-text">Ilustrasi</span>
-                            <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" placeholder="...................." autocomplete="off">
-                            <datalist id="suggestion-physical-description-ill">
-                                <option value="Tidak Ada">Tidak Ada</option>
-                                <option value="Ada (Berwarna)">Ada (Berwarna)</option>
-                                <option value="Ada (Tidak Berwarna)">Ada (Tidak Berwarna)</option>
-                            </datalist>
-                            <span class="input-group-text">Ukuran / Dimensi</span>
-                            <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" placeholder="....................">
+                            <span class="input-group-text">
+                                <i class="ph-calendar-blank"></i>
+                            </span>
+                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" readonly>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Sinopsis <span class="text-danger fw-bold">*</span></label>
-                    <div class="col-md-10">
-                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="...................."></textarea>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-eye me-1"></i>
+                        Preview
+                    </label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="preview" id="preview" placeholder="Contoh: 1-5 / 00:01-00:20">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-currency-circle-dollar me-1"></i>
+                        Harga Jual
+                        <span class="text-danger fw-bold">*</span>
+                    </label>
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <select class="form-select w-auto flex-grow-0" name="currency" id="currency" data-width="30%">
+                                <option value="IDR" selected>IDR</option>
+                            </select>
+                            <input type="number" class="form-control" name="price" id="price" placeholder="Masukkan harga jual" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-book me-1"></i>
+                        Jilid
+                    </label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="binding" id="binding" placeholder="Masukkan informasi jilid">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-book-open me-1"></i>
+                        Keterangan Fisik
+                    </label>
+                    <div class="col-md-9">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Total Halaman / Durasi</span>
+                                    <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" placeholder="Jumlah">
+                                    <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" style="max-width: 120px;">
+                                        <option value="Halaman" selected>Halaman</option>
+                                        <option value="Menit">Menit</option>
+                                        <option value="Jam">Jam</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Ilustrasi</span>
+                                    <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" placeholder="Pilih atau ketik" autocomplete="off">
+                                    <datalist id="suggestion-physical-description-ill">
+                                        <option value="Tidak Ada">Tidak Ada</option>
+                                        <option value="Ada (Berwarna)">Ada (Berwarna)</option>
+                                        <option value="Ada (Tidak Berwarna)">Ada (Tidak Berwarna)</option>
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Ukuran / Dimensi</span>
+                                    <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" placeholder="Contoh: 21 x 14 cm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-article me-1"></i>
+                        Sinopsis
+                        <span class="text-danger fw-bold">*</span>
+                    </label>
+                    <div class="col-md-9">
+                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="Masukkan sinopsis atau deskripsi koleksi"></textarea>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Akses</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-lock-key me-1 text-warning"></i>
+                    Pengaturan Akses
+                </h5>
             </div>
             <div class="card-body">
-                <div class="form-group form-check">
+                <div class="form-check form-group">
                     <input type="radio" class="form-check-input" name="access" id="access-1" value="1">
-                    <label class="form-check-label" for="access-1">Akses full file berwatermak secara online</label>
-                </div>
-                <div class="form-group form-check">
-                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" checked>
-                    <label class="form-check-label" for="access-2">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</label>
-                </div>
-                <div class="form-group form-check">
-                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3">
-                    <label class="form-check-label" for="access-3">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</label>
-                </div>
-                <div class="form-group form-check">
-                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4">
-                    <label class="form-check-label" for="access-4">Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</label>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Kategori</h5>
-            </div>
-            <div class="card-body">
-                <div id="category-content"></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Kontributor</h5>
-            </div>
-            <div class="card-body">
-                <select class="form-select" name="author[]" id="author" data-placeholder="Tulis beberapa" multiple></select>
-                <div class="text-muted mt-1">
-                    <small><i class="ph-info me-1"></i> Contoh : Penulis, Hermawan, S.Kom.</small>
-                </div>
-            </div>
-        </div>
-        <div class="card" id="card-edition">
-            <div class="card-header d-flex align-items-center">
-                <h5 class="hstack gap-2 mb-0">Edisi Serial</h5>
-                <span class="ms-auto">
-                    <label>
-                        <input type="checkbox" class="form-check-input mt-0 me-1" name="has_edition" onchange="$(this).is(':checked') ? $('#content-edition-copy').fadeIn(500) : $('#content-edition-copy').hide()">
-                        Centang jika ada
+                    <label class="form-check-label" for="access-1">
+                        <strong>Akses Full</strong>
+                        <div class="small">Akses full file berwatermak secara online</div>
                     </label>
-                </span>
+                </div>
+                <div class="form-check form-group">
+                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" checked>
+                    <label class="form-check-label" for="access-2">
+                        <strong>Akses Preview + LAN</strong>
+                        <div class="small">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</div>
+                    </label>
+                </div>
+                <div class="form-check form-group">
+                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3">
+                    <label class="form-check-label" for="access-3">
+                        <strong>Akses Preview + Embargo 5 Tahun</strong>
+                        <div class="small">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</div>
+                    </label>
+                </div>
+                <div class="form-check form-group">
+                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4">
+                    <label class="form-check-label" for="access-4">
+                        <strong>Akses Preview Saja</strong>
+                        <div class="small">Akses hanya file preview secara online selamanya dan tidak didayagunakan dimana pun</div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-tag me-1 text-danger"></i>
+                    Kategori
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="category-content">
+                    <div class="alert alert-info border-0 mb-0">
+                        <i class="ph-info me-1"></i>
+                        Pilih jenis koleksi terlebih dahulu
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-users me-1 text-primary"></i>
+                    Kontributor
+                </h5>
+            </div>
+            <div class="card-body">
+                <select class="form-select" name="author[]" id="author" data-placeholder="Ketik nama kontributor (Penulis, Editor, dll)" multiple></select>
+                <div class="form-text">
+                    <i class="ph-info me-1"></i>
+                    Contoh format: Penulis, Hermawan, S.Kom.
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm" id="card-edition">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="ph-newspaper me-1 text-success"></i>
+                        Edisi Serial
+                    </h5>
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" name="has_edition" id="has_edition" onchange="$(this).is(':checked') ? $('#content-edition-copy').slideDown(300) : $('#content-edition-copy').slideUp(300)">
+                        <label class="form-check-label" for="has_edition">Centang jika ada edisi</label>
+                    </div>
+                </div>
             </div>
             <div id="content-edition-copy" style="display:none;">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover table-bordered">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Edisi / Volume</th>
-                                    <th>Tgl Terbit</th>
-                                    <th>Cover</th>
-                                    <th>Konten</th>
-                                    <th>Hapus</th>
+                                    <th style="width: 25%;">Edisi / Volume</th>
+                                    <th style="width: 20%;">Tgl Terbit</th>
+                                    <th style="width: 20%;">Cover</th>
+                                    <th style="width: 20%;">Konten</th>
+                                    <th style="width: 15%;" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="data-edition"></tbody>
                         </table>
                     </div>
                 </div>
-                <div class="card-footer bg-white">
-                    <div class="row">
-                        <div class="col-md-2">
-                            <div class="input-group">
-                                <button type="button" class="btn btn-success" onclick="addEdition()">Tambah</button>
-                                <input type="number" class="form-control text-center" id="add-number-edition" min="1" value="1" placeholder="....................">
-                                <span class="input-group-text">Baris</span>
-                            </div>
-                        </div>
+                <div class="card-footer">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-success" onclick="addEdition()">
+                            <i class="ph-plus-circle me-1"></i>
+                            Tambah Edisi
+                        </button>
+                        <input type="number" class="form-control" id="add-number-edition" min="1" value="1" placeholder="Jumlah baris" style="max-width: 120px;">
+                        <span class="text-muted">Baris</span>
                     </div>
                 </div>
             </div>
         </div>
         @if(!$uploadIDCover && !$uploadIDContent)
-            <div class="row">
+            <div class="row g-3">
                 <div class="col-md-6" id="section-file-cover">
-                    <div class="card">
+                    <div class="card shadow-sm">
                         <div class="card-header">
-                            <h5 class="hstack gap-2 mb-0">File Cover <span class="text-danger fw-bold">*</span></h5>
+                            <h5 class="mb-0 fw-semibold">
+                                <i class="ph-image me-1 text-primary"></i>
+                                File Cover
+                            </h5>
                         </div>
                         <div class="card-body">
                             <input type="file" name="file_cover" id="file_cover">
+                            <div class="form-text mt-2">
+                                <i class="ph-info me-1"></i>
+                                Format: JPG, JPEG, PNG | Maksimal: 2MB
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6" id="section-file-content">
-                    <div class="card">
+                    <div class="card shadow-sm">
                         <div class="card-header">
-                            <h5 class="hstack gap-2 mb-0">File Konten <span class="text-danger fw-bold">*</span></h5>
+                            <h5 class="mb-0 fw-semibold">
+                                <i class="ph-file-pdf me-1 text-danger"></i>
+                                File Konten
+                            </h5>
                         </div>
                         <div class="card-body">
                             <input type="file" name="file_content" id="file_content">
+                            <div class="form-text mt-2">
+                                <i class="ph-info me-1"></i>
+                                Format: PDF, EPUB, MP3, MP4, WAV | Maksimal: 200MB
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         @endif
     </form>
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
-            <div class="text-end">
-                <button type="button" class="btn btn-primary" onclick="submitted()">
-                    <i class="ph-plus me-1"></i>
-                    Tambah Data
-                </button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-0">
+                        <i class="ph-warning me-1"></i>
+                        Pastikan semua data sudah benar sebelum menyimpan
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url('digital-storage-handover/single-upload-non-isbn') }}" class="btn btn-light" onclick="onLoading('show', 'body')">
+                        <i class="ph-arrow-counter-clockwise me-1"></i>
+                        Reset
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="submitted()">
+                        <i class="ph-check-circle me-1"></i>
+                        Submit Data
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -389,14 +541,38 @@
         const category = @json($category ?? []);
         const mediaId = $('#collection_media_id').val();
 
-        const categoryContent = category.filter(val => val.TYPE == mediaId).map(val => `
-            <div class="form-group form-check">
+        if (!mediaId) {
+            $('#category-content').html(`
+                <div class="alert alert-info border-0 mb-0">
+                    <i class="ph-info me-1"></i>
+                    Pilih jenis koleksi terlebih dahulu
+                </div>
+            `);
+
+            return;
+        }
+
+        const filteredCategories = category.filter(val => val.TYPE == mediaId);
+
+        if (filteredCategories.length === 0) {
+            $('#category-content').html(`
+                <div class="alert alert-warning border-0 mb-0">
+                    <i class="ph-warning me-1"></i>
+                    Tidak ada kategori tersedia untuk jenis koleksi ini
+                </div>
+            `);
+
+            return;
+        }
+
+        const categoryContent = filteredCategories.map((val, index) => `
+            <div class="form-check ${index !== filteredCategories.length - 1 ? 'mb-2' : ''}">
                 <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}">
                 <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
             </div>
         `).join('');
 
-        $('#category-content').html(categoryContent || '<div class="alert alert-info"><i class="ph-info me-1"></i> Tidak ada kategori</div>');
+        $('#category-content').html(categoryContent);
     }
 
     function chooseWorksheet() {
@@ -489,34 +665,59 @@
     function addEdition() {
         var total = $('#add-number-edition').val();
 
+        if (!total || total < 1) {
+            swalInit.fire({
+                title: 'Peringatan',
+                text: 'Masukkan jumlah baris yang valid',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+
+            return;
+        }
+
         for(var i = 1; i <= total; i++) {
             $('#data-edition').append(`
                 <tr>
                     <input type="hidden" name="cc_edition[]" value="1">
                     <td>
-                        <input type="text" class="form-control" name="cc_edition_title[]" placeholder="....................">
+                        <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume">
                     </td>
                     <td>
-                        <input type="text" class="form-control" name="cc_edition_date[]" placeholder="Pilih Tanggal">
+                        <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" readonly>
                     </td>
                     <td>
-                        <input type="file" class="form-control" name="cc_edition_cover[]">
+                        <input type="file" class="form-control" name="cc_edition_cover[]" accept=".jpg,.jpeg,.png">
                     </td>
                     <td>
-                        <input type="file" class="form-control" name="cc_edition_content[]">
+                        <input type="file" class="form-control" name="cc_edition_content[]" accept=".pdf,.epub,.mp3,.mp4,.wav">
                     </td>
-                    <td>
-                        <button type="button" class="btn btn-danger col-12" onclick="removeRow(this)"><i class="ph-trash"></i></button>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)" data-bs-toggle="tooltip" title="Hapus baris">
+                            <i class="ph-trash"></i>
+                        </button>
                     </td>
                 </tr>
             `);
-
-            datePickerSingle('input[name="cc_edition_date[]"]');
         }
+
+        datePickerSingle('.date-picker-edition');
+        initTooltip();
     }
 
     function removeRow(param) {
-        $(param).closest('tr').remove();
+        swalInit.fire({
+            title: 'Konfirmasi',
+            text: 'Apakah Anda yakin ingin menghapus baris ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $(param).closest('tr').remove();
+            }
+        });
     }
 
     function codeType() {
@@ -527,6 +728,9 @@
 
         if(codeType == '') {
             $('#code').attr('disabled', true);
+            $('#code').attr('placeholder', 'Pilih jenis identifier terlebih dahulu');
+        } else {
+            $('#code').attr('placeholder', 'Masukkan kode identifier');
         }
     }
 
@@ -540,7 +744,7 @@
         $('#validation-data').html('');
 
         $.each(data, function(index, value) {
-            $('#validation-data').append('<li>' + value + '</li>');
+            $('#validation-data').append('<li class="mb-1">' + value + '</li>');
         });
     }
 
@@ -570,7 +774,7 @@
                         icon: 'success',
                         showDenyButton: false,
                         showCancelButton: false,
-                        confirmButtonText: 'Oke',
+                        confirmButtonText: 'OK',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                     }).then((result) => {
@@ -586,10 +790,10 @@
                     showValidation(response.error);
                 } else {
                     swalInit.fire({
-                        title: 'Oops ...',
+                        title: 'Oops...',
                         text: response.message,
-                        icon: 'info',
-                        showCloseButton: true
+                        icon: 'error',
+                        confirmButtonText: 'OK'
                     });
                 }
             },

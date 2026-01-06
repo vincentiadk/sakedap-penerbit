@@ -13,6 +13,7 @@ $(function () {
     select2Basic();
     iframeable();
     readmoreJS();
+    initTooltip();
 
     $(document).on('init.dt', function (e, settings) {
         if (!settings.oInit.scrollX) {
@@ -64,6 +65,13 @@ $(function () {
         $(window).on('resize', adjustWidthAndSync);
     });
 });
+
+function initTooltip() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
 
 function debounce(callback, delay) {
     let timeout;

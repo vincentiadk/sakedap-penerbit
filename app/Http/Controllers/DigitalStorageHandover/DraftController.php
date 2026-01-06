@@ -207,6 +207,7 @@ class DraftController extends Controller
         $sqlCollection = "
             select
                 ec.*,
+                penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
                 w.alias as alias_worksheet,
                 w.category as category_worksheet,
@@ -234,6 +235,8 @@ class DraftController extends Controller
                 e_collections parents on parents.id = ec.parent_id
             left join
                 worksheets w on w.id = ec.worksheet_id
+            left join
+                penerbit on penerbit.id = ec.penerbit_id
             left join
                 (
                     select

@@ -1,118 +1,196 @@
-<div class="page-header page-header-light shadow mb-4">
+<div class="page-header page-header-light shadow-sm mb-4">
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
                 Serah Simpan Digital - Koleksi Ditinjau - <span class="fw-normal">Detail</span>
             </h4>
         </div>
-        <div class="collapse d-lg-block my-lg-auto ms-lg-auto" id="page-header">
-            <div class="d-sm-flex align-items-center mb-3 mb-lg-0 ms-lg-3">
-                <div class="d-inline-flex mt-3 mt-sm-0">
-                    <button type="button" class="btn btn-secondary me-2" onclick="lookupCatalogHistory('E_COLLECTIONS', {{ $collection->ID }})">
-                        <i class="ph-books me-1"></i>
-                        Histori E-Collection
-                    </button>
-                    <a href="{{ url('digital-storage-handover/review') }}" class="btn btn-primary">
-                        <i class="ph-arrow-left me-1"></i>
-                        Kembali ke Tabel
-                    </a>
-                </div>
+        <div class="d-lg-flex ms-lg-auto">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-secondary" onclick="lookupCatalogHistory('E_COLLECTIONS', {{ $collection->ID }})">
+                    <i class="ph-books me-1"></i>
+                    Histori E-Collection
+                </button>
+                <a href="{{ url('digital-storage-handover/review') }}" class="btn btn-primary">
+                    <i class="ph-arrow-left me-1"></i>
+                    Kembali ke Tabel
+                </a>
             </div>
         </div>
     </div>
 </div>
 <div class="content pt-0">
-    <div class="alert alert-danger d-none" id="validation-element">
-        <ul class="mb-0" id="validation-data"></ul>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm d-none" id="validation-element">
+        <div class="d-flex align-items-start">
+            <i class="ph-warning-circle ph-2x me-3"></i>
+            <div class="flex-fill">
+                <h6 class="alert-heading fw-semibold mb-2">Terdapat kesalahan pada form:</h6>
+                <ul class="mb-0" id="validation-data"></ul>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="clearValidation()"></button>
+        </div>
     </div>
     <form id="form-data">
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <h6 class="mb-0">Histori Masalah</h6>
-                <div class="ms-auto">
-                    @if($collection->REVISION_COUNT)
-                        <span class="badge bg-danger">{{ $collection->REVISION_COUNT }} Kali Dilakukan Revisi</span>
-                    @else
-                        <span class="badge bg-info">Belum Ada Revisi</span>
-                    @endif
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="ph-warning-circle me-1 text-warning"></i>
+                        Histori Masalah
+                    </h5>
+                    <div>
+                        @if($collection->REVISION_COUNT)
+                            <span class="badge bg-danger bg-opacity-10 text-danger p-2">
+                                <i class="ph-arrow-clockwise me-1"></i>
+                                {{ $collection->REVISION_COUNT }} Kali Revisi
+                            </span>
+                        @else
+                            <span class="badge bg-info bg-opacity-10 text-info p-2">
+                                <i class="ph-check-circle me-1"></i>
+                                Belum Ada Revisi
+                            </span>
+                        @endif
+                    </div>
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-hover">
-                    <tbody>
-                        @if($collectionProblemHistory || $collection->PROBLEM)
-                            @if($collectionProblemHistory)
-                                @foreach($collectionProblemHistory as $cph)
-                                    <tr>
-                                        <td>{{ $cph->NAME_PROBLEM }}</td>
-                                        <td>{{ $cph->CREATED_AT ? Carbon::parse($cph->CREATED_AT)->isoFormat('dddd, D MMMM Y') : null }}</td>
-                                        <td>{{ $cph->SOLVED == 1 ? 'Telah Diperbaiki' : 'Belum Diperbaiki' }}</td>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nama Masalah</th>
+                                <th style="width: 200px;">Tanggal</th>
+                                <th style="width: 150px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if($collectionProblemHistory || $collection->PROBLEM)
+                                @if($collectionProblemHistory)
+                                    @foreach($collectionProblemHistory as $cph)
+                                        <tr>
+                                            <td>{{ $cph->NAME_PROBLEM }}</td>
+                                            <td>{{ $cph->CREATED_AT ? Carbon::parse($cph->CREATED_AT)->isoFormat('dddd, D MMMM Y') : '-' }}</td>
+                                            <td>
+                                                @if($cph->SOLVED == 1)
+                                                    <span class="badge bg-success bg-opacity-10 text-success">
+                                                        <i class="ph-check me-1"></i>
+                                                        Telah Diperbaiki
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning">
+                                                        <i class="ph-clock me-1"></i>
+                                                        Belum Diperbaiki
+                                                    </span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                                @if($collection->PROBLEM)
+                                    <tr class="table-active">
+                                        <td colspan="3">
+                                            <strong>Catatan:</strong> {{ $collection->PROBLEM }}
+                                        </td>
                                     </tr>
-                                @endforeach
-                            @endif
-                            @if($collection->PROBLEM)
+                                @endif
+                            @else
                                 <tr>
-                                    <td colspan="3">Ket : {{ $collection->PROBLEM }}</td>
+                                    <td colspan="3" class="text-center text-muted">
+                                        <i class="ph-info me-1"></i>
+                                        Tidak ada data histori masalah
+                                    </td>
                                 </tr>
                             @endif
-                        @else
-                            <tr>
-                                <td colspan="3">Tidak ada data</td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Pelaksana Serah</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-user-circle me-1 text-primary"></i>
+                    Pelaksana Serah
+                </h5>
             </div>
             <div class="card-body">
-                {{ $collection->NAME_PENERBIT }}
+                <div class="d-flex align-items-center">
+                    <div class="flex-fill">
+                        {{ $collection->NAME_PENERBIT }}
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Jenis Bahan</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-folders me-1 text-success"></i>
+                    Jenis Bahan
+                </h5>
             </div>
             <div class="card-body">
-                {{ $collection->ALIAS_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
+                <div class="alert alert-info border-0 mb-0">
+                    <i class="ph-info me-1"></i>
+                    {{ $collection->ALIAS_WORKSHEET }} ({{ $collection->CATEGORY_WORKSHEET }})
+                </div>
             </div>
         </div>
         @if($collection->TITLE_PARENT)
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-header">
-                    <h5 class="hstack gap-2 mb-0">Parent</h5>
+                    <h5 class="mb-0 fw-semibold">
+                        <i class="ph-tree-structure me-1 text-warning"></i>
+                        Parent (Induk Koleksi)
+                    </h5>
                 </div>
                 <div class="card-body">
-                    {{ $collection->TITLE_PARENT }}
+                    <div class="alert alert-primary border-0 mb-0">
+                        <i class="ph-link me-1"></i>
+                        {{ $collection->TITLE_PARENT }}
+                    </div>
                 </div>
             </div>
         @endif
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Meta Data</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-note-pencil me-1 text-info"></i>
+                    Meta Data Koleksi
+                </h5>
             </div>
             <div class="card-body">
                 @if($collection->TITLE_PARENT)
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-2">Edisi</label>
-                        <div class="col-md-10">
-                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="...................." disabled>
+                    <div class="row form-group">
+                        <label class="col-form-label col-md-3 fw-semibold">
+                            <i class="ph-newspaper me-1"></i>
+                            Edisi
+                        </label>
+                        <div class="col-md-9">
+                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="Masukkan edisi koleksi" disabled>
                         </div>
                     </div>
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-2">Tanggal Terbit Edisi</label>
-                        <div class="col-md-10">
-                            <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" disabled>
+                    <div class="row form-group">
+                        <label class="col-form-label col-md-3 fw-semibold">
+                            <i class="ph-calendar-check me-1"></i>
+                            Tanggal Terbit Edisi
+                        </label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="ph-calendar-blank"></i>
+                                </span>
+                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" disabled>
+                            </div>
                         </div>
                     </div>
                 @endif
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Jenis Koleksi</label>
-                    <div class="col-md-10">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-folders me-1"></i>
+                        Jenis Koleksi
+                    </label>
+                    <div class="col-md-9">
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" data-placeholder="Pilih Jenis Koleksi" disabled>
                             <option value=""></option>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
@@ -120,17 +198,23 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Judul</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="...................." disabled>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-text-aa me-1"></i>
+                        Judul
+                    </label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="Masukkan judul koleksi" disabled>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Identifier</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-barcode me-1"></i>
+                        Identifier
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" disabled>
+                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" disabled style="max-width: 150px;">
                                 <option value="">Tidak Ada</option>
                                 <option value="1" {{ $collection->CODE_TYPE == 1 ? 'selected' : '' }}>ISBN</option>
                                 <option value="2" {{ $collection->CODE_TYPE == 2 ? 'selected' : '' }}>ISMN</option>
@@ -138,41 +222,50 @@
                                 <option value="4" {{ $collection->CODE_TYPE == 4 ? 'selected' : '' }}>ISSN</option>
                                 <option value="5" {{ $collection->CODE_TYPE == 5 ? 'selected' : '' }}>ISAN</option>
                             </select>
-                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="...................." disabled>
+                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="Masukkan kode identifier" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">QRCBN</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-qr-code me-1"></i>
+                        QRCBN
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true) : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }} disabled>
-                                    Tidak Ada
-                                </label>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true).val('') : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }} disabled>
+                                    <label class="form-check-label">Tidak Ada</label>
+                                </div>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="...................." disabled>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="Masukkan kode QRCBN" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Seri</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-books me-1"></i>
+                        Seri
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
                             <span class="input-group-text">
-                                <label>
-                                    <input type="checkbox" class="form-check-input mt-0 me-1" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true) : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }} disabled>
-                                    Tidak Ada
-                                </label>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true).val('') : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }} disabled>
+                                    <label class="form-check-label">Tidak Ada</label>
+                                </div>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="...................." disabled>
+                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="Masukkan seri koleksi" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Kala Terbit</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-clock-clockwise me-1"></i>
+                        Kala Terbit
+                    </label>
+                    <div class="col-md-9">
                         <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada" disabled>
                             <option value=""></option>
                             <option value="1" {{ $collection->SERIAL == 1 ? 'selected' : '' }}>Harian</option>
@@ -187,186 +280,265 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Waktu Terbit</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" disabled>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Preview</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="cth : 1-5 / 00:01-00:20" disabled>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Mata Uang</label>
-                    <div class="col-md-10">
-                        <select class="form-select" name="currency" id="currency" disabled>
-                            <option value="{{ $collection->CURRENCY }}" selected>{{ $collection->CURRENCY }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Harga Jual</label>
-                    <div class="col-md-10">
-                        <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="...................." disabled>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Jilid</label>
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="...................." disabled>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Keterangan Fisik</label>
-                    <div class="col-md-10">
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-calendar me-1"></i>
+                        Waktu Terbit
+                    </label>
+                    <div class="col-md-9">
                         <div class="input-group">
-                            <span class="input-group-text">Total Halaman / Durasi</span>
-                            <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="...................." disabled>
-                            <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" disabled>
-                                <option value="Halaman" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Halaman' ? 'selected' : '') : '' }}>Halaman</option>
-                                <option value="Menit" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Menit' ? 'selected' : '') : '' }}>Menit</option>
-                                <option value="Jam" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Jam' ? 'selected' : '') : '' }}>Jam</option>
-                            </select>
-                            <span class="input-group-text">Ilustrasi</span>
-                            <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="...................." autocomplete="off" disabled>
-                            <datalist id="suggestion-physical-description-ill">
-                                <option value="Tidak Ada">Tidak Ada</option>
-                                <option value="Ada (Berwarna)">Ada (Berwarna)</option>
-                                <option value="Ada (Tidak Berwarna)">Ada (Tidak Berwarna)</option>
-                            </datalist>
-                            <span class="input-group-text">Ukuran / Dimensi</span>
-                            <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="...................." disabled>
+                            <span class="input-group-text">
+                                <i class="ph-calendar-blank"></i>
+                            </span>
+                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" disabled>
                         </div>
                     </div>
                 </div>
-                <div class="form-group row">
-                    <label class="col-form-label col-md-2">Sinopsis</label>
-                    <div class="col-md-10">
-                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="...................." disabled>{{ $collection->DESCRIPTION }}</textarea>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-eye me-1"></i>
+                        Preview
+                    </label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="Contoh: 1-5 / 00:01-00:20" disabled>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-currency-circle-dollar me-1"></i>
+                        Harga Jual
+                    </label>
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <select class="form-select w-auto flex-grow-0" name="currency" id="currency" style="max-width: 120px;" disabled>
+                                <option value="{{ $collection->CURRENCY }}" selected>{{ $collection->CURRENCY }}</option>
+                            </select>
+                            <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="Masukkan harga jual" min="0" disabled>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-book me-1"></i>
+                        Jilid
+                    </label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="Masukkan informasi jilid" disabled>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-book-open me-1"></i>
+                        Keterangan Fisik
+                    </label>
+                    <div class="col-md-9">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Total Halaman / Durasi</span>
+                                    <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="Jumlah" disabled>
+                                    <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" style="max-width: 120px;" disabled>
+                                        <option value="Halaman" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Halaman' ? 'selected' : '') : '' }}>Halaman</option>
+                                        <option value="Menit" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Menit' ? 'selected' : '') : '' }}>Menit</option>
+                                        <option value="Jam" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Jam' ? 'selected' : '') : '' }}>Jam</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Ilustrasi</span>
+                                    <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="Pilih atau ketik" autocomplete="off" disabled>
+                                    <datalist id="suggestion-physical-description-ill">
+                                        <option value="Tidak Ada">Tidak Ada</option>
+                                        <option value="Ada (Berwarna)">Ada (Berwarna)</option>
+                                        <option value="Ada (Tidak Berwarna)">Ada (Tidak Berwarna)</option>
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text">Ukuran / Dimensi</span>
+                                    <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="Contoh: 21 x 14 cm" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group mb-0">
+                    <label class="col-form-label col-md-3 fw-semibold">
+                        <i class="ph-article me-1"></i>
+                        Sinopsis
+                    </label>
+                    <div class="col-md-9">
+                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="Masukkan sinopsis atau deskripsi koleksi" disabled>{{ $collection->DESCRIPTION }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Akses</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-lock-key me-1 text-warning"></i>
+                    Pengaturan Akses
+                </h5>
             </div>
             <div class="card-body">
-                <div class="form-group form-check">
+                <div class="form-check form-group">
                     <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} disabled>
-                    <label class="form-check-label" for="access-1">Akses full file berwatermak secara online</label>
+                    <label class="form-check-label" for="access-1">
+                        <strong>Akses Full</strong>
+                        <div class="small text-muted">Akses full file berwatermak secara online</div>
+                    </label>
                 </div>
-                <div class="form-group form-check">
+                <div class="form-check form-group">
                     <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} disabled>
-                    <label class="form-check-label" for="access-2">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</label>
+                    <label class="form-check-label" for="access-2">
+                        <strong>Akses Preview + LAN</strong>
+                        <div class="small text-muted">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</div>
+                    </label>
                 </div>
-                <div class="form-group form-check">
+                <div class="form-check form-group">
                     <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} disabled>
-                    <label class="form-check-label" for="access-3">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</label>
+                    <label class="form-check-label" for="access-3">
+                        <strong>Akses Preview + Embargo 5 Tahun</strong>
+                        <div class="small text-muted">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</div>
+                    </label>
                 </div>
-                <div class="form-group form-check">
+                <div class="form-check form-group mb-0">
                     <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} disabled>
-                    <label class="form-check-label" for="access-4">Akses hanya file preview secara online selamanya dan tidak didayagunakan di mana pun</label>
+                    <label class="form-check-label" for="access-4">
+                        <strong>Akses Preview Saja</strong>
+                        <div class="small text-muted">Akses hanya file preview secara online selamanya dan tidak didayagunakan dimana pun</div>
+                    </label>
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Kategori</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-tag me-1 text-danger"></i>
+                    Kategori
+                </h5>
             </div>
             <div class="card-body">
                 <div id="category-content"></div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Kontributor</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-users me-1 text-primary"></i>
+                    Kontributor
+                </h5>
             </div>
             <div class="card-body">
-                <select class="form-select" name="author[]" id="author" data-placeholder="Tulis beberapa" multiple disabled>
+                <select class="form-select" name="author[]" id="author" data-placeholder="Ketik nama kontributor (Penulis, Editor, dll)" multiple disabled>
                     @if($collectionContributor)
                         @foreach($collectionContributor as $cc)
                             <option value="{{ $cc }}" selected>{{ $cc }}</option>
                         @endforeach
                     @endif
                 </select>
+                <div class="form-text mt-2">
+                    <i class="ph-info me-1"></i>
+                    Contoh format: Penulis, Hermawan, S.Kom.
+                </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card shadow-sm">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">File</h5>
+                <h5 class="mb-0 fw-semibold">
+                    <i class="ph-file me-1 text-success"></i>
+                    File Koleksi
+                </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="fw-bold border-bottom pb-2 mb-2">Cover</div>
-                        <div class="alert alert-info mb-2">
-                            <div><b>Hash :</b> {{ $collection->HASH_CATALOGCOVERS ?? '' }}</div>
-                            <div><b>Mime Type :</b> {{ $collection->MIME_CATALOGCOVERS ?? '' }}</div>
-                            <div><b>Ukuran :</b> {{ Main::formatFileSize($collection->FILE_SIZE_CATALOGCOVERS ?? 0) }}</div>
-                            <div><b>Metode :</b> {{ Main::method($collection->METHOD_CATALOGCOVERS ?? 0) }}</div>
-                        </div>
-                        <img src="" class="img-fluid w-100" id="file-cover" style="object-fit: contain; max-width: 600px;" alt="Cover Catalog">
-                    </div>
-                    <div class="col-md-6">
-                        <div class="fw-bold border-bottom pb-2 mb-2">Konten</div>
-                        <div class="alert alert-info mb-2">
-                            <div><b>Hash :</b> {{ $collection->HASH_CATALOGFILES ?? '' }}</div>
-                            <div><b>Mime Type :</b> {{ $collection->MIME_CATALOGFILES ?? '' }}</div>
-                            <div><b>Ukuran :</b> {{ Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES ?? 0) }}</div>
-                            <div><b>Metode :</b> {{ Main::method($collection->METHOD_CATALOGFILES ?? 0) }}</div>
-                        </div>
-                        <div id="viewer-wrapper" style="position: relative; width: 100%; min-height: 400px; background: #f5f5f5; border: 1px solid #ddd;">
-                            <div id="viewer-content" style="width: 100%; height: 100%;">
-                                <div id="pdf-viewer-container" style="overflow: auto; max-height: 600px; background: #525659; padding: 20px 0; display: none;"></div>
-                                <video id="video-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" style="display: none; width: 100%; height: 450px;"></video>
-                                <div id="epub-container" style="display: none; height: 600px; width: 100%; background: white;"></div>
-                                <div id="epub-controls" style="display: none; position: absolute; top: 50%; left: 0; width: 100%; justify-content: space-between; padding: 0 20px; pointer-events: none; z-index: 10000; transform: translateY(-50%);">
-                                    <button type="button" id="prev-btn" class="btn btn-dark btn-sm rounded-circle shadow" style="width: 40px; height: 40px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
-                                        <i class="ph-caret-left" style="font-size: 20px;"></i>
-                                    </button>
-                                    <button type="button" id="next-btn" class="btn btn-dark btn-sm rounded-circle shadow" style="width: 40px; height: 40px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
-                                        <i class="ph-caret-right" style="font-size: 20px;"></i>
-                                    </button>
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3">
+                            <h6 class="fw-semibold">
+                                <i class="ph-image me-1 text-primary"></i>
+                                Cover
+                            </h6>
+                            <div class="alert alert-info border-0">
+                                <div class="small">
+                                    <div class="mb-1"><strong>Hash:</strong> {{ $collection->HASH_CATALOGCOVERS ?? '-' }}</div>
+                                    <div class="mb-1"><strong>Mime Type:</strong> {{ $collection->MIME_CATALOGCOVERS ?? '-' }}</div>
+                                    <div class="mb-1"><strong>Ukuran:</strong> {{ Main::formatFileSize($collection->FILE_SIZE_CATALOGCOVERS ?? 0) }}</div>
+                                    <div><strong>Metode:</strong> {{ Main::method($collection->METHOD_CATALOGCOVERS ?? 0) }}</div>
                                 </div>
-                                <div id="audio-wrapper" style="display: none; height: 600px; width: 100%; position: relative; overflow: hidden; border-radius: 8px; background: #000;">
-                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #023BAD 0%, #06732A 100%); z-index: 1;"></div>
-                                    <canvas id="wave-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; opacity: 0.6;"></canvas>
-                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; padding: 30px;">
-                                        <div class="d-flex justify-content-between text-white align-items-center" style="font-family: sans-serif;">
-                                            <span id="timer-current" style="font-variant-numeric: tabular-nums;">0:00</span>
-                                            <span class="fw-bold text-uppercase" style="opacity: 0.8; font-size: 14px;">Now Playing</span>
-                                            <span id="timer-duration" style="font-variant-numeric: tabular-nums;">--:--</span>
-                                        </div>
-                                        <div class="flex-grow-1 d-flex align-items-center justify-content-center text-center">
-                                            <h3 id="audio-title-display" class="text-white fw-light" style="text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                                                Menyiapkan Audio...
-                                            </h3>
-                                        </div>
-                                        <div class="d-flex align-items-center justify-content-center gap-4 pb-4" style="position: relative; z-index: 20;">
-                                            <button type="button" class="btn btn-link text-white p-0" id="btn-rewind" title="-10 Detik">
-                                                <i class="ph-rewind" style="font-size: 32px;"></i>
-                                            </button>
-                                            <div id="play-pause-wrapper" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%; backdrop-filter: blur(5px); border: 2px solid rgba(255,255,255,0.5); cursor: pointer;transition: transform 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                                                <i id="icon-play" class="ph-play text-white" style="font-size: 40px; margin-left: 4px;"></i>
-                                                <i id="icon-pause" class="ph-pause text-white" style="font-size: 40px; display: none;"></i>
+                            </div>
+                            <div class="text-center">
+                                <img src="" class="img-fluid rounded shadow-sm" id="file-cover" style="object-fit: contain; max-width: 100%; max-height: 600px;" alt="Cover Catalog">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="border rounded p-3">
+                            <h6 class="fw-semibold">
+                                <i class="ph-file-pdf me-1 text-danger"></i>
+                                Konten
+                            </h6>
+                            <div class="alert alert-info border-0">
+                                <div class="small">
+                                    <div class="mb-1"><strong>Hash:</strong> {{ $collection->HASH_CATALOGFILES ?? '-' }}</div>
+                                    <div class="mb-1"><strong>Mime Type:</strong> {{ $collection->MIME_CATALOGFILES ?? '-' }}</div>
+                                    <div class="mb-1"><strong>Ukuran:</strong> {{ Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES ?? 0) }}</div>
+                                    <div><strong>Metode:</strong> {{ Main::method($collection->METHOD_CATALOGFILES ?? 0) }}</div>
+                                </div>
+                            </div>
+                            <div id="viewer-wrapper" class="rounded shadow-sm" style="position: relative; width: 100%; min-height: 400px; background: #f5f5f5; border: 1px solid #ddd;">
+                                <div id="viewer-content" style="width: 100%; height: 100%;">
+                                    <div id="pdf-viewer-container" style="overflow: auto; max-height: 600px; background: #525659; padding: 20px 0; display: none;"></div>
+                                    <video id="video-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" style="display: none; width: 100%; height: 450px;"></video>
+                                    <div id="epub-container" style="display: none; height: 600px; width: 100%; background: white;"></div>
+                                    <div id="epub-controls" style="display: none; position: absolute; top: 50%; left: 0; width: 100%; justify-content: space-between; padding: 0 20px; pointer-events: none; z-index: 10000; transform: translateY(-50%);">
+                                        <button type="button" id="prev-btn" class="btn btn-dark btn-sm rounded-circle shadow" style="width: 40px; height: 40px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
+                                            <i class="ph-caret-left" style="font-size: 20px;"></i>
+                                        </button>
+                                        <button type="button" id="next-btn" class="btn btn-dark btn-sm rounded-circle shadow" style="width: 40px; height: 40px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
+                                            <i class="ph-caret-right" style="font-size: 20px;"></i>
+                                        </button>
+                                    </div>
+                                    <div id="audio-wrapper" style="display: none; height: 600px; width: 100%; position: relative; overflow: hidden; border-radius: 8px; background: #000;">
+                                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #023BAD 0%, #06732A 100%); z-index: 1;"></div>
+                                        <canvas id="wave-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; opacity: 0.6;"></canvas>
+                                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; padding: 30px;">
+                                            <div class="d-flex justify-content-between text-white align-items-center" style="font-family: sans-serif;">
+                                                <span id="timer-current" style="font-variant-numeric: tabular-nums;">0:00</span>
+                                                <span class="fw-bold text-uppercase" style="opacity: 0.8; font-size: 14px;">Now Playing</span>
+                                                <span id="timer-duration" style="font-variant-numeric: tabular-nums;">--:--</span>
                                             </div>
-                                            <button type="button" class="btn btn-link text-white p-0" id="btn-forward" title="+10 Detik">
-                                                <i class="ph-fast-forward" style="font-size: 32px;"></i>
-                                            </button>
-                                        </div>
-                                        <div style="position: absolute; bottom: 30px; right: 30px;">
-                                            <button type="button" id="btn-mute" class="btn btn-link text-white p-0" style="opacity: 0.6;">
-                                                <i class="ph-speaker-high" id="icon-vol" style="font-size: 24px;"></i>
-                                            </button>
+                                            <div class="flex-grow-1 d-flex align-items-center justify-content-center text-center">
+                                                <h3 id="audio-title-display" class="text-white fw-light" style="text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                                                    Menyiapkan Audio...
+                                                </h3>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-center gap-4 pb-4" style="position: relative; z-index: 20;">
+                                                <button type="button" class="btn btn-link text-white p-0" id="btn-rewind" title="-10 Detik">
+                                                    <i class="ph-rewind" style="font-size: 32px;"></i>
+                                                </button>
+                                                <div id="play-pause-wrapper" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%; backdrop-filter: blur(5px); border: 2px solid rgba(255,255,255,0.5); cursor: pointer;transition: transform 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                                    <i id="icon-play" class="ph-play text-white" style="font-size: 40px; margin-left: 4px;"></i>
+                                                    <i id="icon-pause" class="ph-pause text-white" style="font-size: 40px; display: none;"></i>
+                                                </div>
+                                                <button type="button" class="btn btn-link text-white p-0" id="btn-forward" title="+10 Detik">
+                                                    <i class="ph-fast-forward" style="font-size: 32px;"></i>
+                                                </button>
+                                            </div>
+                                            <div style="position: absolute; bottom: 30px; right: 30px;">
+                                                <button type="button" id="btn-mute" class="btn btn-link text-white p-0" style="opacity: 0.6;">
+                                                    <i class="ph-speaker-high" id="icon-vol" style="font-size: 24px;"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div id="default-message" style="display: flex; height: 600px; align-items: center; justify-content: center;">
-                                    <span class="text-muted">Memuat file...</span>
+                                    <div id="default-message" style="display: flex; height: 600px; align-items: center; justify-content: center;">
+                                        <div class="text-center text-muted">
+                                            <i class="ph-file ph-3x mb-2 d-block"></i>
+                                            <span>Memuat file...</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -394,6 +566,11 @@
         imageWatermark('#file-cover', '{{ url("stream-file") }}?type=cover&id={{ $collection->ID_CATALOGCOVERS ?? "" }}&filename={{ $collection->FILEURL_CATALOGCOVERS ?? "" }}');
     });
 
+    function clearValidation() {
+        $('#validation-element').addClass('d-none');
+        $('#validation-data').html('');
+    }
+
     function getMedia() {
         const media = @json($media ?? []);
         const worksheetId = '{{ $collection->WORKSHEET_ID ?? 0 }}';
@@ -420,18 +597,42 @@
         const mediaId = $('#collection_media_id').val();
         const selectedIds = new Set(categoryValue.map(v => v.CATEGORY_ID));
 
-        const categoryContent = category.filter(val => val.TYPE == mediaId).map(val => {
+        if (!mediaId) {
+            $('#category-content').html(`
+                <div class="alert alert-info border-0 mb-0">
+                    <i class="ph-info me-1"></i>
+                    Pilih jenis koleksi terlebih dahulu
+                </div>
+            `);
+
+            return;
+        }
+
+        const filteredCategories = category.filter(val => val.TYPE == mediaId);
+
+        if (filteredCategories.length === 0) {
+            $('#category-content').html(`
+                <div class="alert alert-warning border-0 mb-0">
+                    <i class="ph-warning me-1"></i>
+                    Tidak ada kategori tersedia
+                </div>
+            `);
+
+            return;
+        }
+
+        const categoryContent = filteredCategories.map((val, index) => {
             const checked = selectedIds.has(val.ID) ? 'checked' : '';
 
             return `
-                <div class="form-group form-check">
-                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked}>
+                <div class="form-check ${index !== filteredCategories.length - 1 ? 'mb-2' : ''}">
+                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked} disabled>
                     <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
                 </div>
             `;
         }).join('');
 
-        $('#category-content').html(categoryContent || '<div class="alert alert-info"><i class="ph-info me-1"></i> Tidak ada kategori</div>');
+        $('#category-content').html(categoryContent);
     }
 
     $(document).ready(function() {
@@ -927,6 +1128,20 @@
 
                 currentSound.play();
             }
+        });
+
+        $('#btn-rewind').off().on('click', function() {
+            if (!currentSound) return;
+            const newPos = Math.max(0, currentSound.seek() - 10);
+            currentSound.seek(newPos);
+            syncWatermark();
+        });
+
+        $('#btn-forward').off().on('click', function() {
+            if (!currentSound) return;
+            const newPos = Math.min(currentSound.duration(), currentSound.seek() + 10);
+            currentSound.seek(newPos);
+            syncWatermark();
         });
 
         $('#btn-mute').off().on('click', function() {
