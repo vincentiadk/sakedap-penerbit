@@ -294,12 +294,12 @@
                     table.search(this.value).draw();
                 }, 500));
 
-                updateRecordCount(json.recordsTotal);
+                updateRecordCount(json.recordsFiltered);
             },
             drawCallback: function(settings) {
                 var api = this.api();
 
-                updateRecordCount(api.page.info().recordsTotal);
+                updateRecordCount(api.page.info().recordsFiltered);
             }
         }).on('draw.dt', function() {
             onLoading('close', '#datatable-serverside_wrapper');
