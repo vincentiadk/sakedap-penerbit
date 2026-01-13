@@ -265,27 +265,20 @@ class DeliveryMonitoringController extends Controller
 
                 $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
 
-                if ($receipt) {
-                    QueryAPI::update('letter', $id, [
-                        'type_of_delivery' => $deliveryService->NAME ?? '',
-                        'receipt_no' => $receiptNo,
-                        'biaya_kirim' => $request->delivery_fee,
-                        'jasa_pengiriman_id' => $deliveryServiceId,
-                        'sender' => $request->sender_name,
-                        'berat' => $receipt->details->weight ?? 0,
-                        'status' => 'DALAM PENGIRIMAN'
-                    ], false);
+                QueryAPI::update('letter', $id, [
+                    'type_of_delivery' => $deliveryService->NAME ?? '',
+                    'receipt_no' => $receiptNo,
+                    'biaya_kirim' => $request->delivery_fee,
+                    'jasa_pengiriman_id' => $deliveryServiceId,
+                    'sender' => $request->sender_name,
+                    'berat' => $receipt->details->weight ?? 0,
+                    'status' => 'DALAM PENGIRIMAN'
+                ], false);
 
-                    $response = [
-                        'code' => 200,
-                        'message' => 'Data resi telah diubah'
-                    ];
-                } else {
-                    return response()->json([
-                        'code' => 404,
-                        'message' => 'No resi ' . $receiptNo . ' dengan jasa kirim ' . ($deliveryService->NAME ?? '') . ' tidak ditemukan'
-                    ]);
-                }
+                $response = [
+                    'code' => 200,
+                    'message' => 'Data resi telah diubah'
+                ];
             } catch (\Exception $e) {
                 $response = [
                     'code' => $e->getCode(),
