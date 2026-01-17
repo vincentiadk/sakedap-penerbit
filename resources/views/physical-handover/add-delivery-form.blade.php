@@ -91,7 +91,6 @@
                     <div class="col-md-4">
                         <label class="form-label">
                             Berat Paket
-                            <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="ph-package"></i></span>

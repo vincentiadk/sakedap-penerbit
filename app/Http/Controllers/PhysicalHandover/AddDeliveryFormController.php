@@ -308,7 +308,7 @@ class AddDeliveryFormController extends Controller
             'type_delivery' => 'required|in:1,2',
             'phone' => 'required|numeric|digits_between:8,13',
             'sender_name' => 'required|string|max:255',
-            'weight' => 'required|numeric|min:1',
+            'weight' => 'nullable|numeric|min:1',
             'destination' => 'required|in:1,2,3',
         ];
 
@@ -320,7 +320,6 @@ class AddDeliveryFormController extends Controller
             'phone.numeric' => 'Telepon harus berupa angka',
             'sender_name.required' => 'Nama pengirim tidak boleh kosong',
             'sender_name.max' => 'Nama pengirim maksimal 255 karakter',
-            'weight.required' => 'Berat paket tidak boleh kosong',
             'weight.numeric' => 'Berat paket harus berupa angka',
             'weight.min' => 'Berat paket minimal 1',
             'destination.required' => 'Tujuan tidak boleh kosong',
