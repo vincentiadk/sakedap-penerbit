@@ -454,7 +454,7 @@ class AddDeliveryFormController extends Controller
                 $auditData,
                 $request->perpusnas_delivery,
                 $branch->ID ?? 37,
-                1,
+                2,
                 $origin,
                 $perpusnasData,
                 $branch->KODE_POS ?? 10430
@@ -475,10 +475,10 @@ class AddDeliveryFormController extends Controller
                 'email' => $branch->EMAIL ?? '',
             ];
 
-            $postalCode = session('postal_code');
+            $postalCode = $branch->KODE_POS ?? null;
 
             if (empty($postalCode)) {
-                throw new \Exception('Kode pos asal pengiriman tidak ditemukan');
+                throw new \Exception('Kode pos cabang provinsi tidak ditemukan');
             }
 
             $this->createExpeditionOrder(
@@ -486,8 +486,8 @@ class AddDeliveryFormController extends Controller
                 $baseLetterData,
                 $auditData,
                 $request->province_delivery,
-                37,
-                2,
+                $branch->ID ?? null,
+                1,
                 $origin,
                 $provinceData,
                 $postalCode
@@ -682,8 +682,6 @@ class AddDeliveryFormController extends Controller
             $code = isset($ciCodeArray[$key]) ? $ciCodeArray[$key] : null;
 
             if (!$code) {
-                Log::warning("CI item skipped: missing code at index {$key}");
-
                 continue;
             }
 
@@ -693,22 +691,19 @@ class AddDeliveryFormController extends Controller
                 });
 
                 if (!$isbn) {
-                    Log::warning("ISBN not found: {$code}");
-
                     continue;
                 }
 
-                $qrcbn = isset($ciQrcbnArray[$key]) ? $ciQrcbnArray[$key] : 0;
-                $isbd = isset($ciIsbdArray[$key]) ? $ciIsbdArray[$key] : 0;
-                $qtyPerpusnas = isset($ciQtyPerpusnasArray[$key]) ? $ciQtyPerpusnasArray[$key] : 0;
-                $qtyProvince = isset($ciQtyProvinceArray[$key]) ? $ciQtyProvinceArray[$key] : 0;
+                $qrcbn = isset($ciQrcbnArray[$key]) ? $ciQrcbnArray[$key] : null;
+                $isbd = isset($ciIsbdArray[$key]) ? $ciIsbdArray[$key] : null;
+                $qtyPerpusnas = isset($ciQtyPerpusnasArray[$key]) ? (int)$ciQtyPerpusnasArray[$key] : 0;
+                $qtyProvince = isset($ciQtyProvinceArray[$key]) ? (int)$ciQtyProvinceArray[$key] : 0;
                 $publishDate = isset($ciPublishDateArray[$key]) ? $ciPublishDateArray[$key] : null;
                 $catalog = null;
 
                 if ($isbn->is_kdt_valid == 1) {
                     $catalog = Cache::remember("catalog:{$isbn->catalog_id}", 60, function () use ($isbn) {
                         $query = "SELECT * FROM catalogs WHERE id = {$isbn->catalog_id}";
-
                         return QueryAPI::get($query, true);
                     });
                 }
@@ -741,18 +736,20 @@ class AddDeliveryFormController extends Controller
                     'tanggal_terbit' => $publishDate,
                 ];
 
-                QueryAPI::create('letter_detail', $letterDetailData, false);
+                $result = QueryAPI::create('letter_detail', $letterDetailData, false);
+
+                if (!$result) {
+                    throw new \Exception("Gagal menyimpan detail koleksi ISBN: {$code}");
+                }
 
                 $totalPackage++;
 
                 $collection[] = [
                     'product_name' => $isbn->title ?? 'Untitled',
-                    'qty' => $copyType,
+                    'qty' => $copyType == 2 ? $qtyPerpusnas : $qtyProvince,
                 ];
             } catch (\Exception $e) {
-                Log::error("Error processing ISBN {$code}: " . $e->getMessage());
-
-                continue;
+                throw $e;
             }
         }
 
@@ -785,8 +782,6 @@ class AddDeliveryFormController extends Controller
             $title = isset($cniTitleArray[$key]) ? $cniTitleArray[$key] : null;
 
             if (empty($title)) {
-                Log::warning("CNI item skipped: missing title at index {$key}");
-
                 continue;
             }
 
@@ -794,24 +789,16 @@ class AddDeliveryFormController extends Controller
             $catalog = null;
 
             if ($catalogId) {
-                try {
-                    $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, function () use ($catalogId) {
-                        return $this->getCatalogDetail($catalogId);
-                    });
-                } catch (\Exception $e) {
-                    Log::error("Error fetching catalog {$catalogId}: " . $e->getMessage());
-                }
+                $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, function () use ($catalogId) {
+                    return $this->getCatalogDetail($catalogId);
+                });
             }
 
             $media = isset($cniTypeArray[$key]) ? strtoupper($cniTypeArray[$key]) : '';
             $getCollectionMedia = null;
 
             if ($media) {
-                try {
-                    $getCollectionMedia = QueryAPI::get("SELECT * FROM collectionmedias WHERE UPPER(name) = '{$media}'", true);
-                } catch (\Exception $e) {
-                    Log::error("Error fetching collection media {$media}: " . $e->getMessage());
-                }
+                $getCollectionMedia = QueryAPI::get("SELECT * FROM collectionmedias WHERE UPPER(name) = '{$media}'", true);
             }
 
             $price = isset($cniPriceArray[$key]) ? str_replace([',', '.'], '', $cniPriceArray[$key]) : 0;
@@ -840,7 +827,11 @@ class AddDeliveryFormController extends Controller
                 'isbd' => isset($cniIsbdArray[$key]) ? $cniIsbdArray[$key] : null,
             ];
 
-            QueryAPI::create('letter_detail', $letterDetailData, false);
+            $result = QueryAPI::create('letter_detail', $letterDetailData, false);
+
+            if (!$result) {
+                throw new \Exception("Gagal menyimpan detail koleksi non-ISBN: {$title}");
+            }
 
             $totalPackage++;
 
@@ -877,18 +868,12 @@ class AddDeliveryFormController extends Controller
             $catalog = null;
 
             if ($catalogId && empty($catalogTitle)) {
-                try {
-                    $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, function () use ($catalogId) {
-                        return $this->getCatalogDetail($catalogId);
-                    });
-                } catch (\Exception $e) {
-                    Log::error("Error fetching catalog {$catalogId}: " . $e->getMessage());
-                }
+                $catalog = Cache::remember("catalog:detail:{$catalogId}", 60, function () use ($catalogId) {
+                    return $this->getCatalogDetail($catalogId);
+                });
             }
 
             if (!isset($request->cpe[$cpIndex]) || !is_array($request->cpe[$cpIndex]) || empty($request->cpe[$cpIndex])) {
-                Log::warning("CPE data for index {$cpIndex} not found or invalid");
-
                 continue;
             }
 
@@ -901,7 +886,6 @@ class AddDeliveryFormController extends Controller
                 $title = $catalog->TITLE ?? $catalogTitle;
 
                 if (empty($title)) {
-                    Log::warning("Periodical skipped: missing title at cp:{$cpIndex}, edition:{$editionKey}");
                     continue;
                 }
 
@@ -927,7 +911,11 @@ class AddDeliveryFormController extends Controller
                     'penerbit_id' => $catalog->PENERBIT_ID ?? $request->executor_id,
                 ];
 
-                QueryAPI::create('letter_detail', $letterDetailData, false);
+                $result = QueryAPI::create('letter_detail', $letterDetailData, false);
+
+                if (!$result) {
+                    throw new \Exception("Gagal menyimpan detail koleksi terbitan berkala: {$title}");
+                }
 
                 $totalPackage++;
 

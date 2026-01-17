@@ -1234,7 +1234,7 @@
                         <input type="hidden" name="ci_code[]" value="${safeISBN}">
                         <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
                         <td class="align-middle" nowrap>
-                            <input type="date" class="form-control" name="ci_publish_date[]" value="${response.publishDate}">
+                            <input type="date" class="form-control form-control-sm" name="ci_publish_date[]" value="${response.publishDate}">
                         </td>
                         <td class="align-middle text-wrap">${safeTitle}</td>
                         <td class="align-middle text-wrap">${safeKepeng}</td>
