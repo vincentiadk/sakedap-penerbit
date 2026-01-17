@@ -22,7 +22,8 @@ class AddDeliveryFormController extends Controller
 
         $media = QueryAPI::get("
             select
-                collectionmedias.*
+                collectionmedias.*,
+                worksheets.category as worksheet_category
             from
                 collectionmedias
             join
@@ -777,6 +778,7 @@ class AddDeliveryFormController extends Controller
         $cniQrcbnArray = $request->has('cni_qrcbn') && is_array($request->cni_qrcbn) ? array_values($request->cni_qrcbn) : [];
         $cniIsbdArray = $request->has('cni_isbd') && is_array($request->cni_isbd) ? array_values($request->cni_isbd) : [];
         $cniPriceArray = $request->has('cni_price') && is_array($request->cni_price) ? array_values($request->cni_price) : [];
+        $cniIsAnalogArray = $request->has('cni_is_analog') && is_array($request->cni_is_analog) ? array_values($request->cni_is_analog) : [];
 
         foreach ($cniArray as $key => $cni) {
             $title = isset($cniTitleArray[$key]) ? $cniTitleArray[$key] : null;
@@ -802,10 +804,11 @@ class AddDeliveryFormController extends Controller
             }
 
             $price = isset($cniPriceArray[$key]) ? str_replace([',', '.'], '', $cniPriceArray[$key]) : 0;
+            $cniIsAnalog = isset($cniIsAnalogArray[$key]) ? $cniIsAnalogArray[$key] : 0;
 
             $letterDetailData = [
                 'title' => $title,
-                'copy' => $copyType,
+                'copy' => $copyType == 2 ? ($cniIsAnalog == 1 ? 1 : 2) : $copyType,
                 'quantity' => 1,
                 'price' => is_numeric($price) ? $price : 0,
                 'letter_id' => $letter->LETTER_ID ?? null,

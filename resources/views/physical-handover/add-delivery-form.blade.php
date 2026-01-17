@@ -161,7 +161,7 @@
             <div class="card-body">
                 <div class="alert alert-info border-0" role="alert">
                     <i class="ph-info me-1"></i>
-                    Tambahkan koleksi yang tidak memiliki ISBN
+                    Hanya untuk koleksi tidak berISBN, contoh: Buku tidak berISBN, CD, DVD, Bluray, Kaset Pita, dll
                 </div>
                 <div class="table-responsive" id="non-isbn-table-container">
                     <table class="table table-bordered">
@@ -398,6 +398,21 @@
     const SAVE_DELAY = 1000;
     let saveTimeout;
 
+    function typeNonISBN(param) {
+        var valueOption = $('.cni-type-' + param).val();
+        var dataAttrOption = $('.cni-type-' + param + ' option[value="' + valueOption + '"]').data('category');
+
+        if(dataAttrOption == 'KRA') {
+            $('.cni-is-analog-' + param).val(1);
+            $('.cni-pn-' + param).val(1);
+            $('.cni-prov-' + param).val(1);
+        } else {
+            $('.cni-is-analog-' + param).val(0);
+            $('.cni-pn-' + param).val(2);
+            $('.cni-prov-' + param).val(1);
+        }
+    }
+
     function autoSaveForm() {
         clearTimeout(saveTimeout);
 
@@ -579,6 +594,7 @@
                     $('#data-collection-non-isbn').append(`
                         <tr class="animate__animated animate__fadeIn">
                             <input type="hidden" name="cni[]" value="1">
+                            <input type="hidden" name="cni_is_analog[]" class="cni-is-analog-${randStr}" value="0">
                             <td width="5%" class="align-top">
                                 <button type="button" class="btn btn-danger" onclick="removeItem(this)">
                                     <i class="ph-trash"></i>
@@ -624,26 +640,35 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Jenis</label>
-                                                <select class="form-select select2-basic" name="cni_type[]">
+                                                <select class="form-select select2-basic cni-type-${randStr}" name="cni_type[]" onchange="typeNonISBN('${randStr}')">
                                                     <option value="">Pilih Jenis</option>
                                                     @foreach ($media as $m)
-                                                        <option value="{{ $m->NAME }}" ${item.type == '{{ $m->NAME }}' ? 'selected' : ''}>{{ $m->NAME }}</option>
+                                                        <option value="{{ $m->NAME }}" ${item.type == '{{ $m->NAME }}' ? 'selected' : ''} data-category="{{ $m->WORKSHEET_CATEGORY }}">{{ $m->NAME }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">QRCBN</label>
                                                 <input type="text" class="form-control" name="cni_qrcbn[]" placeholder="Masukkan QRCBN" value="${item.qrcbn || ''}">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">ISBD</label>
                                                 <input type="text" class="form-control" name="cni_isbd[]" placeholder="Masukkan ISBD" value="${item.isbd || ''}">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Harga Jual</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">Rp</span>
                                                     <input type="text" class="form-control" name="cni_price[]" placeholder="0" value="${item.price || ''}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Jumlah</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">PN</span>
+                                                    <input type="text" class="form-control cni-pn-${randStr}" placeholder="0" value="2">
+                                                    <span class="input-group-text">Prov</span>
+                                                    <input type="text" class="form-control cni-prov-${randStr}" placeholder="0" value="1">
                                                 </div>
                                             </div>
                                         </div>
@@ -1388,6 +1413,7 @@
             $('#data-collection-non-isbn').append(`
                 <tr class="animate__animated animate__fadeIn">
                     <input type="hidden" name="cni[]" value="1">
+                    <input type="hidden" name="cni_is_analog[]" class="cni-is-analog-${randStr}" value="0">
                     <td width="5%" class="align-top">
                         <button type="button" class="btn btn-danger" onclick="removeItem(this)">
                             <i class="ph-trash"></i>
@@ -1433,26 +1459,35 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Jenis</label>
-                                        <select class="form-select select2-basic" name="cni_type[]">
+                                        <select class="form-select select2-basic cni-type-${randStr}" name="cni_type[]" onchange="typeNonISBN('${randStr}')">
                                             <option value="">Pilih Jenis</option>
                                             @foreach ($media as $m)
-                                                <option value="{{ $m->NAME }}">{{ $m->NAME }}</option>
+                                                <option value="{{ $m->NAME }}" data-category="{{ $m->WORKSHEET_CATEGORY }}">{{ $m->NAME }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">QRCBN</label>
                                         <input type="text" class="form-control" name="cni_qrcbn[]" placeholder="Masukkan QRCBN">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">ISBD</label>
                                         <input type="text" class="form-control" name="cni_isbd[]" placeholder="Masukkan ISBD">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label">Harga Jual</label>
                                         <div class="input-group">
                                             <span class="input-group-text">Rp</span>
                                             <input type="text" class="form-control" name="cni_price[]" placeholder="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Jumlah</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">PN</span>
+                                            <input type="text" class="form-control cni-pn-${randStr}" placeholder="0" value="2">
+                                            <span class="input-group-text">Prov</span>
+                                            <input type="text" class="form-control cni-prov-${randStr}" placeholder="0" value="1">
                                         </div>
                                     </div>
                                 </div>
