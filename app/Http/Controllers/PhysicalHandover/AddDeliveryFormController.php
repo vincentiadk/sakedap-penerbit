@@ -154,6 +154,7 @@ class AddDeliveryFormController extends Controller
             'qtyPerpusnas' => $qtyPerpusnas,
             'qtyProvince' => $qtyProvince,
             'publishDate' => $publishDate,
+            'existsData' => $quantities ? 1 : 0,
         ]);
     }
 

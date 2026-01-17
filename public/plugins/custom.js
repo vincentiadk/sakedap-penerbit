@@ -306,6 +306,7 @@ function datePickerSingle(selector, additionalConfig = {}) {
 
         var configuration = $.extend({
             parentEl: '.content-inner',
+            autoApply: true,
             autoUpdateInput: false,
             singleDatePicker: true,
             showDropdowns: true,

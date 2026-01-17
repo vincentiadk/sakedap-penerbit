@@ -764,14 +764,14 @@
                                                 <label class="form-label small">TTES Awal</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" value="${edition.first_ttes || ''}" placeholder="Pilih Tanggal" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" value="${edition.first_ttes || ''}" placeholder="Pilih Tanggal">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <label class="form-label small">TTES Akhir</label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" value="${edition.end_ttes || ''}" placeholder="Pilih Tanggal" readonly>
+                                                    <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" value="${edition.end_ttes || ''}" placeholder="Pilih Tanggal">
                                                 </div>
                                             </div>
                                             <div class="col-md-2 d-flex align-items-end">
@@ -1213,6 +1213,16 @@
                     swalInit.fire({
                         title: 'ISBN Sudah Ditambahkan',
                         text: 'ISBN ini sudah ada dalam daftar tabel',
+                        icon: 'warning'
+                    });
+
+                    return;
+                }
+
+                if (response.existsData == 1) {
+                    swalInit.fire({
+                        title: 'Duplikasi Data',
+                        text: 'ISBN ini sudah ada dalam sistem',
                         icon: 'warning'
                     });
 
@@ -1702,14 +1712,14 @@
                             <label class="form-label small">TTES Awal</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" placeholder="Pilih Tanggal" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_first_ttes[${cpIndex}][]" placeholder="Pilih Tanggal">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">TTES Akhir</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text"><i class="ph-calendar"></i></span>
-                                <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" placeholder="Pilih Tanggal" readonly>
+                                <input type="text" class="form-control date-single" name="cpe_end_ttes[${cpIndex}][]" placeholder="Pilih Tanggal">
                             </div>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -1722,8 +1732,8 @@
             </div>
         `);
 
-        datePickerSingle('.date-single');
         autoSaveForm();
+        datePickerSingle('.date-single');
     }
 
     function removeItemEdition(param) {
