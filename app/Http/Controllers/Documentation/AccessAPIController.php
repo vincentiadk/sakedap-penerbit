@@ -39,4 +39,28 @@ class AccessAPIController extends Controller
             ]
         ]);
     }
+
+    public function requestAPIAccess(Request $request)
+    {
+        try {
+            QueryAPI::update('penerbit', session('id'), [
+                'api_status' => 'PENDING',
+                'updatedate' => date('Y-m-d H:i:s'),
+                'updateterminal' => $request->ip(),
+                'updateby' => session('username'),
+            ], false);
+
+            session(['api_status' => 'PENDING']);
+
+            return response()->json([
+                'code' => 200,
+                'message' => 'Permintaan akses API telah dikirim, menunggu persetujuan admin'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

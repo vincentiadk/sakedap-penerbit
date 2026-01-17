@@ -194,6 +194,7 @@ Route::middleware('authentication')->group(function () {
     Route::prefix('documentation')->namespace('Documentation')->group(function () {
         Route::prefix('access-api')->group(function () {
             Route::get('/', 'AccessAPIController@index');
+            Route::post('request-access', 'AccessAPIController@requestAPIAccess');
             Route::post('generate-new-token', 'AccessAPIController@generateNewToken');
         });
     });
