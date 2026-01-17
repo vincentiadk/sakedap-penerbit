@@ -271,7 +271,7 @@ class DeliveryMonitoringController extends Controller
                     'biaya_kirim' => $request->delivery_fee,
                     'jasa_pengiriman_id' => $deliveryServiceId,
                     'sender' => $request->sender_name,
-                    'berat' => $receipt->details->weight ?? 0,
+                    'berat' => $receipt->details->weight ?? ($request->weight ?? 0),
                     'status' => 'DALAM PENGIRIMAN'
                 ], false);
 

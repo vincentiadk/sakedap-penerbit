@@ -245,6 +245,13 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label fw-semibold">
+                            <i class="ph-cube me-1"></i>
+                            Berat Paket
+                        </label>
+                        <input type="number" class="form-control" name="weight" id="weight" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">
                             <i class="ph-truck me-1"></i>
                             Jasa Pengiriman
                             <span class="text-danger">*</span>
@@ -396,6 +403,7 @@
                 $('#table_id').val(response.LETTER_ID);
                 $('#sender_name').val(response.SENDER);
                 $('#receipt_no').val(response.RECEIPT_NO);
+                $('#weight').val(response.BERAT);
                 $('#delivery_fee').val(response.BIAYA_KIRIM);
                 $('#delivery_service_id').val(response.JASA_PENGIRIMAN_ID).change();
             },
