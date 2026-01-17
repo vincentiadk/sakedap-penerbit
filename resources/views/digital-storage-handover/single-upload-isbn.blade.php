@@ -107,7 +107,7 @@
                             </th>
                             <th class="text-center text-nowrap" style="min-width: 110px">
                                 <i class="ph-calendar-blank me-1"></i>
-                                Waktu Terbit
+                                Waktu Publikasi
                             </th>
                             <th class="text-center text-nowrap" style="min-width: 110px">
                                 <i class="ph-align-left me-1"></i>

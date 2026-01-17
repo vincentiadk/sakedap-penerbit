@@ -286,7 +286,8 @@
                 <div class="row form-group">
                     <label class="col-form-label col-md-3 fw-semibold">
                         <i class="ph-calendar me-1"></i>
-                        Waktu Terbit
+                        Waktu Publikasi
+                        <span class="text-danger fw-bold">*</span>
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
@@ -301,6 +302,7 @@
                     <label class="col-form-label col-md-3 fw-semibold">
                         <i class="ph-eye me-1"></i>
                         Preview
+                        <span class="text-danger fw-bold">*</span>
                     </label>
                     <div class="col-md-9">
                         <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="Contoh: 1-5 / 00:01-00:20">
@@ -434,6 +436,7 @@
                 <h5 class="mb-0 fw-semibold">
                     <i class="ph-users me-1 text-primary"></i>
                     Kontributor
+                    <span class="text-danger fw-bold">*</span>
                 </h5>
             </div>
             <div class="card-body">

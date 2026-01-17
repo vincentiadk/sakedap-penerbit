@@ -212,7 +212,7 @@
                 <div class="row form-group">
                     <label class="col-form-label col-md-3 fw-semibold">
                         <i class="ph-calendar me-1"></i>
-                        Waktu Terbit
+                        Waktu Publikasi
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">

@@ -275,6 +275,9 @@ class DraftController extends Controller
                 'file_content' => 'nullable|file|mimes:pdf,epub,mp3,mp4,wav|max:' . config('system.catalog_content_max_upload'),
                 'description' => 'required|string|min:500',
                 'price' => 'required',
+                'publish_time' => 'required',
+                'preview' => 'required',
+                'author' => 'required|array|min:1',
             ], [
                 'title.required' => 'Judul tidak boleh kosong',
                 'collection_media_id.required' => 'Jenis koleksi tidak boleh kosong',
@@ -288,6 +291,11 @@ class DraftController extends Controller
                 'description.required' => 'Sinopsis tidak boleh kosong',
                 'description.min' => 'Sinopsis minimal 500 karakter',
                 'price.required' => 'Harga jual tidak boleh kosong',
+                'publish_time.required' => 'Waktu publikasi tidak boleh kosong',
+                'preview.required' => 'Preview tidak boleh kosong',
+                'author.required' => 'Kontributor tidak boleh kosong',
+                'author.array' => 'Kontributor tidak valid',
+                'author.min' => 'Kontributor minimal 1',
             ]);
 
             if ($validation->fails()) {

@@ -175,13 +175,13 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Waktu Terbit</label>
+                    <label class="col-form-label col-md-2">Waktu Publikasi <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" readonly>
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label class="col-form-label col-md-2">Preview</label>
+                    <label class="col-form-label col-md-2">Preview <span class="text-danger fw-bold">*</span></label>
                     <div class="col-md-10">
                         <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="cth : 1-5 / 00:01-00:20">
                     </div>
@@ -270,7 +270,7 @@
         </div>
         <div class="card">
             <div class="card-header">
-                <h5 class="hstack gap-2 mb-0">Kontributor</h5>
+                <h5 class="hstack gap-2 mb-0">Kontributor <span class="text-danger fw-bold">*</span></h5>
             </div>
             <div class="card-body">
                 <select class="form-select" name="author[]" id="author" data-placeholder="Tulis beberapa" multiple>
