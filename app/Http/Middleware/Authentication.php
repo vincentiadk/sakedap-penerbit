@@ -42,7 +42,7 @@ class Authentication
             return redirect('/');
         }
 
-        if (in_array($status, [1, 2, null, ''])) {
+        if (in_array($status, [1, 3, null, ''])) {
             return redirect('auth/not-verified');
         }
 
