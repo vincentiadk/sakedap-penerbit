@@ -51,8 +51,7 @@ class AcceptController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')";
-        $whereCondition[] = "letter_detail.qty_accept > 0";
-        //$whereCondition[] = "letter_detail.qty_accept is null ";
+        $whereCondition[] = "(letter_detail.qty_accept > 0 OR letter_detail.qty_accept is null )";
         $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
@@ -96,7 +95,7 @@ class AcceptController extends Controller
                 letter on letter.letter_id = letter_detail.letter_id
             where
                 letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA') and
-                letter_detail.qty_accept > 0 or letter_detail.qty_accept is null and
+                (letter_detail.qty_accept > 0 or letter_detail.qty_accept is null) and
                 letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
