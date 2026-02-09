@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'authentication' => Authentication::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            '*/datatable',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
