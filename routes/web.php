@@ -34,9 +34,9 @@ Route::middleware('authentication')->group(function () {
     });
 
     Route::prefix('datatable-serverside')->group(function () {
-        Route::get('catalog', 'DataTableServersideController@catalog');
-        Route::get('catalog-parent', 'DataTableServersideController@catalogParent');
-        Route::get('catalog-history', 'DataTableServersideController@catalogHistory');
+        Route::post('catalog', 'DataTableServersideController@catalog');
+        Route::post('catalog-parent', 'DataTableServersideController@catalogParent');
+        Route::post('catalog-history', 'DataTableServersideController@catalogHistory');
     });
 
     Route::prefix('select2-serverside')->group(function () {
@@ -71,47 +71,46 @@ Route::middleware('authentication')->group(function () {
 
     Route::prefix('request-file')->group(function () {
         Route::get('/', 'RequestFileController@index');
-        Route::get('datatable', 'RequestFileController@datatable');
-        Route::get('datatable-collection', 'RequestFileController@datatableCollection');
+        Route::post('datatable', 'RequestFileController@datatable');
+        Route::post('datatable-collection', 'RequestFileController@datatableCollection');
         Route::post('create-data', 'RequestFileController@createData');
     });
 
     Route::prefix('digital-storage-handover')->namespace('DigitalStorageHandover')->group(function () {
         Route::prefix('draft')->group(function () {
             Route::get('/', 'DraftController@index');
-            Route::get('datatable', 'DraftController@datatable');
+            Route::post('datatable', 'DraftController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'DraftController@detail');
         });
 
         Route::prefix('reject')->group(function () {
             Route::get('/', 'RejectController@index');
-            Route::get('datatable', 'RejectController@datatable');
+            Route::post('datatable', 'RejectController@datatable');
             Route::get('detail/{id}', 'RejectController@detail');
         });
 
         Route::prefix('problem')->group(function () {
             Route::get('/', 'ProblemController@index');
-            Route::get('datatable', 'ProblemController@datatable');
+            Route::post('datatable', 'ProblemController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'ProblemController@detail');
         });
 
         Route::prefix('review')->group(function () {
             Route::get('/', 'ReviewController@index');
-            Route::get('datatable', 'ReviewController@datatable');
+            Route::post('datatable', 'ReviewController@datatable');
             Route::get('detail/{id}', 'ReviewController@detail');
         });
 
         Route::prefix('accept')->group(function () {
             Route::get('/', 'AcceptController@index');
-            Route::get('datatable', 'AcceptController@datatable');
-            //Route::post('datatable', 'AcceptController@datatable');
+            Route::post('datatable', 'AcceptController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'AcceptController@detail');
             Route::get('receipt/{id}', 'AcceptController@receipt');
         });
 
         Route::prefix('single-upload-isbn')->group(function () {
             Route::get('/', 'SingleUploadISBNController@index');
-            Route::get('datatable', 'SingleUploadISBNController@datatable');
+            Route::post('datatable', 'SingleUploadISBNController@datatable');
             Route::post('submission', 'SingleUploadISBNController@submission');
             Route::post('uploaded', 'SingleUploadISBNController@uploaded');
             Route::match(['get', 'post'], 'update-data/{id}', 'SingleUploadISBNController@updateData');
@@ -126,7 +125,7 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('bulk-upload')->group(function () {
             Route::get('/', 'BulkUploadController@index');
-            Route::get('datatable-bulk', 'BulkUploadController@datatableBulk');
+            Route::post('datatable-bulk', 'BulkUploadController@datatableBulk');
             Route::get('detail-bulk', 'BulkUploadController@detailBulk');
             Route::post('submitted', 'BulkUploadController@submitted');
         });
@@ -143,7 +142,7 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('delivery-monitoring')->group(function () {
             Route::get('/', 'DeliveryMonitoringController@index');
-            Route::get('datatable', 'DeliveryMonitoringController@datatable');
+            Route::post('datatable', 'DeliveryMonitoringController@datatable');
             Route::get('show-data', 'DeliveryMonitoringController@showData');
             Route::post('update-data', 'DeliveryMonitoringController@updateData');
             Route::get('detail/{id}', 'DeliveryMonitoringController@detail');
@@ -152,7 +151,7 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('delivery-accept')->group(function () {
             Route::get('/', 'DeliveryAcceptController@index');
-            Route::get('datatable', 'DeliveryAcceptController@datatable');
+            Route::post('datatable', 'DeliveryAcceptController@datatable');
             Route::get('detail/{id}', 'DeliveryAcceptController@detail');
             Route::get('print/{id}', 'DeliveryAcceptController@print');
         });
@@ -164,31 +163,31 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('in-delivery')->group(function () {
             Route::get('/', 'InDeliveryController@index');
-            Route::get('datatable', 'InDeliveryController@datatable');
+            Route::post('datatable', 'InDeliveryController@datatable');
         });
 
         Route::prefix('reject')->group(function () {
             Route::get('/', 'RejectController@index');
-            Route::get('datatable', 'RejectController@datatable');
+            Route::post('datatable', 'RejectController@datatable');
             Route::post('grant', 'RejectController@grant');
             Route::post('retur', 'RejectController@retur');
         });
 
         Route::prefix('grant')->group(function () {
             Route::get('/', 'GrantController@index');
-            Route::get('datatable', 'GrantController@datatable');
+            Route::post('datatable', 'GrantController@datatable');
         });
 
         Route::prefix('retur')->group(function () {
             Route::get('/', 'ReturController@index');
-            Route::get('datatable', 'ReturController@datatable');
+            Route::post('datatable', 'ReturController@datatable');
             Route::post('grant', 'ReturController@grant');
         });
     });
 
     Route::prefix('bill-isbn')->group(function () {
         Route::get('/', 'BillISBNController@index');
-        Route::get('datatable', 'BillISBNController@datatable');
+        Route::post('datatable', 'BillISBNController@datatable');
         Route::get('load-summary', 'BillISBNController@loadSummary');
     });
 

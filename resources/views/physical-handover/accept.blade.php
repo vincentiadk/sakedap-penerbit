@@ -175,9 +175,12 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
-                method: 'POST',
                 url: '{{ url("physical-handover/accept/datatable") }}',
                 dataType: 'JSON',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 data: {
                     executor_id: $('#executor_id').val(),
                     delivery_service_id: $('#delivery_service_id').val(),

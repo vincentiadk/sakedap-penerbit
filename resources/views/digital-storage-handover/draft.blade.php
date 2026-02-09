@@ -193,6 +193,10 @@
             ajax: {
                 url: '{{ url("digital-storage-handover/draft/datatable") }}',
                 dataType: 'JSON',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 data: {
                     title: $('#title').val(),
                     code: $('#code').val(),
