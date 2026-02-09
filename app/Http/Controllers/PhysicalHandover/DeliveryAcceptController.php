@@ -270,7 +270,7 @@ class DeliveryAcceptController extends Controller
                 branchs on branchs.id = letter.branch_id
             where
                 letter.letter_id = $id and
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
         ";
 
         $letter = QueryAPI::get($letterSql, true);

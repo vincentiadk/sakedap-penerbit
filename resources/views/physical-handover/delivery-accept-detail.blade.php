@@ -118,6 +118,11 @@
                         <i class="ph-warning-circle me-1"></i>
                         {{ $letter->STATUS }}
                     </span>
+                @elseif($letter->STATUS == 'DITERIMA')
+                    <span class="badge bg-info" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">
+                        <i class="ph-warning-circle me-1"></i>
+                        {{ $letter->STATUS }}
+                    </span>
                 @else
                     <span class="badge bg-secondary" style="font-size: 1.1rem; padding: 0.75rem 1.5rem;">
                         {{ $letter->STATUS }}
