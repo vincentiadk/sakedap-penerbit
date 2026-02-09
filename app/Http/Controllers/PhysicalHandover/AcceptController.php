@@ -50,8 +50,9 @@ class AcceptController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
+        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')";
         $whereCondition[] = "letter_detail.qty_accept > 0";
+        //$whereCondition[] = "letter_detail.qty_accept is null ";
         $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
 
         if ($request->delivery_service_id) {
@@ -65,7 +66,6 @@ class AcceptController extends Controller
 
             $whereCondition[] = "(letter.$request->date_type >= to_date('$startDate', 'YYYY-MM-DD') and letter.$request->date_type < to_date('$endDate', 'YYYY-MM-DD') + 1)";
         }
-
         if ($search) {
             $terms = [];
 
@@ -87,7 +87,6 @@ class AcceptController extends Controller
             $orderDir = $order[0]['dir'];
             $orderBy = "order by " . $column[$orderColumnIndex] . " $orderDir";
         }
-
         $totalData = QueryAPI::get("
             select
                 count(*) as total
@@ -96,8 +95,8 @@ class AcceptController extends Controller
             left join
                 letter on letter.letter_id = letter_detail.letter_id
             where
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
-                letter_detail.qty_accept > 0 and
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA') and
+                letter_detail.qty_accept > 0 or letter_detail.qty_accept is null and
                 letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 

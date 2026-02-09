@@ -58,7 +58,7 @@ class DeliveryAcceptController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
+        $whereCondition[] = "l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')";
         $whereCondition[] = "l.penerbit_id = " . $request->executor_id;
 
         if ($request->receipt_no) {
@@ -114,7 +114,7 @@ class DeliveryAcceptController extends Controller
             from
                 letter
             where
-                status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
+                status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA') and
                 penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
 
@@ -150,22 +150,22 @@ class DeliveryAcceptController extends Controller
                                 nvl(td.total_eks_receipt, 0) as total_eks_receipt,
                                 nvl(td.total_title_receipt, 0) as total_title_receipt,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
                                     then nvl(td.total_eks_delivery, 0)
                                     else 0
                                 end as total_eks_delivery,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
                                     then nvl(td.total_title_delivery, 0)
                                     else 0
                                 end as total_title_delivery,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
                                     then nvl(td.total_eks_grant, 0)
                                     else 0
                                 end as total_eks_grant,
                                 case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')
+                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
                                     then nvl(td.total_title_grant, 0)
                                     else 0
                                 end as total_title_grant

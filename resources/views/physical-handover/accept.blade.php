@@ -175,6 +175,7 @@
             destroy: true,
             order: [[0, 'desc']],
             ajax: {
+                method: 'POST',
                 url: '{{ url("physical-handover/accept/datatable") }}',
                 dataType: 'JSON',
                 data: {

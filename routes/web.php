@@ -104,6 +104,7 @@ Route::middleware('authentication')->group(function () {
         Route::prefix('accept')->group(function () {
             Route::get('/', 'AcceptController@index');
             Route::get('datatable', 'AcceptController@datatable');
+            //Route::post('datatable', 'AcceptController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'AcceptController@detail');
             Route::get('receipt/{id}', 'AcceptController@receipt');
         });
@@ -158,7 +159,7 @@ Route::middleware('authentication')->group(function () {
 
         Route::prefix('accept')->group(function () {
             Route::get('/', 'AcceptController@index');
-            Route::get('datatable', 'AcceptController@datatable');
+            Route::post('datatable', 'AcceptController@datatable');
         });
 
         Route::prefix('in-delivery')->group(function () {
