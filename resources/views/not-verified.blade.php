@@ -150,7 +150,7 @@
                                 </div>
                             @endif
                             @php
-                                $status = $executor->STATUS ?? 2;
+                                $status = $executor->STATUS ?: 2;
                                 $isPending = $status == 1;
                                 $isRevision = $status == 2;
                             @endphp
