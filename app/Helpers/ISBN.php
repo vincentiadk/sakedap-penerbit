@@ -44,6 +44,7 @@ class ISBN
         $data = null;
         $query = Http::baseUrl(static::$baseUrl)
             ->withToken(static::$token)
+            ->withoutVerifying()
             ->get($endpoint, $payload);
 
         if ($query->status() == 200) {
