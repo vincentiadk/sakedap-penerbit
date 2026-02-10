@@ -136,16 +136,17 @@ class AcceptController extends Controller
         $totalFiltered = QueryAPI::get("
             select
                 count(*) as total
-            from
-                catalogs
+            from catalogs
             left join
                 kabupaten on kabupaten.id = catalogs.city_id
             left join
                 worksheets on worksheets.id = catalogs.worksheet_id
             left join
-                collectionmedias on collectionmedias.id = catalogs.collectionmedia_id
-            left join
                 penerbit on penerbit.id = catalogs.penerbit_id
+            left join
+                e_collections on catalogs.edeposit_col_id  = E_COLLECTIONS.id
+            left join
+                collectionmedias on collectionmedias.id = E_COLLECTIONS.collection_media_id
             $whereClause
         ", true)->TOTAL ?? 0;
 
@@ -162,9 +163,14 @@ class AcceptController extends Controller
                                 catalogs.id,
                                 catalogs.title,
                                 catalogs.isbn,
-                                catalogs.createdate,
+                                e_collections.received_at,
                                 penerbit.name as name_penerbit,
-                                collectionmedias.name as name_media
+                                collectionmedias.name as name_media,
+                                case 
+                                    when e_collections.code_type = 1 then 'ISBN' 
+                                    when e_collections.code_type = 3 then 'ISRC'
+                                    when e_collections.code_type = 2 then ' ISSN'
+                                end code_type
                             from
                                 catalogs
                             left join
@@ -172,9 +178,11 @@ class AcceptController extends Controller
                             left join
                                 worksheets on worksheets.id = catalogs.worksheet_id
                             left join
-                                collectionmedias on collectionmedias.id = catalogs.collectionmedia_id
-                            left join
                                 penerbit on penerbit.id = catalogs.penerbit_id
+                            left join
+                                e_collections on catalogs.edeposit_col_id  = E_COLLECTIONS.id
+                            left join
+                                collectionmedias on collectionmedias.id = E_COLLECTIONS.collection_media_id
                             $whereClause
                             $orderBy
                         ) data
@@ -204,8 +212,8 @@ class AcceptController extends Controller
                     $val->NAME_PENERBIT,
                     $val->TITLE,
                     $val->NAME_MEDIA,
-                    $val->ISBN,
-                    Carbon::parse($val->CREATEDATE)->isoFormat('dddd, D MMMM Y'),
+                    $val->CODE_TYPE . ' ' . $val->ISBN,
+                    Carbon::parse($val->RECEIVED_AT)->isoFormat('dddd, D MMMM Y'),
                 ];
 
                 $start++;
@@ -240,6 +248,7 @@ class AcceptController extends Controller
                 ec.currency as currency_e_collection,
                 ec.jumlah_eks as jumlah_eks_e_collection,
                 ec.physical_description as pd_e_collection,
+                ec.collection_media_id as e_col_media_id,
                 par.title as title_parent,
                 ccr.id as id_catalogcovers,
                 ccr.fileurl as fileurl_catalogcovers,
@@ -254,7 +263,8 @@ class AcceptController extends Controller
                 cfr.file_size as file_size_catalogfiles,
                 cfr.method as method_catalogfiles,
                 w.alias as alias_worksheet,
-                w.category as category_worksheet
+                w.category as category_worksheet,
+                cm.name as collection_media_name
             from
                 catalogs c
             left join
@@ -269,6 +279,8 @@ class AcceptController extends Controller
                 worksheets w on w.id = c.worksheet_id
             left join
                 penerbit on penerbit.id = c.penerbit_id
+            left join 
+                collectionmedias cm on cm.id = ec.collection_media_id
             left join
                 (
                     select

@@ -119,12 +119,13 @@
                         Jenis Koleksi
                     </label>
                     <div class="col-md-9">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
-                            <option value=""></option>
+                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->COLLECTION_MEDIA_NAME }}" disabled>
+                        <!--select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
+                            <option value=""></option> 
                             @foreach($media as $m)
-                                <option value="{{ $m->ID }}" {{ $collection->COLLECTIONMEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
+                                <option value="{{ $m->ID }}" {{ $collection->E_COL_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
                             @endforeach
-                        </select>
+                        </select-->
                     </div>
                 </div>
                 <div class="row form-group">
