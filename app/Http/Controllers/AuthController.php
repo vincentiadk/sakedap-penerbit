@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Helpers\Main;
-use App\Helpers\Fonnte;
+use App\Helpers\Barantum;
 use App\Helpers\QueryAPI;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -594,7 +594,7 @@ class AuthController extends Controller
             $message .= "Jika Anda tidak meminta kode ini, abaikan pesan ini.\n\n";
             $message .= "_Pesan otomatis, mohon tidak membalas._";
 
-            return Fonnte::send($phone, $message);
+            return Barantum::send($phone, $message);
         } catch (\Exception $e) {
             return [
                 'code' => $e->getCode() ?? 500,

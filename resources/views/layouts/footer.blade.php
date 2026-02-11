@@ -7,11 +7,17 @@
                             </a>
                         </span>
                         <ul class="nav">
-                            <li class="nav-item">
-                                <a href="https://perpusnas.go.id" target="_blank" class="navbar-nav-link navbar-nav-link-icon rounded">
+                            <li class="nav-item d-flex">
+                                <a href="https://perpusnas.go.id" target="_blank" class="navbar-nav-link navbar-nav-link-icon rounded text-info">
                                     <div class="d-flex align-items-center mx-md-1">
                                         <i class="ph-globe"></i>
                                         <span class="d-none d-md-inline-block ms-1">Official Website</span>
+                                    </div>
+                                </a>
+                                <a href="https://wa.me/6281317231823" target="_blank" class="navbar-nav-link navbar-nav-link-icon rounded text-success">
+                                    <div class="d-flex align-items-center mx-md-1">
+                                        <i class="ph-whatsapp-logo"></i>
+                                        <span class="d-none d-md-inline-block ms-1">Hubungi Kami</span>
                                     </div>
                                 </a>
                             </li>
