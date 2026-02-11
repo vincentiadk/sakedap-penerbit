@@ -50,7 +50,7 @@ class AuthController extends Controller
             ]);
 
             if ($validation->fails()) {
-                RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
+               // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
 
                 return redirect('/')->withErrors($validation);
             } else {
@@ -59,12 +59,12 @@ class AuthController extends Controller
                 $login = Main::login($username, $password);
 
                 if ($login) {
-                    RateLimiter::clear($rateLimitKey);
+                //    RateLimiter::clear($rateLimitKey);
 
                     return redirect()->intended('home');
                 }
 
-                RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
+               // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
 
                 return redirect('/')->with(['failed' => 'Kredensial tidak ditemukan, sisa percobaan login ' . $retriesLeft . 'x lagi']);
             }

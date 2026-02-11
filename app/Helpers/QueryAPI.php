@@ -42,7 +42,7 @@ class QueryAPI
                 'UserPassword' => $password,
             ])
             ->post(static::$baseUrl);
-
+        Log::info((string) $query->transferStats->getEffectiveUri());
         return $query->object();
     }
 
@@ -55,7 +55,7 @@ class QueryAPI
     public static function query($sql)
     {
         static::initialize();
-
+        //Log::debug($sql);
         $data = null;
         $query = Http::connectTimeout(0)
             ->timeout(0)
@@ -83,7 +83,7 @@ class QueryAPI
     public static function get($sql, $single = false)
     {
         static::initialize();
-
+        //Log::info($sql);
         $data = null;
         $query = Http::connectTimeout(0)
             ->timeout(0)
