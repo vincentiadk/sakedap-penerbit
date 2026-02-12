@@ -50,7 +50,7 @@ class AuthController extends Controller
             ]);
 
             if ($validation->fails()) {
-               // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
+                // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
 
                 return redirect('/')->withErrors($validation);
             } else {
@@ -59,12 +59,12 @@ class AuthController extends Controller
                 $login = Main::login($username, $password);
 
                 if ($login) {
-                //    RateLimiter::clear($rateLimitKey);
+                    //    RateLimiter::clear($rateLimitKey);
 
                     return redirect()->intended('home');
                 }
 
-               // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
+                // RateLimiter::hit($rateLimitKey, $rateLimitIntervalSecond);
 
                 return redirect('/')->with(['failed' => 'Kredensial tidak ditemukan, sisa percobaan login ' . $retriesLeft . 'x lagi']);
             }
@@ -592,9 +592,8 @@ class AuthController extends Controller
             $message .= "Kode ini berlaku selama *5 menit*.\n";
             $message .= "Jangan bagikan kode ini kepada siapapun.\n\n";
             $message .= "Jika Anda tidak meminta kode ini, abaikan pesan ini.\n\n";
-            $message .= "_Pesan otomatis, mohon tidak membalas._";
 
-            return Barantum::send($phone, $message);
+            return Barantum::send($phone, 'Notif OTP', [$message]);
         } catch (\Exception $e) {
             return [
                 'code' => $e->getCode() ?? 500,
