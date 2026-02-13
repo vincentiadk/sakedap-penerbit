@@ -145,9 +145,19 @@ class BillISBNController extends Controller
                         rownum = 1
                 ", true);
 
-                if ($letterDetail) {
+                $collection = QueryAPI::get("
+                    select
+                        letter_id
+                    from
+                        letter_detail
+                    where
+                        isbn = '$isbn' and
+                        rownum = 1
+                ", true);
+
+                if ($letterDetail || $collection) {
                     $status = '
-                        <a href="' . url('physical-handover/delivery-accept/print/' . $letterDetail->LETTER_ID) . '" class="btn btn-success btn-sm" target="_blank">
+                        <a href="' . url('physical-handover/delivery-accept/print/' . ($letterDetail ? ($letterDetail->LETTER_ID ?? 0) : ($collection->LETTER_ID ?? 0))) . '" class="btn btn-success btn-sm" target="_blank">
                             <i class="ph-check me-1"></i>
                             Sudah Diterima
                         </a>
