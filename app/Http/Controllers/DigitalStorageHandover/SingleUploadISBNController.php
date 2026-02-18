@@ -269,10 +269,11 @@ class SingleUploadISBNController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'mimes:jpg,jpeg,png,pdf,epub|max:204800'
+            'files.*' => 'required|mimes:jpg,jpeg,png,pdf,epub|max:204800'
         ], [
             'files.required' => 'File tidak boleh kosong',
             'files.array' => 'File harus array',
+            'files.*.required' => 'File tidak boleh kosong',
             'files.*.mimes' => 'File yang di upload harus jpg, jpeg, png, pdf, epub',
             'files.*.max' => 'Per file yang di upload maksimal 200 MB',
         ]);
