@@ -730,7 +730,7 @@ class AddDeliveryFormController extends Controller
                     'jenis_media' => $isbn->jenis_media ?? null,
                     'collection_type_id' => 2,
                     'penerbit_terbitan_id' => $isbn->ptid ?? null,
-                    'penerbit_id' => $isbn->PENERBIT_ID ?? $request->executor_id,
+                    'penerbit_id' => $isbn->penerbit_id ?? $request->executor_id,
                     'nomorpanggiljilid' => $isbn->keterangan ?? null,
                     'qrcbn' => $qrcbn,
                     'isbd' => $isbd,
