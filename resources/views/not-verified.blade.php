@@ -150,9 +150,9 @@
                                 </div>
                             @endif
                             @php
-                                $status = $executor->STATUS ?: 2;
+                                $status = $executor->STATUS ?: 3;
                                 $isPending = $status == 1;
-                                $isRevision = $status == 2;
+                                $isRevision = $status == 3;
                             @endphp
                             @if($isPending)
                                 <div class="card verification-status pending border-0 shadow-sm">
@@ -169,7 +169,7 @@
                                                     Akun Sedang Dalam Proses Verifikasi
                                                 </h5>
                                                 <p class="mb-3 text-muted">
-                                                    Terima kasih telah melakukan pendaftaran di sistem SAKEDAP (Serah Karya Demi Akses Perpustakaan).
+                                                    Terima kasih telah melakukan pendaftaran di sistem SAKEDAP.
                                                     Data yang Anda kirimkan saat ini sedang dalam proses verifikasi oleh Tim Perpustakaan Nasional Republik Indonesia.
                                                 </p>
                                                 <div class="alert alert-warning border-0 mb-0">
