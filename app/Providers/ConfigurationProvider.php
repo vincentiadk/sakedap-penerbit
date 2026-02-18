@@ -23,7 +23,7 @@ class ConfigurationProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $settings = Cache::remember(Main::CACHE_NAME_CONFIG_APP, now()->addHours(12), function () {
+        $settings = Cache::rememberForever(Main::CACHE_NAME_CONFIG_APP, function () {
             $configParam = array_map(function ($name) {
                 return "'" . $name . "'";
             }, Main::CONFIG_PARAM);
@@ -73,8 +73,8 @@ class ConfigurationProvider extends ServiceProvider
                 $collectedSettings['isbn.base_url'] = $sp->firstWhere('NAME', 'EAPIISBNBaseUrl')->VALUE ?? null;
                 $collectedSettings['raja-ongkir.token'] = $sp->firstWhere('NAME', 'EAPIRajaOngkirToken')->VALUE ?? null;
                 $collectedSettings['raja-ongkir.base_url'] = $sp->firstWhere('NAME', 'EAPIRajaOngkirBaseUrl')->VALUE ?? null;
-                $collectedSettings['komship.base_url'] = $sp->firstWhere('NAME', 'EAPKomshipBaseUrl')->VALUE ?? null;
-                $collectedSettings['komship.base_url'] = $sp->firstWhere('NAME', 'EAPKomshipBaseUrl')->VALUE ?? null;
+                $collectedSettings['komship.base_url'] = $sp->firstWhere('NAME', 'EAPIKomshipBaseUrl')->VALUE ?? null;
+                $collectedSettings['komship.base_url'] = $sp->firstWhere('NAME', 'EAPIKomshipBaseUrl')->VALUE ?? null;
             }
 
             if ($mail) {

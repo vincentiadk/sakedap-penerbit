@@ -123,12 +123,12 @@ class AddDeliveryFormController extends Controller
                     letter.branch_id
             )
         ";
+        
 
         $quantities = QueryAPI::get($sql, true, [
             'code' => $code,
             'branch_id' => $currentBranchId
         ]);
-
         if ($quantities) {
             $checkOnLetterDetailPerpusnas = (int) ($quantities->PERPUSNAS_LETTER_DETAIL ?? 0);
             $checkOnCollectionPerpusnas = (int) ($quantities->PERPUSNAS_COLLECTION ?? 0);
@@ -148,6 +148,14 @@ class AddDeliveryFormController extends Controller
                 $qtyProvince = $checkOnCollectionProvince >= 1 ? 0 : 1;
             }
         }
+        Log::info([
+            'data' => $data,
+            'fileCover' => $this->generateFileCoverHtml($linkCover, $code, $title),
+            'qtyPerpusnas' => $qtyPerpusnas,
+            'qtyProvince' => $qtyProvince,
+            'publishDate' => $publishDate,
+            'existsData' => $quantities ? 1 : 0,
+        ]);
 
         return response()->json([
             'data' => $data,
