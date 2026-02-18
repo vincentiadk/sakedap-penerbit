@@ -46,7 +46,7 @@ class ISBN
             ->withToken(static::$token)
             ->withoutVerifying()
             ->get($endpoint, $payload);
-
+        Log::info((string) $query->effectiveUri());
         if ($query->status() == 200) {
             $response = $query->object();
 

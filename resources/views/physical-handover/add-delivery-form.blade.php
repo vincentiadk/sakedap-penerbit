@@ -1199,7 +1199,7 @@
                     return;
                 }
 
-                const executorId = '{{ session('id') }}';
+                const executorId = "{{ session('id') }}";
                 const data = response.data;
 
                 if ((data.jenis_media ?? '').toLowerCase() !== 'cetak') {
@@ -1244,7 +1244,7 @@
                     return;
                 }
 
-                if (response.existsData == 1) {
+                /*if (response.existsData == 1) {
                     swalInit.fire({
                         title: 'Duplikasi Data',
                         text: 'ISBN ini sudah ada dalam sistem',
@@ -1252,7 +1252,7 @@
                     });
 
                     return;
-                }
+                }*/
 
                 $('#empty-isbn-row').remove();
 
