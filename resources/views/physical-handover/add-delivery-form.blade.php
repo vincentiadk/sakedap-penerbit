@@ -898,7 +898,7 @@
 
     function typeDelivery() {
         var type = $('input[name="type_delivery"]:checked').val();
-        var deliveryMethod = '{{ config('system.delivery_method') }}';
+        var deliveryMethod = '{{ config("system.delivery_method") }}';
 
         $('.delivery-type-card').removeClass('border-primary border-2');
 
@@ -1595,7 +1595,7 @@
 
         for (var i = 1; i <= total; i++) {
             var randStr = randomString(10);
-            var cpIndex = Date.now() + '_' + i;
+            var cpIndex = new Date.now() + '_' + i;
 
             $('#data-collection-periodicals').append(`
                 <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
