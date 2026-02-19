@@ -562,16 +562,12 @@ class Main
             return null;
         }
 
-        if (str_starts_with($cleaned, '62')) {
-            return '0' . substr($cleaned, 2);
-        }
-
         if (str_starts_with($cleaned, '0')) {
-            return $cleaned;
+            return '62' . substr($cleaned, 1);
         }
 
         if (str_starts_with($cleaned, '8')) {
-            return '0' . $cleaned;
+            return '62' . $cleaned;
         }
 
         return $cleaned;
