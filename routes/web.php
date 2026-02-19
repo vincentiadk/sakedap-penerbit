@@ -147,6 +147,7 @@ Route::middleware('authentication')->group(function () {
             Route::post('update-data', 'DeliveryMonitoringController@updateData');
             Route::get('detail/{id}', 'DeliveryMonitoringController@detail');
             Route::get('print-label/{id}', 'DeliveryMonitoringController@printLabel');
+            Route::delete('destroy-data', 'DeliveryMonitoringController@destroyData');
         });
 
         Route::prefix('delivery-accept')->group(function () {

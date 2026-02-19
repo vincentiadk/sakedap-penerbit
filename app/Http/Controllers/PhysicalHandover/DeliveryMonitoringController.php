@@ -191,6 +191,15 @@ class DeliveryMonitoringController extends Controller
                     </a>
                 ';
 
+                if ($val->STATUS == 'DIKIRIM') {
+                    $action .= '
+                        <a href="javascript:void(0);" class="btn btn-danger btn-sm text-nowrap" onclick="destroyData(' . $val->LETTER_ID . ')">
+                            <i class="ph-trash me-1"></i>
+                            Hapus
+                        </a>
+                    ';
+                }
+
                 $letterDate = '
                     <div>' . Carbon::parse($val->LETTER_DATE)->isoFormat('D MMM Y') . '</div>
                     <small>Jam : ' . Carbon::parse($val->LETTER_DATE)->format('H.i') . ' WIB</small>
@@ -434,5 +443,26 @@ class DeliveryMonitoringController extends Controller
 
             abort(500, 'Terjadi kesalahan sistem');
         }
+    }
+
+    public function destroyData(Request $request)
+    {
+        $id = $request->id;
+
+        try {
+            QueryAPI::delete('letter', $id);
+
+            $response = [
+                'code' => 200,
+                'message' => 'Data telah dihapus'
+            ];
+        } catch (\Exception $e) {
+            $response = [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ];
+        }
+
+        return response()->json($response);
     }
 }
