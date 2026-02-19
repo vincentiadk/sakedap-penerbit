@@ -164,13 +164,25 @@ class AcceptController extends Controller
                     <div>' . Carbon::parse($val->ACCEPT_DATE_LETTER)->isoFormat('D MMM Y') . '</div>
                     <small>Jam : ' . Carbon::parse($val->ACCEPT_DATE_LETTER)->format('H.i') . ' WIB</small>
                 ';
-
+                $identifier="";
+                if($val->ISBN != ""){
+                    $identifier .= "<br/>ISBN : " . $val->ISBN;
+                }
+                if($val->ISSN != ""){
+                    $identifier .= "<br/>ISSN : " . $val->ISSN;
+                }
+                if($val->QRCBN != ""){
+                    $identifier .= "<br/>QRCBN : " . $val->QRCBN;
+                }
+                if($val->ISRC != ""){
+                    $identifier .= "<br/>ISRC : " . $val->ISRC;
+                }
                 $data[] = [
                     $start + 1,
                     $val->NAME_PENERBIT,
                     ($val->LETTER_DATE_LETTER ?: null) ? $letterDate : '',
                     ($val->ACCEPT_DATE_LETTER ?: null) ? $acceptDate : '',
-                    $val->TITLE,
+                    $val->TITLE . $identifier,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,
                     $val->RECEIPT_NO_LETTER,
