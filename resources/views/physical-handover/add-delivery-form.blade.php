@@ -1595,7 +1595,7 @@
 
         for (var i = 1; i <= total; i++) {
             var randStr = randomString(10);
-            var cpIndex = new Date.now() + '_' + i;
+            var cpIndex = Date.now() + '_' + i;
 
             $('#data-collection-periodicals').append(`
                 <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
