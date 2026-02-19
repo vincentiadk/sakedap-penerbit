@@ -123,7 +123,7 @@ class AddDeliveryFormController extends Controller
                     letter.branch_id
             )
         ";
-        
+
 
         $quantities = QueryAPI::get($sql, true, [
             'code' => $code,
@@ -728,7 +728,7 @@ class AddDeliveryFormController extends Controller
                     'publish_year' => $isbn->tahun_terbit ?? null,
                     'isbn_status' => 'berISBN',
                     'is_receivedate' => 1,
-                    'penerbit_isbn_id' => $isbn->penerbit_id ?? null,
+                    'penerbit_isbn_id' => $isbn->id ?? null,
                     'catalog_id' => $isbn->is_kdt_valid == 1 ? $isbn->catalog_id : null,
                     'province_id' => $isbn->province_id ?? null,
                     'kab_id' => $catalog->CITY_ID ?? null,
