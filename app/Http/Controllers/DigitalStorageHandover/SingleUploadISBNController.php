@@ -50,7 +50,7 @@ class SingleUploadISBNController extends Controller
             'ec.description',
             'ec.city_id',
             'ec.preview',
-            'ec.access',
+            'ec.akses',
         ];
 
         $draw = intval($request->draw ?? 0);
