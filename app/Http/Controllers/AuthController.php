@@ -700,11 +700,7 @@ class AuthController extends Controller
                             from
                                 e_settings
                             where
-                                slug = 'GantiPassword' or
-                                (
-                                    slug in ('Header','Footer') and
-                                    province_id = " . session('province_id') . "
-                                )
+                                slug in ('GantiPassword','Header','Footer')
                         ");
 
                         $templateEmailContent = null;
@@ -736,6 +732,10 @@ class AuthController extends Controller
                                 ->from(config('mail.from.address'), config('mail.from.name'))
                                 ->html(Main::parseTemplateEmail($bodyEmail, $templateEmailContent), 'text/html');
                         });
+
+                        QueryAPI::update('e_password_resets', $check->ID, [
+                            'expired_at' => date('Y-m-d H:i:s')
+                        ], false);
 
                         return redirect('/')->with([
                             'success' => 'Password berhasil direset'
