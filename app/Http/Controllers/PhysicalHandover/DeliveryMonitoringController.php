@@ -189,6 +189,10 @@ class DeliveryMonitoringController extends Controller
                         <i class="ph-printer me-1"></i>
                         Cetak Label
                     </a>
+                    <a href="javascript:void(0);" class="btn btn-warning btn-sm text-nowrap" onclick="destroyData(' . $val->LETTER_ID . ')">
+                        <i class="ph-info me-1"></i>
+                        Hapus dan Batalkan
+                    </a>
                 ';
 
                 if ($val->STATUS == 'DIKIRIM') {
@@ -275,7 +279,7 @@ class DeliveryMonitoringController extends Controller
                 $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
 
                 QueryAPI::update('letter', $id, [
-                    'type_of_delivery' => ($deliveryService->NAME ?? null) ? 'pos' : 'datang langsung',
+                    'type_of_delivery' => ($deliveryService->NAME ?? null) ? 'Pos' : 'Datang Langsung',
                     'receipt_no' => $receiptNo,
                     'biaya_kirim' => $request->delivery_fee,
                     'jasa_pengiriman_id' => $deliveryServiceId,
