@@ -84,7 +84,6 @@ class AddDeliveryFormController extends Controller
         }
 
         $title = $data->title ?? '';
-
         $sql = "
             select
                 nvl(sum(case when branch_id = 37 then collection_count else 0 end), 0) as perpusnas_collection,
@@ -92,38 +91,50 @@ class AddDeliveryFormController extends Controller
                 nvl(sum(case when branch_id = $currentBranchId then collection_count else 0 end), 0) as province_collection,
                 nvl(sum(case when branch_id = $currentBranchId then letter_detail_copy else 0 end), 0) as province_letter_detail
             from (
-                select
-                    letter.branch_id,
-                    count(collections.id) as collection_count,
-                    0 as letter_detail_copy
-                from
-                    collections
-                left join
-                    letter_detail on letter_detail.letter_detail_id = collections.letter_detail_id
-                left join
-                    letter on letter.letter_id = collections.letter_id
-                where
-                    letter.branch_id in (37, $currentBranchId) and
-                    replace(collections.isbn, '-', '') = '$code'
-                group by
-                    letter.branch_id
-                union all
-                select
-                    letter.branch_id,
-                    0 as collection_count,
-                    nvl(sum(letter_detail.copy), 0) as letter_detail_copy
-                from
-                    letter_detail
-                left join
-                    letter on letter.letter_id = letter_detail.letter_id
-                where
-                    letter.branch_id in (37, $currentBranchId) and
-                    replace(letter_detail.isbn, '-', '') = '$code'
-                group by
-                    letter.branch_id
-            )
-        ";
+                SELECT
+                    c.branch_id,
+                    COUNT(c.id) AS collection_count,
+                    0 AS letter_detail_copy
+                FROM collections c
+                WHERE REPLACE(c.isbn, '-', '') LIKE '%$code%'
+                    AND c.branch_id = 37
+                GROUP BY c.branch_id
 
+                UNION ALL
+
+                SELECT
+                    37 AS branch_id,
+                    0 AS collection_count,
+                    NVL(SUM(ld.copy), 0) AS letter_detail_copy
+                FROM letter_detail ld
+                JOIN letter l
+                    ON l.letter_id = ld.letter_id
+                WHERE l.branch_id = 37
+                    AND REPLACE(ld.isbn, '-', '') = '$code'
+                    
+                
+                UNION ALL
+                
+                SELECT
+                    c.branch_id,
+                    COUNT(c.id) AS collection_count,
+                    0 AS letter_detail_copy
+                FROM collections c
+                WHERE REPLACE(c.isbn, '-', '') LIKE '%$code%'
+                    AND c.branch_id = $currentBranchId
+                GROUP BY c.branch_id
+
+                UNION ALL
+                SELECT $currentBranchId AS branch_id,
+                    0 AS collection_count,
+                    NVL(SUM(ld.copy), 0) AS letter_detail_copy
+                FROM letter_detail ld
+                JOIN letter l
+                    ON l.letter_id = ld.letter_id
+                WHERE l.branch_id = 2
+                    AND REPLACE(ld.isbn, '-', '') = '$code'
+                )
+            ";
 
         $quantities = QueryAPI::get($sql, true, [
             'code' => $code,
@@ -406,6 +417,7 @@ class AddDeliveryFormController extends Controller
     private function createSelfDeliveryLetter(Request $request, $baseLetterData, $auditData, $branchId, $copyType)
     {
         $letterData = array_merge($baseLetterData, [
+            'type_of_delivery' => 'Datang Langsung',
             'branch_id' => $branchId,
             'receipt_no' => 'LSG' . now()->format('YmdHis'),
             'status' => 'TERKIRIM',
@@ -590,7 +602,8 @@ class AddDeliveryFormController extends Controller
             }
 
             QueryAPI::update('letter', $letter->LETTER_ID, [
-                'type_of_delivery' => $deliveryParts[0] ?? '',
+                //'type_of_delivery' => $deliveryParts[0] ?? '',
+                'type_of_delivery' => 'Pos',
                 'branch_id' => $branchId,
                 'status' => 'DIKIRIM',
                 'receipt_no' => $createOrderKomerce->order_no,
@@ -602,7 +615,8 @@ class AddDeliveryFormController extends Controller
             Log::error('Failed to create Komship order: ' . $e->getMessage());
 
             QueryAPI::update('letter', $letter->LETTER_ID, [
-                'type_of_delivery' => $deliveryParts[0] ?? '',
+                //'type_of_delivery' => $deliveryParts[0] ?? '',
+                'type_of_delivery' => 'Pos',
                 'branch_id' => $branchId,
                 'status' => 'PENDING',
                 'biaya_kirim' => $deliveryParts[3] ?? 0,

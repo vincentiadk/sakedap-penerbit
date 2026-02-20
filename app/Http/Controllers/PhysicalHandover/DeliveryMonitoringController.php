@@ -275,7 +275,7 @@ class DeliveryMonitoringController extends Controller
                 $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
 
                 QueryAPI::update('letter', $id, [
-                    'type_of_delivery' => $deliveryService->NAME ?? '',
+                    //'type_of_delivery' => $deliveryService->NAME ?? '',
                     'receipt_no' => $receiptNo,
                     'biaya_kirim' => $request->delivery_fee,
                     'jasa_pengiriman_id' => $deliveryServiceId,
