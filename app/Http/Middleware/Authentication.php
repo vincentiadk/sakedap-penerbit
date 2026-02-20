@@ -48,14 +48,16 @@ class Authentication
 
         $totalPhysicalCollectionReject = QueryAPI::get("
             select
-                count(letter_detail_id) as total
+                count(letter_detail.letter_detail_id) as total
             from
                 letter_detail
+            join
+                letter on letter.letter_id = letter_detail.letter_id
             where
-                penerbit_id = $id and
-                qty_reject > 0 and
-                (qty_accept = 0 or qty_accept is null) and
-                (qty_hibah = 0 or qty_hibah is null)
+                letter.penerbit_id = $id and
+                letter_detail.qty_reject > 0 and
+                (letter_detail.qty_hibah = 0 or letter_detail.qty_hibah is null) and
+                (letter_detail.qty_retur = 0 or letter_detail.qty_retur is null)
         ", true);
 
         Config::set('system.collection_reject', $totalPhysicalCollectionReject->TOTAL ?? 0);

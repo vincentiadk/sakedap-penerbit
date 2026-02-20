@@ -54,10 +54,10 @@ class RejectController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
-        $whereCondition[] = "letter_detail.qty_hibah is null";
-        $whereCondition[] = "letter_detail.qty_retur is null";
-        $whereCondition[] = "letter_detail.qty_reject > 0";
         $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
+        $whereCondition[] = "letter_detail.qty_reject > 0";
+        $whereCondition[] = "(letter_detail.qty_hibah is null or letter_detail.qty_hibah = 0)";
+        $whereCondition[] = "(letter_detail.qty_retur is null or letter_detail.qty_retur = 0)";
 
         if ($request->delivery_service_id) {
             $whereCondition[] = "letter.jasa_pengiriman_id = $request->delivery_service_id";
@@ -98,12 +98,12 @@ class RejectController extends Controller
                 count(*) as total
             from
                 letter_detail
-            left join
+            join
                 letter on letter.letter_id = letter_detail.letter_id
             where
                 letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
-                letter_detail.qty_hibah is null and
-                letter_detail.qty_retur is null and
+                (letter_detail.qty_hibah is null or letter_detail.qty_hibah = 0) and
+                (letter_detail.qty_retur is null or letter_detail.qty_retur = 0) and
                 letter_detail.qty_reject > 0 and
                 letter.penerbit_id = " . $request->executor_id . "
         ", true)->TOTAL ?? 0;
@@ -113,7 +113,7 @@ class RejectController extends Controller
                 count(*) as total
             from
                 letter_detail
-            left join
+            join
                 letter on letter.letter_id = letter_detail.letter_id
             left join
                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
@@ -144,7 +144,7 @@ class RejectController extends Controller
                                 letter.letter_date as letter_date_letter
                             from
                                 letter_detail
-                            left join
+                            join
                                 letter on letter.letter_id = letter_detail.letter_id
                             left join
                                 jasa_pengiriman on jasa_pengiriman.id = letter.jasa_pengiriman_id
