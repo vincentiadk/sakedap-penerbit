@@ -590,7 +590,7 @@ class AddDeliveryFormController extends Controller
             }
 
             QueryAPI::update('letter', $letter->LETTER_ID, [
-                'type_of_delivery' => $deliveryParts[0] ?? '',
+                'type_of_delivery' => ($deliveryParts[0] ?? null) ? 'pos' : 'datang langsung',
                 'branch_id' => $branchId,
                 'status' => 'DIKIRIM',
                 'receipt_no' => $createOrderKomerce->order_no,
@@ -602,7 +602,7 @@ class AddDeliveryFormController extends Controller
             Log::error('Failed to create Komship order: ' . $e->getMessage());
 
             QueryAPI::update('letter', $letter->LETTER_ID, [
-                'type_of_delivery' => $deliveryParts[0] ?? '',
+                'type_of_delivery' => ($deliveryParts[0] ?? '') ? 'pos' : 'datang langsung',
                 'branch_id' => $branchId,
                 'status' => 'PENDING',
                 'biaya_kirim' => $deliveryParts[3] ?? 0,
