@@ -34,7 +34,7 @@ class BillISBNController extends Controller
         $filter = [
             'start' => $start,
             'length' => $length,
-            'penerbit_id' => $request->executor_id,
+            'penerbit_id' => $request->executor_id ?? session('id'),
         ];
 
         if ($search) {
