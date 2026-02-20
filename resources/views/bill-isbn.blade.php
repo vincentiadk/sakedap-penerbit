@@ -397,6 +397,9 @@
             url: '{{ url("bill-isbn/load-summary") }}',
             type: 'GET',
             dataType: 'JSON',
+            data: {
+                executor_id: $('#executor_id').val()
+            },
             beforeSend: function() {
                 onLoading('show', '.card-summary');
             },

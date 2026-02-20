@@ -197,7 +197,7 @@ class BillISBNController extends Controller
     public function loadSummary(Request $request)
     {
         $data = ISBN::get('tagihan_isbn', [
-            'penerbit_id' => $request->executor_id,
+            'penerbit_id' => $request->executor_id ?? session('id'),
         ]);
 
         return response()->json($data);
