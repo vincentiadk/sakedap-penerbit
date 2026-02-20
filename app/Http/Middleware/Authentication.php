@@ -54,6 +54,7 @@ class Authentication
             join
                 letter on letter.letter_id = letter_detail.letter_id
             where
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
                 letter.penerbit_id = $id and
                 letter_detail.qty_reject > 0 and
                 (letter_detail.qty_hibah = 0 or letter_detail.qty_hibah is null) and
