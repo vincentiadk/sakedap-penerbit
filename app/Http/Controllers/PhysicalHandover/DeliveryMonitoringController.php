@@ -189,6 +189,10 @@ class DeliveryMonitoringController extends Controller
                         <i class="ph-printer me-1"></i>
                         Cetak Label
                     </a>
+                    <a href="javascript:void(0);" class="btn btn-warning btn-sm text-nowrap" onclick="destroyData(' . $val->LETTER_ID . ')">
+                        <i class="ph-info me-1"></i>
+                        Hapus dan Batalkan
+                    </a>
                 ';
 
                 if ($val->STATUS == 'DIKIRIM') {
