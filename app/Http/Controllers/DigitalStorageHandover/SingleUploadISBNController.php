@@ -55,7 +55,7 @@ class SingleUploadISBNController extends Controller
 
         $draw = intval($request->draw ?? 0);
         $start = intval($request->start ?? 0);
-        $length = $start + intval($request->length ?? 0);
+        $length = $length = $start + intval($request->length ?? 10);;
 
         $data = [];
         $search = strtoupper($request->search['value']);
@@ -269,12 +269,11 @@ class SingleUploadISBNController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'required|mimes:jpg,jpeg,png,pdf,epub|max:204800'
+            'files.*' => 'required|max:204800',
         ], [
             'files.required' => 'File tidak boleh kosong',
             'files.array' => 'File harus array',
             'files.*.required' => 'File tidak boleh kosong',
-            'files.*.mimes' => 'File yang di upload harus jpg, jpeg, png, pdf, epub',
             'files.*.max' => 'Per file yang di upload maksimal 200 MB',
         ]);
 
@@ -285,124 +284,133 @@ class SingleUploadISBNController extends Controller
             ]);
         }
 
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'epub'];
         $files = $request->file('files');
         $groupedFiles = [];
 
         foreach ($files as $file) {
+            $ext = strtolower($file->getClientOriginalExtension());
             $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $key = Str::slug($filename);
             $mime = $file->getMimeType();
+
+            if (!in_array($ext, $allowedExtensions)) {
+                continue;
+            }
 
             if (!isset($groupedFiles[$key])) {
                 $groupedFiles[$key]['original_name'] = $filename;
             }
 
-            if ($mime === 'application/pdf') {
+            if ($ext === 'pdf' || $mime === 'application/pdf') {
                 $groupedFiles[$key]['pdf'] = $file;
-            } else if ($mime === 'application/epub+zip' || $file->getClientOriginalExtension() === 'epub') {
+            } else if ($ext === 'epub' || $mime === 'application/epub+zip') {
                 $groupedFiles[$key]['epub'] = $file;
-            } else if (str_starts_with($mime, 'image/')) {
+            } else if (in_array($ext, ['jpg', 'jpeg', 'png']) || str_starts_with($mime, 'image/')) {
                 $groupedFiles[$key]['cover'] = $file;
             }
         }
 
         $successCount = 0;
+        $updatedCount = 0;
         $errors = [];
 
         foreach ($groupedFiles as $key => $group) {
-            $isbn = $group['original_name'];
-            $isbnReplace = str_replace(['-', '_'], '', $isbn);
+            try {
+                $isbn = $group['original_name'];
+                $isbnReplace = preg_replace('/[^0-9]/', '', $isbn);
 
-            $existingData = QueryAPI::get("
-                select
-                    id,
-                    slug
-                from
-                    e_collections
-                where
-                    replace(code, '-', '') = '$isbnReplace'
-            ", true);
+                $existingData = QueryAPI::get("
+                    select id, slug from e_collections
+                    where replace(code, '-', '') = '$isbnReplace'
+                ", true);
 
-            if ($existingData) {
-                $collectionId = $existingData->ID;
-                $collectionSlug = $existingData->SLUG;
-                $processed = false;
+                if ($existingData) {
+                    $collectionId = (int) $existingData->ID;
+                    $collectionSlug = $existingData->SLUG;
+                    $processed = false;
 
-                if (isset($group['cover'])) {
-                    $this->cleanUpOldFile($collectionId, 'cover');
-                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
+                    if (isset($group['cover'])) {
+                        $this->cleanUpOldFile($collectionId, 'cover');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
 
-                    $processed = true;
-                }
+                        $processed = true;
+                    }
 
-                if (isset($group['pdf'])) {
-                    $this->cleanUpOldFile($collectionId, 'konten_digital');
-                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
+                    if (isset($group['pdf'])) {
+                        $this->cleanUpOldFile($collectionId, 'konten_digital');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
 
-                    $processed = true;
-                } elseif (isset($group['epub'])) {
-                    $this->cleanUpOldFile($collectionId, 'konten_digital');
-                    $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
+                        $processed = true;
+                    } elseif (isset($group['epub'])) {
+                        $this->cleanUpOldFile($collectionId, 'konten_digital');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
 
-                    $processed = true;
-                }
+                        $processed = true;
+                    }
 
-                if ($processed) {
-                    $successCount++;
+                    if ($processed) {
+                        $updatedCount++;
+                        $errors[] = "[INFO] ISBN <strong>{$group['original_name']}</strong> sudah terdaftar, file berhasil diperbarui.";
+                    } else {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Tidak ada file valid untuk diupdate.";
+                    }
                 } else {
-                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: Tidak ada file valid untuk diupdate.";
-                }
-            } else {
-                $getISBN = ISBN::get('search', ['code' => $isbnReplace], true);
+                    $getISBN = ISBN::get('search', ['code' => $isbnReplace], true);
 
-                if (!$getISBN) {
-                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: Data ISBN tidak ditemukan.";
+                    if (!$getISBN) {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Data ISBN tidak ditemukan.";
 
-                    continue;
-                }
+                        continue;
+                    }
 
-                if (($getISBN->jenis_media ?? '') != 'cetak') {
-                    $executorId = $getISBN->penerbit_id ?? null;
-                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
+                    if (($getISBN->jenis_media ?? '') === 'cetak') {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: ISBN terdaftar sebagai media cetak.";
+
+                        continue;
+                    }
+
+                    $executorId = (int) ($getISBN->penerbit_id ?? 0);
+                    $executor = $executorId ? QueryAPI::get("select * from penerbit where id = $executorId", true) : null;
 
                     $physicalDescription = [
                         'paging' => $getISBN->jml_hlm ?? '',
-                        'paging_flag' => 'Halaman'
+                        'paging_flag' => 'Halaman',
                     ];
 
                     $createCollection = QueryAPI::create('e_collections', [
                         'id_old' => 0,
                         'city_id' => $executor->CITY_ID ?? session('city_id'),
-                        'publisher_id' => $executorId,
+                        'publisher_id' => $executorId ?: null,
                         'title_ori' => $getISBN->title ?? '',
                         'slug' => Str::slug($getISBN->title ?? '', '-'),
                         'series' => $getISBN->seri ?? '',
                         'code' => $getISBN->isbn ?? $isbn,
                         'code_type' => 1,
-                        'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', ($getISBN->tanggal_terbit ?? '')) : null,
-                        'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', ($getISBN->tanggal_terbit ?? '')) : null,
-                        'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', ($getISBN->tanggal_terbit ?? '')) : null,
+                        'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', $getISBN->tanggal_terbit) : null,
+                        'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', $getISBN->tanggal_terbit) : null,
+                        'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', $getISBN->tanggal_terbit) : null,
                         'physical_description' => json_encode($physicalDescription),
                         'sync' => 0,
                         'manual' => 1,
                         'akses' => $request->access,
                         'status' => 4,
-                        'created_by' => session('id'),
-                        'updated_by' => session('id'),
-                        'copyright' => Main::copyright($executorId ?? session('id')),
+                        'created_by' => (int) session('id'),
+                        'updated_by' => (int) session('id'),
+                        'copyright' => Main::copyright($executorId ?: session('id')),
                         'worksheet_id' => 20,
                         'collection_media_id' => 141,
-                        'penerbit_id' => $executorId,
+                        'penerbit_id' => $executorId ?: null,
                         'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $getISBN->title ?? '',
-                        'author' => str_replace(', ', ';', ($getISBN->kepeng ?? '')),
+                        'author' => str_replace(', ', ';', $getISBN->kepeng ?? ''),
                         'description' => $getISBN->sinopsis ?? '',
                         'edition' => $getISBN->edisi ?? '',
-                        'status_upload_isbn' => 'ISBN Ditemukan'
+                        'status_upload_isbn' => 'ISBN Ditemukan',
                     ]);
 
                     if ($createCollection) {
-                        $collectionId = $createCollection->ID;
+                        $collectionId   = (int) $createCollection->ID;
                         $collectionSlug = $createCollection->SLUG;
 
                         if (isset($group['cover'])) {
@@ -417,48 +425,44 @@ class SingleUploadISBNController extends Controller
 
                         $successCount++;
                     } else {
-                        $errors[] = "Gagal membuat database untuk <strong>{$group['original_name']}</strong>.";
+                        $errors[] = "[ERROR] Gagal membuat data untuk <strong>{$group['original_name']}</strong>.";
                     }
-                } else {
-                    $errors[] = "File <strong>{$group['original_name']}</strong> dilewati: ISBN terdaftar sebagai media cetak.";
                 }
+            } catch (\Exception $e) {
+                $errors[] = "[ERROR] <strong>{$group['original_name']}</strong>: " . $e->getMessage();
             }
         }
 
-        $code = ($successCount > 0) ? 200 : 404;
-        $message = ($successCount > 0) ? "Berhasil memproses <strong>$successCount</strong> item." : 'Tidak ada file yang berhasil diproses.';
+        $totalProcessed = $successCount + $updatedCount;
+        $code = $totalProcessed > 0 ? 200 : 404;
+        $messageParts = [];
+
+        if ($successCount > 0) $messageParts[] = "<strong>$successCount</strong> ISBN baru ditambahkan";
+        if ($updatedCount > 0) $messageParts[] = "<strong>$updatedCount</strong> ISBN sudah ada, file diperbarui";
+
+        $message = $totalProcessed > 0 ? implode(', dan ', $messageParts) . '.' : 'Tidak ada file yang berhasil diproses.';
 
         return response()->json([
             'code' => $code,
             'error' => $errors,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
     private function cleanUpOldFile($collectionId, $type)
     {
-        $targetTable = '';
+        $collectionId = (int) $collectionId;
+        $targetTable  = match ($type) {
+            'cover' => 'catalogcovers',
+            'konten_digital' => 'catalogfiles',
+            default => null,
+        };
 
-        if ($type === 'cover') {
-            $targetTable = 'catalogcovers';
-        } else if ($type === 'konten_digital') {
-            $targetTable = 'catalogfiles';
-        } else {
-            return;
-        }
+        if (!$targetTable) return;
 
-        $oldFiles = QueryAPI::get("
-            select
-                id
-            from
-                $targetTable
-            where
-                e_col_id = $collectionId
-        ", true);
+        $oldFiles = QueryAPI::get("select id from $targetTable where e_col_id = $collectionId");
 
         if ($oldFiles) {
-            $oldFiles = [$oldFiles];
-
             foreach ($oldFiles as $file) {
                 QueryAPI::removeFile(['type' => $type, 'id' => $file->ID]);
                 QueryAPI::delete($targetTable, $file->ID);
@@ -490,26 +494,28 @@ class SingleUploadISBNController extends Controller
                 ec.*
             from
                 e_collections ec
-            inner join
-                (
-                    select
-                        cf.e_col_id, cf.id,
-                        row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
-                    from
-                        catalogfiles cf
-                ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
-            inner join
-                (
-                    select
-                        cc.e_col_id, cc.id,
-                        row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
-                    from
-                        catalogcovers cc
-                ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
+            join
+                worksheets w on w.id = ec.worksheet_id
+            join (
+                select
+                    cf.e_col_id,
+                    cf.id,
+                    row_number() over (partition by cf.e_col_id order by cf.id desc) as rn
+                from
+                    catalogfiles cf
+            ) cfr on cfr.e_col_id = ec.id and cfr.rn = 1
+            join (
+                select
+                    cc.e_col_id,
+                    cc.id,
+                    row_number() over (partition by cc.e_col_id order by cc.id desc) as rn
+                from
+                    catalogcovers cc
+            ) ccr on ccr.e_col_id = ec.id and ccr.rn = 1
             where
                 ec.deleted_at is null and
                 ec.status = '4' and
-                ec.created_by = " . session('id') . " and
+                ec.created_by = " . (int) session('id') . " and
                 ec.code_type = 1 and
                 ec.code is not null and
                 ec.city_id is not null and
@@ -518,6 +524,7 @@ class SingleUploadISBNController extends Controller
                 ec.publication_year is not null and
                 ec.preview is not null and
                 ec.akses is not null and
+                w.category = '" . $this->worksheetCategory . "' and
                 cfr.id is not null and
                 ccr.id is not null
         ");

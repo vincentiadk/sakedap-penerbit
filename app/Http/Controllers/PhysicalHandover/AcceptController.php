@@ -41,7 +41,7 @@ class AcceptController extends Controller
 
         $draw = intval($request->draw ?? 0);
         $start = intval($request->start ?? 0);
-        $length = $start + intval($request->length ?? 0);
+        $length = $length = $start + intval($request->length ?? 10);;
 
         $data = [];
         $search = strtoupper($request->search['value']);
@@ -164,17 +164,17 @@ class AcceptController extends Controller
                     <div>' . Carbon::parse($val->ACCEPT_DATE_LETTER)->isoFormat('D MMM Y') . '</div>
                     <small>Jam : ' . Carbon::parse($val->ACCEPT_DATE_LETTER)->format('H.i') . ' WIB</small>
                 ';
-                $identifier="";
-                if($val->ISBN != ""){
+                $identifier = "";
+                if ($val->ISBN != "") {
                     $identifier .= "<br/>ISBN : " . $val->ISBN;
                 }
-                if($val->ISSN != ""){
+                if ($val->ISSN != "") {
                     $identifier .= "<br/>ISSN : " . $val->ISSN;
                 }
-                if($val->QRCBN != ""){
+                if ($val->QRCBN != "") {
                     $identifier .= "<br/>QRCBN : " . $val->QRCBN;
                 }
-                if($val->ISRC != ""){
+                if ($val->ISRC != "") {
                     $identifier .= "<br/>ISRC : " . $val->ISRC;
                 }
                 $data[] = [

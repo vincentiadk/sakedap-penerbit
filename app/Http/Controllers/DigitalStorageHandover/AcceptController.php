@@ -49,7 +49,7 @@ class AcceptController extends Controller
 
         $draw = intval($request->draw ?? 0);
         $start = intval($request->start ?? 0);
-        $length = $start + intval($request->length ?? 0);
+        $length = $length = $start + intval($request->length ?? 10);;
 
         $data = [];
         $search = strtoupper($request->search['value']);
@@ -166,8 +166,8 @@ class AcceptController extends Controller
                                 e_collections.received_at,
                                 penerbit.name as name_penerbit,
                                 collectionmedias.name as name_media,
-                                case 
-                                    when e_collections.code_type = 1 then 'ISBN' 
+                                case
+                                    when e_collections.code_type = 1 then 'ISBN'
                                     when e_collections.code_type = 3 then 'ISRC'
                                     when e_collections.code_type = 2 then ' ISSN'
                                 end code_type
@@ -279,7 +279,7 @@ class AcceptController extends Controller
                 worksheets w on w.id = c.worksheet_id
             left join
                 penerbit on penerbit.id = c.penerbit_id
-            left join 
+            left join
                 collectionmedias cm on cm.id = ec.collection_media_id
             left join
                 (

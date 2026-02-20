@@ -206,6 +206,9 @@
                     setTimeout(function() {
                         $input.fileinput('upload');
                     }, 500);
+                } else if (fileCount === 1) {
+                    notification('warning', 'Upload minimal 2 file: Cover (jpg/png) dan Konten (pdf/epub) dengan nama file yang sama.');
+                    $input.fileinput('clear');
                 }
             });
         }, 300);
@@ -228,9 +231,15 @@
             const response = data.response;
             let errMessage = '';
 
-            if(response.error && response.error.length > 0) {
+            if (response.error && response.error.length > 0) {
                 $.each(response.error, function(i, val) {
-                    errMessage += '<li class="text-start">' + val + '</li>';
+                    let itemClass = 'text-muted';
+
+                    if (val.startsWith('[INFO]')) itemClass = 'text-primary';
+                    else if (val.startsWith('[ERROR]')) itemClass = 'text-danger';
+                    else if (val.startsWith('[SKIP]')) itemClass = 'text-warning';
+
+                    errMessage += '<li class="text-start ' + itemClass + '">' + val + '</li>';
                 });
             }
 
