@@ -572,4 +572,23 @@ class Main
 
         return $cleaned;
     }
+
+    /**
+     * getCoverISBN
+     *
+     * @param  mixed $fileUrl
+     * @return void
+     */
+    public static function getCoverISBN($fileUrl = null)
+    {
+        $baseUrl = config('inlis.base_url');
+
+        if ($fileUrl) {
+            $link = $baseUrl . $fileUrl;
+        } else {
+            $link = asset('assets/no-file.jpg');
+        }
+
+        return $link;
+    }
 }

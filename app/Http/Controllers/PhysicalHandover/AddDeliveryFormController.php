@@ -63,7 +63,7 @@ class AddDeliveryFormController extends Controller
             'penerbit_id' => $executorId,
         ], true);
 
-        $linkCover = asset('assets/no-file.jpg');
+        $linkCover = Main::getCoverISBN($data->cover_file_name ?? '');
         $title = '';
 
         if (!$data) {
@@ -73,10 +73,6 @@ class AddDeliveryFormController extends Controller
                 'qty_perpusnas' => 0,
                 'qty_province' => 0,
             ]);
-        }
-
-        if (!empty($data->cover_file_name)) {
-            $linkCover = $data->cover_file_name;
         }
 
         if ($data->tanggal_terbit) {
