@@ -587,18 +587,14 @@ class AuthController extends Controller
     private function sendOTPWA($phone, $otp)
     {
         try {
-            $message = "*VERIFIKASI OTP*\n\n";
-            $message .= "Kode OTP Anda: *{$otp}*\n\n";
-            $message .= "Kode ini berlaku selama *5 menit*.\n";
-            $message .= "Jangan bagikan kode ini kepada siapapun.\n\n";
-            $message .= "Jika Anda tidak meminta kode ini, abaikan pesan ini.\n\n";
+            $sendMessage = Barantum::send($phone, 'Notif OTP', [$otp], Main::BARANTUM_TEMPLATE_ID_OTP);
 
-            return Barantum::send($phone, 'Notif OTP', [$message]);
+            return response()->json($sendMessage);
         } catch (\Exception $e) {
-            return [
+            return response()->json([
                 'code' => $e->getCode() ?? 500,
                 'message' => $e->getMessage()
-            ];
+            ]);
         }
     }
 

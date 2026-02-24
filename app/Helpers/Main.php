@@ -2,11 +2,11 @@
 
 namespace App\Helpers;
 
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class Main
 {
+    const BARANTUM_TEMPLATE_ID_OTP = 'ef80f681-be61-4c32-a98f-9e492e8f2f77';
     const COLLECTION_DIGITAL = 'KRD';
     const COLLECTION_PRINTED = 'KC';
     const COLLECTION_ANALOG = 'KRA';
