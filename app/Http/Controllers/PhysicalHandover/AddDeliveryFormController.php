@@ -418,7 +418,6 @@ class AddDeliveryFormController extends Controller
             'receipt_no' => 'LSG' . now()->format('YmdHis'),
             'status' => 'TERKIRIM',
             'sent_date' => date('Y-m-d H:i:s'),
-            'accept_date' => date('Y-m-d H:i:s'),
             'biaya_kirim' => 0,
             'jasa_pengiriman_id' => 1,
         ], $auditData);
