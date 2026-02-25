@@ -318,11 +318,13 @@ class SingleUploadISBNController extends Controller
         foreach ($groupedFiles as $key => $group) {
             try {
                 $isbn = $group['original_name'];
-                $isbnReplace = preg_replace('/[^0-9]/', '', $isbn);
+                $isbnReplace = preg_replace('/[^0-9]/', '', $group['original_name']);
 
+                // Pastikan mengecek status deleted_at agar tidak double input jika data lama sudah di-softdelete
                 $existingData = QueryAPI::get("
                     select id, slug from e_collections
                     where replace(code, '-', '') = '$isbnReplace'
+                    and deleted_at is null
                 ", true);
 
                 if ($existingData) {
@@ -342,7 +344,7 @@ class SingleUploadISBNController extends Controller
                         $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
 
                         $processed = true;
-                    } elseif (isset($group['epub'])) {
+                    } else if (isset($group['epub'])) {
                         $this->cleanUpOldFile($collectionId, 'konten_digital');
                         $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
 
@@ -359,7 +361,16 @@ class SingleUploadISBNController extends Controller
                     $getISBN = ISBN::get('search', ['code' => $isbnReplace], true);
 
                     if (!$getISBN) {
-                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Data ISBN tidak ditemukan.";
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Data ISBN tidak ditemukan di database pusat.";
+
+                        continue;
+                    }
+
+                    $cleanIsbnFromApi = preg_replace('/[^0-9]/', '', $getISBN->isbn ?? '');
+                    $finalCheck = QueryAPI::get("select id from e_collections where replace(code, '-', '') = '$cleanIsbnFromApi' and deleted_at is null", true);
+
+                    if ($finalCheck) {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: ISBN ini sudah terdaftar dengan format berbeda.";
 
                         continue;
                     }
