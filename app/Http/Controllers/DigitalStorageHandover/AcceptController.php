@@ -458,8 +458,7 @@ class AcceptController extends Controller
                 from
                     e_settings
                 where
-                    slug = 'KoleksiTervalidasi' or
-                    (slug in ('Header','Footer') and province_id = " . session('province_id') . ")
+                    slug in ('Header','Footer','KoleksiTervalidasi')
             ");
 
             $templateEmailContent = null;

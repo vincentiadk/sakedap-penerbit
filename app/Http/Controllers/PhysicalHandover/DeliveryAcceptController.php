@@ -209,7 +209,11 @@ class DeliveryAcceptController extends Controller
                         <i class="ph-check me-1"></i>
                         Detail
                     </a>
-                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm mt-1 text-nowrap" target="_blank">
+                    <a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
+                        <i class="ph-barcode me-1"></i>
+                        Cetak Label
+                    </a>
+                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
                         <i class="ph-printer me-1"></i>
                         Resi Penerimaan
                     </a>
@@ -350,8 +354,7 @@ class DeliveryAcceptController extends Controller
                 from
                     e_settings
                 where
-                    slug = 'ResiPenerimaan' or
-                    (slug in ('Header','Footer') and province_id = " . session('province_id') . ")
+                    slug in ('Header','Footer','ResiPenerimaan')
             ");
 
             $templateEmailContent = null;

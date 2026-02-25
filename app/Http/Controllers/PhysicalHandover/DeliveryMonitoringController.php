@@ -324,7 +324,6 @@ class DeliveryMonitoringController extends Controller
                     branchs on branchs.id = letter.branch_id
                 where
                     letter.letter_id = $id and
-                    letter.status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
                     letter.order_no is null
             ";
 
