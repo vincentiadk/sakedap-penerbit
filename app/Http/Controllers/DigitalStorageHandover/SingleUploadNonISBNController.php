@@ -139,6 +139,7 @@ class SingleUploadNonISBNController extends Controller
                         'slug' => Str::slug($request->title, '-'),
                         'series' => $request->series,
                         'serial' => $request->serial,
+                        'deposit' => Main::generateNumberDeposit(),
                         'code' => $request->code,
                         'code_type' => $request->code_type ?? 0,
                         'publication_month' => date('m', $publishTime),
@@ -207,6 +208,7 @@ class SingleUploadNonISBNController extends Controller
 
                             if ($editionTitle && $editionDate && $editionCover && $editionContent) {
                                 $editionData = $baseCollectionData;
+                                $editionData['deposit'] = Main::generateNumberDeposit();
                                 $editionData['parent_id'] = $createCollection->ID;
                                 $editionData['edition'] = $editionTitle;
                                 $editionData['edition_date'] = $editionDate;

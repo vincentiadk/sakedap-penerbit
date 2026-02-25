@@ -47,6 +47,64 @@ class Main
     ];
 
     /**
+     * generateNumberDeposit
+     *
+     * @return void
+     */
+    public static function generateNumberDeposit()
+    {
+        $seq = 1;
+        $yearNow = date('Y');
+
+        $data = QueryAPI::get("
+            select
+                max(substr(deposit, -5)) as unique_code
+            from
+                e_collections
+            where
+                deposit is not null and
+                to_char(created_at, 'YYYY') = '$yearNow'
+        ", true);
+
+        if ($data) {
+            $seq = (int) $data->UNIQUE_CODE;
+            $seq += 1;
+            $seq = sprintf('%05d', $seq);
+        }
+
+        $numbering = 'DEP' . date('Ymd') . $seq;
+
+        return $numbering;
+    }
+
+    /**
+     * generateNumberCopy
+     *
+     * @return void
+     */
+    public static function generateNumberCopy()
+    {
+        $date = date('Ymd');
+        $seq = 1;
+
+        $data = QueryAPI::get("
+            select
+                max(substr(code, 8)) as unique_code
+            from
+                e_collection_copies
+            where
+                code like '%C$date%'
+        ", true);
+
+        if ($data) {
+            $seq = (int) $data->UNIQUE_CODE;
+            $seq += 1;
+        }
+
+        return 'C' . $date . sprintf('%05s', $seq);
+    }
+
+    /**
      * locationById
      *
      * @param  mixed $id

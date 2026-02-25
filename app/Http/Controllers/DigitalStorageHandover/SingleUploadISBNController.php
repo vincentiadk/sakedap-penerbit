@@ -385,6 +385,7 @@ class SingleUploadISBNController extends Controller
                         'title_ori' => $getISBN->title ?? '',
                         'slug' => Str::slug($getISBN->title ?? '', '-'),
                         'series' => $getISBN->seri ?? '',
+                        'deposit' => Main::generateNumberDeposit(),
                         'code' => $getISBN->isbn ?? $isbn,
                         'code_type' => 1,
                         'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', strtotime($getISBN->tanggal_terbit)) : null,
