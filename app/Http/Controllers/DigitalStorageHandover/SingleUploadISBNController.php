@@ -269,12 +269,11 @@ class SingleUploadISBNController extends Controller
     {
         $validation = Validator::make($request->all(), [
             'files' => 'required|array',
-            'files.*' => 'required|max:204800',
+            'files.*' => 'required',
         ], [
             'files.required' => 'File tidak boleh kosong',
             'files.array' => 'File harus array',
             'files.*.required' => 'File tidak boleh kosong',
-            'files.*.max' => 'Per file yang di upload maksimal 200 MB',
         ]);
 
         if ($validation->fails()) {
@@ -320,7 +319,6 @@ class SingleUploadISBNController extends Controller
                 $isbn = $group['original_name'];
                 $isbnReplace = preg_replace('/[^0-9]/', '', $group['original_name']);
 
-                // Pastikan mengecek status deleted_at agar tidak double input jika data lama sudah di-softdelete
                 $existingData = QueryAPI::get("
                     select id, slug from e_collections
                     where replace(code, '-', '') = '$isbnReplace'

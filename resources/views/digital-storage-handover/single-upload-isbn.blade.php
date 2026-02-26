@@ -38,7 +38,7 @@
                         <h6 class="alert-heading fw-semibold mb-1">Petunjuk Upload</h6>
                         <p class="mb-2">Upload file Cover (JPG/PNG) dan Konten (PDF/EPUB) dengan <strong>nama file yang sama</strong> sesuai ISBN.</p>
                         <ul class="mb-0 small">
-                            <li>Format Cover: JPG, PNG (Max 200MB)</li>
+                            <li>Format Cover: JPG, PNG (Max 2MB)</li>
                             <li>Format Konten: PDF, EPUB (Max 200MB)</li>
                             <li>Contoh: <code>9786023851218.jpg</code> & <code>9786023851218.pdf</code></li>
                         </ul>
