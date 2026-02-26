@@ -275,7 +275,6 @@
             columns: [
                 { orderable: true, className: 'align-middle text-center fw-semibold' },
                 { orderable: false, className: 'align-middle text-center' },
-                { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: true, className: 'align-middle text-center' },
                 { orderable: true, className: 'align-middle text-center' },
