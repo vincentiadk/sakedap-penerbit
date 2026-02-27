@@ -10,10 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 
-class SingleUploadISBNController extends Controller
+class SingleUploadISBNControllerOld extends Controller
 {
     private $worksheetCategory;
 
@@ -270,216 +268,197 @@ class SingleUploadISBNController extends Controller
     public function uploaded(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            'files'   => 'required|array',
-            'files.*' => 'required|file',
+            'files' => 'required|array',
+            'files.*' => 'required',
         ], [
-            'files.required'   => 'File tidak boleh kosong',
-            'files.array'      => 'File harus array',
+            'files.required' => 'File tidak boleh kosong',
+            'files.array' => 'File harus array',
             'files.*.required' => 'File tidak boleh kosong',
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'code'  => 400,
+                'code' => 400,
                 'error' => $validation->errors()->all(),
-                'message' => 'Validasi gagal.',
             ]);
         }
 
-        // ==== Konfigurasi ====
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'epub', 'mp3', 'mp4'];
-
-        $STATUS_DRAFT      = 4;
-        $STATUS_REVIEW     = 1;
-        $STATUS_DITERIMA   = 2;
-        $STATUS_BERMASALAH = 3;
-
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'epub'];
         $files = $request->file('files');
+        $groupedFiles = [];
 
-        $successCreate = 0;
-        $successUpdate = 0;
-        $rejectedCount = 0;
-        $errors = [];
+        foreach ($files as $file) {
+            $ext = strtolower($file->getClientOriginalExtension());
+            $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $key = Str::slug($filename);
+            $mime = $file->getMimeType();
 
-        foreach ($files as $idx => $file) {
-            try {
-                $ext      = strtolower($file->getClientOriginalExtension() ?? '');
-                $mime     = $file->getMimeType() ?? '';
-                $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            if (!in_array($ext, $allowedExtensions)) {
+                continue;
+            }
 
-                // 0) Filter ekstensi
-                if (!in_array($ext, $allowedExtensions)) {
-                    $rejectedCount++;
-                    $errors[] = "[SKIP] <strong>{$basename}</strong>: Ekstensi <strong>.{$ext}</strong> tidak didukung.";
-                    continue;
-                }
+            if (!isset($groupedFiles[$key])) {
+                $groupedFiles[$key]['original_name'] = $filename;
+            }
 
-                // 1) Ambil ISBN (digit doang) dari nama file
-                $isbnDigits = preg_replace('/[^0-9]/', '', (string) $basename);
-                Log::info($isbnDigits);
-               
-                if (strlen($isbnDigits) < 10) {
-                    $rejectedCount++;
-                    $errors[] = "[SKIP] <strong>{$basename}</strong>: Nama file tidak mengandung ISBN yang valid.";
-                    continue;
-                }
-
-                // 2) Tentukan tipe file → cover / konten_digital
-                $uploadType = null;
-                if ($ext === 'pdf' || $mime === 'application/pdf') {
-                    $uploadType = 'konten_digital';
-                } elseif ($ext === 'epub' || $mime === 'application/epub+zip') {
-                    $uploadType = 'konten_digital';
-                }  elseif ($ext === 'mp4' || $mime === 'application/mp4') {
-                    $uploadType = 'konten_digital';
-                } elseif ($ext === 'mp3' || $mime === 'application/mpeg') {
-                    $uploadType = 'konten_digital';
-                } elseif (in_array($ext, ['jpg','jpeg','png']) || str_starts_with($mime, 'image/')) {
-                    $uploadType = 'cover';
-                } else {
-                    $rejectedCount++;
-                    $errors[] = "[SKIP] <strong>{$basename}</strong>: Tipe file tidak dikenali.";
-                    continue;
-                }
-
-                // 3) Cek apakah ISBN sudah ada di e_collections (draft/review/diterima/bermasalah)
-                $sql = "
-                    select id, slug, status
-                    from e_collections
-                    where replace(trim(code), '-', '') = '{$isbnDigits}'
-                    and deleted_at is null
-                ";
-                $existing = QueryAPI::get($sql, true);
-               // Log::debug($existing);
-                if ($existing) {
-                    $collectionId   = (int) $existing->ID;
-                    $collectionSlug = (string) $existing->SLUG;
-                    $status         = (int) ($existing->STATUS ?? 0);
-
-                    // 3a) Aturan status 
-                    if ($status === $STATUS_DITERIMA) {
-                        $rejectedCount++;
-                        $errors[] = "[REJECT] <strong>{$basename}</strong>: Sudah <strong>DITERIMA</strong>. Upload ditolak.";
-                        continue;
-                    }
-
-                    if ($status === $STATUS_REVIEW) {
-                        $rejectedCount++;
-                        $errors[] = "[REJECT] <strong>{$basename}</strong>: Sedang <strong>REVIEW</strong>. Upload ditolak.";
-                        continue;
-                    }
-
-                    if ($status === $STATUS_BERMASALAH) {
-                        $rejectedCount++;
-                        $errors[] = "[REJECT] <strong>{$basename}</strong>: Status <strong>BERMASALAH</strong>. Perbaiki lewat fitur Bermasalah.";
-                        continue;
-                    }
-
-                    if ($status !== $STATUS_DRAFT) {
-                        $rejectedCount++;
-                        $errors[] = "[REJECT] <strong>{$basename}</strong>: Status koleksi tidak mengizinkan update.";
-                        continue;
-                    }
-
-                    // 3b) Draft → update file lama sesuai tipe file
-                    $this->cleanUpOldFile($collectionId, $uploadType);
-                    $this->uploadFileToApi($collectionId, $collectionSlug, $file, $uploadType);
-                    
-
-                    $successUpdate++;
-                    $errors[] = "[OK] <strong>{$basename}</strong>: Draft ditemukan, <strong>{$uploadType}</strong> berhasil diupdate.";
-                    continue;
-                }
-
-                // 4) Kalau belum ada di e_collections → cari ISBN di DB pusat
-                $getISBN = ISBN::get('search', ['code' => $isbnDigits], true);
-                if (!$getISBN) {
-                    $rejectedCount++;
-                    $errors[] = "[SKIP] <strong>{$basename}</strong>: Data ISBN tidak ditemukan di database pusat.";
-                    continue;
-                }
-
-                if (($getISBN->jenis_media ?? '') === 'cetak') {
-                    $rejectedCount++;
-                    $errors[] = "[SKIP] <strong>{$basename}</strong>: ISBN terdaftar sebagai <strong>media cetak</strong>.";
-                    continue;
-                }
-
-                // 5) Create draft baru → lalu upload file 
-                $executorId = (int) ($getISBN->penerbit_id ?? 0);
-                $executor   = $executorId ? QueryAPI::get("select * from penerbit where id = {$executorId}", true) : null;
-
-                $physicalDescription = [
-                    'paging' => $getISBN->jml_hlm ?? '',
-                    'paging_flag' => 'Halaman',
-                ];
-
-                $createCollection = QueryAPI::create('e_collections', [
-                    'id_old' => 0,
-                    'city_id' => $executor->CITY_ID ?? session('city_id'),
-                    'publisher_id' => $executorId ?: null,
-                    'title_ori' => $getISBN->title ?? '',
-                    'slug' => Str::slug($getISBN->title ?? '', '-'),
-                    'series' => $getISBN->seri ?? '',
-                    'deposit' => Main::generateNumberDeposit(),
-                    'code' => $getISBN->isbn ?? $isbnDigits,
-                    'code_type' => 1,
-                    'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', strtotime($getISBN->tanggal_terbit)) : null,
-                    'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', strtotime($getISBN->tanggal_terbit)) : null,
-                    'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', strtotime($getISBN->tanggal_terbit)) : null,
-                    'physical_description' => json_encode($physicalDescription),
-                    'sync' => 0,
-                    'manual' => 1,
-                    'akses' => $request->access,
-                    // penting: set DRAFT !!
-                    'status' => $STATUS_DRAFT,
-                    'created_by' => (int) session('id'),
-                    'updated_by' => (int) session('id'),
-                    'copyright' => Main::copyright($executorId ?: session('id')),
-                    'worksheet_id' => 20,
-                    'collection_media_id' => 141,
-                    'penerbit_id' => $executorId ?: null,
-                    'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
-                    'title' => $getISBN->title ?? '',
-                    'author' => str_replace(', ', ';', $getISBN->kepeng ?? ''),
-                    'description' => $getISBN->sinopsis ?? '',
-                    'edition' => $getISBN->edisi ?? '',
-                    'status_upload_isbn' => 'ISBN Ditemukan',
-                ]);
-
-                if (!$createCollection) {
-                    $rejectedCount++;
-                    $errors[] = "[ERROR] <strong>{$basename}</strong>: Gagal membuat data draft.";
-                    continue;
-                }
-
-                $collectionId   = (int) $createCollection->ID;
-                $collectionSlug = (string) $createCollection->SLUG;
-
-                $this->uploadFileToApi($collectionId, $collectionSlug, $file, $uploadType);
-
-                $successCreate++;
-                $errors[] = "[OK] <strong>{$basename}</strong>: Draft dibuat, <strong>{$uploadType}</strong> berhasil diupload.";
-            } catch (\Exception $e) {
-                $rejectedCount++;
-                $errors[] = "[ERROR] <strong>{$basename}</strong>: " . $e->getMessage();
+            if ($ext === 'pdf' || $mime === 'application/pdf') {
+                $groupedFiles[$key]['pdf'] = $file;
+            } else if ($ext === 'epub' || $mime === 'application/epub+zip') {
+                $groupedFiles[$key]['epub'] = $file;
+            } else if (in_array($ext, ['jpg', 'jpeg', 'png']) || str_starts_with($mime, 'image/')) {
+                $groupedFiles[$key]['cover'] = $file;
             }
         }
 
-        $totalOk = $successCreate + $successUpdate;
+        $successCount = 0;
+        $updatedCount = 0;
+        $errors = [];
 
+        foreach ($groupedFiles as $key => $group) {
+            try {
+                $isbn = $group['original_name'];
+                $isbnReplace = preg_replace('/[^0-9]/', '', $group['original_name']);
+
+                $existingData = QueryAPI::get("
+                    select id, slug from e_collections
+                    where replace(code, '-', '') = '$isbnReplace'
+                    and deleted_at is null
+                ", true);
+
+                if ($existingData) {
+                    $collectionId = (int) $existingData->ID;
+                    $collectionSlug = $existingData->SLUG;
+                    $processed = false;
+
+                    if (isset($group['cover'])) {
+                        $this->cleanUpOldFile($collectionId, 'cover');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
+
+                        $processed = true;
+                    }
+
+                    if (isset($group['pdf'])) {
+                        $this->cleanUpOldFile($collectionId, 'konten_digital');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
+
+                        $processed = true;
+                    } else if (isset($group['epub'])) {
+                        $this->cleanUpOldFile($collectionId, 'konten_digital');
+                        $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
+
+                        $processed = true;
+                    }
+
+                    if ($processed) {
+                        $updatedCount++;
+                        $errors[] = "[INFO] ISBN <strong>{$group['original_name']}</strong> sudah terdaftar, file berhasil diperbarui.";
+                    } else {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Tidak ada file valid untuk diupdate.";
+                    }
+                } else {
+                    $getISBN = ISBN::get('search', ['code' => $isbnReplace], true);
+
+                    if (!$getISBN) {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: Data ISBN tidak ditemukan di database pusat.";
+
+                        continue;
+                    }
+
+                    $cleanIsbnFromApi = preg_replace('/[^0-9]/', '', $getISBN->isbn ?? '');
+                    $finalCheck = QueryAPI::get("select id from e_collections where replace(code, '-', '') = '$cleanIsbnFromApi' and deleted_at is null", true);
+
+                    if ($finalCheck) {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: ISBN ini sudah terdaftar dengan format berbeda.";
+
+                        continue;
+                    }
+
+                    if (($getISBN->jenis_media ?? '') === 'cetak') {
+                        $errors[] = "[SKIP] <strong>{$group['original_name']}</strong>: ISBN terdaftar sebagai media cetak.";
+
+                        continue;
+                    }
+
+                    $executorId = (int) ($getISBN->penerbit_id ?? 0);
+                    $executor = $executorId ? QueryAPI::get("select * from penerbit where id = $executorId", true) : null;
+
+                    $physicalDescription = [
+                        'paging' => $getISBN->jml_hlm ?? '',
+                        'paging_flag' => 'Halaman',
+                    ];
+
+                    $createCollection = QueryAPI::create('e_collections', [
+                        'id_old' => 0,
+                        'city_id' => $executor->CITY_ID ?? session('city_id'),
+                        'publisher_id' => $executorId ?: null,
+                        'title_ori' => $getISBN->title ?? '',
+                        'slug' => Str::slug($getISBN->title ?? '', '-'),
+                        'series' => $getISBN->seri ?? '',
+                        'deposit' => Main::generateNumberDeposit(),
+                        'code' => $getISBN->isbn ?? $isbn,
+                        'code_type' => 1,
+                        'publication_month' => ($getISBN->tanggal_terbit ?? '') ? date('m', strtotime($getISBN->tanggal_terbit)) : null,
+                        'publication_year' => ($getISBN->tanggal_terbit ?? '') ? date('Y', strtotime($getISBN->tanggal_terbit)) : null,
+                        'publication_day' => ($getISBN->tanggal_terbit ?? '') ? date('d', strtotime($getISBN->tanggal_terbit)) : null,
+                        'physical_description' => json_encode($physicalDescription),
+                        'sync' => 0,
+                        'manual' => 1,
+                        'akses' => $request->access,
+                        'status' => 4,
+                        'created_by' => (int) session('id'),
+                        'updated_by' => (int) session('id'),
+                        'copyright' => Main::copyright($executorId ?: session('id')),
+                        'worksheet_id' => 20,
+                        'collection_media_id' => 141,
+                        'penerbit_id' => $executorId ?: null,
+                        'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
+                        'title' => $getISBN->title ?? '',
+                        'author' => str_replace(', ', ';', $getISBN->kepeng ?? ''),
+                        'description' => $getISBN->sinopsis ?? '',
+                        'edition' => $getISBN->edisi ?? '',
+                        'status_upload_isbn' => 'ISBN Ditemukan',
+                    ]);
+
+                    if ($createCollection) {
+                        $collectionId   = (int) $createCollection->ID;
+                        $collectionSlug = $createCollection->SLUG;
+
+                        if (isset($group['cover'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['cover'], 'cover');
+                        }
+
+                        if (isset($group['pdf'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['pdf'], 'konten_digital');
+                        } else if (isset($group['epub'])) {
+                            $this->uploadFileToApi($collectionId, $collectionSlug, $group['epub'], 'konten_digital');
+                        }
+
+                        $successCount++;
+                    } else {
+                        $errors[] = "[ERROR] Gagal membuat data untuk <strong>{$group['original_name']}</strong>.";
+                    }
+                }
+            } catch (\Exception $e) {
+                $errors[] = "[ERROR] <strong>{$group['original_name']}</strong>: " . $e->getMessage();
+            }
+        }
+
+        $totalProcessed = $successCount + $updatedCount;
+        $code = $totalProcessed > 0 ? 200 : 404;
         $messageParts = [];
-        if ($successCreate > 0) $messageParts[] = "<strong>{$successCreate}</strong> draft baru dibuat";
-        if ($successUpdate > 0) $messageParts[] = "<strong>{$successUpdate}</strong> draft diperbarui";
-        if ($rejectedCount > 0) $messageParts[] = "<strong>{$rejectedCount}</strong> file ditolak/di-skip";
+
+        if ($successCount > 0) $messageParts[] = "<strong>$successCount</strong> ISBN baru ditambahkan";
+        if ($updatedCount > 0) $messageParts[] = "<strong>$updatedCount</strong> ISBN sudah ada, file diperbarui";
+
+        $message = $totalProcessed > 0 ? implode(', dan ', $messageParts) . '.' : 'Tidak ada file yang berhasil diproses.';
 
         return response()->json([
-            'code'    => $totalOk > 0 ? 200 : 404,
-            'logs'    => $errors,                 // isinya campuran [OK]/[SKIP]/[REJECT]
-            'message' => $messageParts,
-            'errors'  => $totalOk > 0 ? [] : $errors, // optional: kalau mau
+            'code' => $code,
+            'error' => $errors,
+            'message' => $message,
         ]);
     }
+
     private function cleanUpOldFile($collectionId, $type)
     {
         $collectionId = (int) $collectionId;
@@ -492,7 +471,7 @@ class SingleUploadISBNController extends Controller
         if (!$targetTable) return;
 
         $oldFiles = QueryAPI::get("select id from $targetTable where e_col_id = $collectionId");
-        Log::info($oldFiles);
+
         if ($oldFiles) {
             foreach ($oldFiles as $file) {
                 QueryAPI::removeFile(['type' => $type, 'id' => $file->ID]);
@@ -504,7 +483,8 @@ class SingleUploadISBNController extends Controller
     private function uploadFileToApi($id, $slug, $file, $type)
     {
         $prefix = ($type == 'cover') ? 'FILE-COVER-' : 'FILE-KONTEN-';
-        $resp =  QueryAPI::uploadFile([
+
+        return QueryAPI::uploadFile([
             'type' => $type,
             'id' => $id,
             'status' => 1,
@@ -515,7 +495,6 @@ class SingleUploadISBNController extends Controller
             'iszip' => false,
             'file' => $file,
         ]);
-        return $resp;
     }
 
     public function submission()

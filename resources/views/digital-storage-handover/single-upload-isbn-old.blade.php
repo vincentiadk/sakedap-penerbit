@@ -36,28 +36,12 @@
                     </div>
                     <div class="flex-fill">
                         <h6 class="alert-heading fw-semibold mb-1">Petunjuk Upload</h6>
-                        <p class="mb-2">
-                            Anda dapat mengunggah <strong>beberapa file sekaligus</strong> pada area di bawah ini.
-                            Sistem akan memproses setiap file secara otomatis dan berurutan.
-                        </p>
-
+                        <p class="mb-2">Upload file Cover (JPG/PNG) dan Konten (PDF/EPUB) dengan <strong>nama file yang sama</strong> sesuai ISBN.</p>
                         <ul class="mb-0 small">
-                            <li><strong>Nama file wajib mengandung ISBN</strong> (boleh memakai tanda <code>-</code>). Contoh: <code>9786236870600.pdf</code> atau <code>978-623-687-060-0.jpg</code></li>
-                            <li><strong>Cover</strong>: JPG/PNG (Max 2MB)</li>
-                            <li><strong>Konten</strong>: PDF/EPUB/MP3/MP4 (Max 200MB per file)</li>
+                            <li>Format Cover: JPG, PNG (Max 2MB)</li>
+                            <li>Format Konten: PDF, EPUB (Max 200MB)</li>
+                            <li>Contoh: <code>9786023851218.jpg</code> & <code>9786023851218.pdf</code></li>
                         </ul>
-
-                        <hr class="my-2">
-
-                        <div class="small text-muted">
-                            <div class="fw-semibold mb-1">Aturan Pemrosesan</div>
-                            <ol class="mb-0 ps-3">
-                                <li>Apabila karya digital ber-ISBN yang diunggah <strong>telah diterima</strong>, maka file tidak dapat diperbarui.</li>
-                                <li>Apabila karya digital ber-ISBN yang diunggah <strong>sedang dalam proses peninjauan</strong>, maka file tidak dapat diperbarui.</li>
-                                <li>Apabila karya digital ber-ISBN yang diunggah berstatus <strong>bermasalah</strong>, silakan lakukan perbaikan melalui fitur <strong>Koleksi Bermasalah</strong> sebelum mengunggah kembali.</li>
-                                <li>Apabila karya digital ber-ISBN masih berstatus <strong>draft</strong> atau berada pada tabel pemrosesan ISBN di bawah ini, maka file yang diunggah akan <strong>menggantikan</strong> file sebelumnya sesuai dengan jenis file (cover atau konten).</li>
-                            </ol>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -150,211 +134,212 @@
 </div>
 
 <script>
-    $(function () {
+    $(function() {
         loadData();
 
         var $input = $("#files");
-        if ($input.length === 0) return;
+        var isUploading = false;
 
-        // ===== state queue =====
-        let uploading = false;  // sedang upload batch sekarang
-        let queued = false;     // ada tambahan file saat upload jalan
-        let allLogs = [];       // kumpulin logs dari server (per file)
-        let lastMessage = null; // message terakhir dari server
-        let lastCode = 200;     // track code terakhir
+        if ($input.length === 0) {
+            return;
+        }
 
-        // destroy kalau sudah pernah init
         if ($input.data('fileinput')) {
             $input.fileinput('destroy');
         }
 
-        // ===== INIT fileinput (dragAndDropFile wrapper kamu) =====
         dragAndDropFile('#files', {
             uploadUrl: '{{ url("digital-storage-handover/single-upload-isbn/uploaded") }}',
-
-            // ✅ WAJIB supaya bisa upload sambil tambah file lain (drop/browse)
-            uploadAsync: true,
-
+            uploadAsync: false,
             showUpload: false,
             showCancel: false,
             autoReplace: false,
-
-            allowedFileExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'epub', 'mp3', 'mp4'],
-            maxFileSize: 204800, // 200MB per file
+            allowedFileExtensions: ['jpg', 'png', 'jpeg', 'pdf', 'epub'],
+            maxFileSize: 204800,
             showCaption: true,
             showPreview: true,
             dropZoneEnabled: true,
             dropZoneClickable: true,
-            dropZoneTitle:
-            '<i class="ph-cloud-arrow-up ph-2x mb-2"></i><br>' +
-            'Drag & drop file di sini atau <span class="text-primary fw-semibold">klik untuk browse</span><br>' +
-            '<small class="text-muted">Cover (JPG/PNG) & Konten (PDF/EPUB/MP3/MP4) - Max 200MB</small>',
-            msgPlaceholder: 'Pilih satu atau beberapa file (otomatis upload)',
-            uploadExtraData: function () {
-            return { _token: '{{ csrf_token() }}' };
+            dropZoneTitle: '<i class="ph-cloud-arrow-up ph-2x mb-2"></i><br>Drag & drop file di sini atau <span class="text-primary fw-semibold">klik untuk browse</span><br><small class="text-muted">Cover (JPG/PNG) & Konten (PDF/EPUB) - Max 200MB</small>',
+            msgPlaceholder: 'Pilih dua atau beberapa file (otomatis upload)',
+            uploadExtraData: function() {
+                return {
+                    _token: '{{ csrf_token() }}'
+                };
             },
             ajaxSettings: {
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
             },
             fileActionSettings: {
-            showUpload: false,
-            showRemove: true,
-            showZoom: true,
-            showDrag: false,
+                showUpload: false,
+                showRemove: true,
+                showZoom: true,
+                showDrag: false,
             }
         });
 
-        // ===== helper upload =====
-        function startUpload() {
-            // jangan dipanggil kalau sedang upload
-            if (uploading) return;
+        setTimeout(function() {
+            $input = $("#files");
 
-            const count = $input.fileinput('getFilesCount');
-            if (!count || count <= 0) return;
+            $input.on('filebatchselected', function(event, files) {
+                if (isUploading) {
+                    return;
+                }
 
-            uploading = true;
-            setTimeout(function () {
-            $input.fileinput('upload');
-            }, 150);
-        }
+                var fileCount = 0;
 
-        // ====== EVENT: user pilih/drop batch ======
-        // Ini kepanggil setiap kali user tambah file lewat browse atau drop
-        $input.on('filebatchselected', function () {
-            if (uploading) {
-            // sedang upload, tapi user nambah file → tandai antrean
-            queued = true;
-            // gak usah upload sekarang, nanti lanjut setelah batch selesai
-            return;
-            }
-            startUpload();
-        });
+                if (files) {
+                    if (typeof files === 'object' && !Array.isArray(files)) {
+                        fileCount = Object.keys(files).length;
+                    } else if (Array.isArray(files)) {
+                        fileCount = files.length;
+                    } else if (files.length !== undefined) {
+                        fileCount = files.length;
+                    }
+                }
 
-        // ====== EVENT: mulai upload ======
-        $input.on('filebatchpreupload', function () {
-            uploading = true;
-        });
+                if (fileCount > 1) {
+                    isUploading = true;
 
-        // ====== EVENT: tiap file selesai diupload (async) ======
-        $input.on('fileuploaded', function (event, data) {
-            const res = (data && data.response) ? data.response : {};
-            lastCode = res.code ?? lastCode;
-
-            if (res.message) lastMessage = res.message;
-
-            if (res.logs && Array.isArray(res.logs)) {
-            allLogs = allLogs.concat(res.logs);
-            }
-
-            // refresh table kalau ada yang sukses
-            if (res.code == 200) {
-            onReloadTable();
-            }
-        });
-
-        // ====== EVENT: selesai 1 batch upload (sukses / error) ======
-        // ini dipanggil setelah upload (yang ada di queue fileinput) kelar
-        $input.on('filebatchuploadcomplete', function () {
-            uploading = false;
-
-            // kalau ada file ditambahkan saat upload jalan, jalankan upload lagi
-            if (queued) {
-            queued = false;
-            startUpload();
-            return;
-            }
-
-            // kalau gak ada antrean, tampilkan rekap sekali
-            showSummarySwal();
-        });
-
-        // ====== EVENT: batch error (misal server down) ======
-        $input.on('filebatchuploaderror', function (event, data, msg) {
-            uploading = false;
-
-            // tampilkan error (tetap boleh lanjut antrean kalau ada)
-            let errorMsg = 'Terjadi kesalahan saat upload';
-            if (data && data.jqXHR && data.jqXHR.responseJSON) {
-            errorMsg = data.jqXHR.responseJSON.message || errorMsg;
-            } else if (msg) {
-            errorMsg = msg;
-            }
-
-            swalInit.fire({
-            title: '<i class="ph-warning-circle text-danger"></i> Upload Gagal',
-            html: `<div class="alert alert-danger border-0 text-start mb-0">${errorMsg}</div>`,
-            icon: 'error',
-            showCloseButton: true,
-            confirmButtonText: '<i class="ph-check me-1"></i> Mengerti',
-            customClass: { confirmButton: 'btn btn-danger' }
+                    setTimeout(function() {
+                        $input.fileinput('upload');
+                    }, 500);
+                } else if (fileCount === 1) {
+                    notification('warning', 'Upload minimal 2 file: Cover (jpg/png) dan Konten (pdf/epub) dengan nama file yang sama.');
+                    $input.fileinput('clear');
+                }
             });
+        }, 300);
 
-            // kalau ada antrean, lanjut upload lagi
-            if (queued) {
-            queued = false;
-            startUpload();
+        $input.on('filebatchpreupload', function(event, data, previewId, index) {
+            var fileCount = 0;
+
+            if (data.files && data.files.length) {
+                fileCount = data.files.length;
+            } else if (data.filescount) {
+                fileCount = data.filescount;
+            } else if (data.filenames && data.filenames.length) {
+                fileCount = data.filenames.length;
             }
         });
 
-        // ====== EVENT: user clear ======
-        $input.on('fileclear', function () {
-            uploading = false;
-            queued = false;
-            allLogs = [];
-            lastMessage = null;
-            lastCode = 200;
-        });
+        $input.on('filebatchuploadsuccess', function(event, data, previewId, index) {
+            isUploading = false;
 
-        // ====== swal rekap ======
-        function showSummarySwal() {
-            if (!allLogs.length && !lastMessage) {
-            // gak ada apa-apa yang perlu ditampilkan
-            return;
+            const response = data.response;
+            let errMessage = '';
+
+            if (response.error && response.error.length > 0) {
+                $.each(response.error, function(i, val) {
+                    let itemClass = 'text-muted';
+
+                    if (val.startsWith('[INFO]')) itemClass = 'text-primary';
+                    else if (val.startsWith('[ERROR]')) itemClass = 'text-danger';
+                    else if (val.startsWith('[SKIP]')) itemClass = 'text-warning';
+
+                    errMessage += '<li class="text-start ' + itemClass + '">' + val + '</li>';
+                });
             }
 
-            let listHtml = '';
-            allLogs.forEach(function (val) {
-            let itemClass = 'text-muted';
-            if (val.startsWith('[OK]')) itemClass = 'text-success';
-            else if (val.startsWith('[REJECT]') || val.startsWith('[ERROR]')) itemClass = 'text-danger';
-            else if (val.startsWith('[SKIP]')) itemClass = 'text-warning';
-
-            listHtml += `<li class="text-start ${itemClass}">${val}</li>`;
-            });
-
-            const swalHtml = `
-            <div class="form-group">
-                <p class="mb-2">${lastMessage || 'Upload selesai.'}</p>
-                ${listHtml ? `<ul class="list-unstyled text-start bg-light rounded p-3 mb-0">${listHtml}</ul>` : ''}
-            </div>
+            var swalHtml = `
+                <div class="form-group">
+                    <p class="mb-2">${response.message}</p>
+                    ${errMessage ? '<ul class="list-unstyled text-start bg-light rounded p-3 mb-0">' + errMessage + '</ul>' : ''}
+                </div>
             `;
 
-            // success kalau ada minimal 1 OK
-            const hasOk = allLogs.some(x => x.startsWith('[OK]'));
-            const icon = hasOk ? 'success' : (lastCode == 200 ? 'info' : 'warning');
-            const title = hasOk
-            ? '<i class="ph-check-circle text-success"></i> Selesai'
-            : '<i class="ph-info text-primary"></i> Info';
+            if(response.code == 200) {
+                onReloadTable();
+
+                swalInit.fire({
+                    title: '<i class="ph-check-circle text-success"></i> Berhasil',
+                    html: swalHtml,
+                    icon: 'success',
+                    showDenyButton: false,
+                    showCancelButton: false,
+                    confirmButtonText: '<i class="ph-check me-1"></i> Oke',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    }
+                }).then((result) => {
+                    $input.fileinput('clear');
+                    $input.fileinput('unlock');
+                });
+            } else {
+                swalInit.fire({
+                    title: '<i class="ph-warning text-warning"></i> Perhatian',
+                    html: swalHtml,
+                    icon: 'warning',
+                    showCloseButton: true,
+                    confirmButtonText: '<i class="ph-check me-1"></i> Mengerti',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    }
+                });
+
+                $input.fileinput('clear');
+                $input.fileinput('unlock');
+            }
+        });
+
+        $input.on('filebatchuploaderror', function(event, data, msg) {
+            isUploading = false;
+
+            var errorMsg = 'Terjadi kesalahan saat upload';
+            var errorDetails = [];
+
+            if (data.jqXHR && data.jqXHR.responseJSON) {
+                var response = data.jqXHR.responseJSON;
+                errorMsg = response.message || errorMsg;
+
+                if (response.error && Array.isArray(response.error) && response.error.length > 0) {
+                    errorDetails = response.error;
+                }
+            } else if (msg) {
+                errorMsg = msg;
+            }
+
+            var swalHtml = `
+                <div class="alert alert-danger border-0 text-start">
+                    <div class="d-flex align-items-start">
+                        <i class="ph-x-circle me-1 mt-1"></i>
+                        <div>${errorMsg}</div>
+                    </div>
+                </div>
+            `;
+
+            if (errorDetails.length > 0) {
+                swalHtml += '<div class="text-start"><h6 class="fw-semibold mb-2">Detail Error:</h6><ul class="mb-0">';
+
+                errorDetails.forEach(function(err) {
+                    swalHtml += '<li class="text-muted small mb-1">' + err + '</li>';
+                });
+
+                swalHtml += '</ul></div>';
+            }
 
             swalInit.fire({
-            title: title,
-            html: swalHtml,
-            icon: icon,
-            showCloseButton: true,
-            confirmButtonText: '<i class="ph-check me-1"></i> Oke',
-            customClass: { confirmButton: 'btn btn-success' }
-            }).then(() => {
-            // bersihin preview setelah user klik OK
+                title: '<i class="ph-warning-circle text-danger"></i> Upload Gagal',
+                html: swalHtml,
+                icon: 'error',
+                showCloseButton: true,
+                confirmButtonText: '<i class="ph-check me-1"></i> Mengerti',
+                footer: '<div class="alert alert-info border-0 mb-0 small"><i class="ph-info me-1"></i> Pastikan setiap ISBN memiliki Cover (jpg/png) dan Konten (pdf/epub) dengan nama file yang sama</div>',
+                customClass: {
+                    confirmButton: 'btn btn-danger'
+                }
+            });
+
             $input.fileinput('clear');
             $input.fileinput('unlock');
-
-            // reset accumulator
-            allLogs = [];
-            lastMessage = null;
-            lastCode = 200;
-            });
-        }
         });
+
+        $input.on('fileclear', function(event) {
+            isUploading = false;
+        });
+    });
 
     function onReloadTable() {
         if (window.gDataTable) {
