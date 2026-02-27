@@ -1860,7 +1860,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             onLoading('show', 'body');
-                            location.href = '{{ url("physical-handover/add-delivery-form") }}';
+                            location.href = '{{ url("physical-handover/delivery-monitoring") }}';
                         }
                     });
                 } else if (response.code == 400) {
