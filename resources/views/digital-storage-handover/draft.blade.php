@@ -182,6 +182,10 @@
         loadData();
     });
 
+    function onReloadTable() {
+        window.gDataTable.ajax.reload(null, false);
+    }
+
     function loadData() {
         window.gDataTable = $('#datatable-serverside').DataTable({
             processing: true,
@@ -248,5 +252,57 @@
 
     function updateRecordCount(count) {
         $('#record-count').text(count || 0);
+    }
+
+    function destroyData(id) {
+        var notyConfirm = new Noty({
+            text: '<div class="mb-3"><h5 class="text-dark">Hapus Data?</h5><span class="text-muted">Data yang telah dihapus tidak dapat dikembalikan lagi</span></div>',
+            timeout: false,
+            modal: true,
+            layout: 'center',
+            closeWith: 'button',
+            type: 'confirm',
+            buttons: [
+                Noty.button('Batal', 'btn btn-light', function () {
+                    notyConfirm.close();
+                }),
+                Noty.button('Hapus', 'btn btn-danger ms-2', function () {
+                    $.ajax({
+                        url: '{{ url("digital-storage-handover/draft/destroy-data") }}',
+                        type: 'DELETE',
+                        dataType: 'JSON',
+                        data: {
+                            id: id
+                        },
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        beforeSend: function() {
+                            onLoading('show', '.noty_bar');
+                        },
+                        success: function(response) {
+                            onLoading('close', '.noty_bar');
+
+                            if(response.code == 200) {
+                                notyConfirm.close();
+                                onReloadTable();
+                                notification('success', response.message);
+                            } else {
+                                swalInit.fire({
+                                    title: 'Error',
+                                    text: response.message,
+                                    icon: 'error',
+                                    showCloseButton: false
+                                });
+                            }
+                        },
+                        error: function(response) {
+                            onLoading('close', '.noty_bar');
+                            responseError(response);
+                        }
+                    });
+                })
+            ]
+        }).show();
     }
 </script>

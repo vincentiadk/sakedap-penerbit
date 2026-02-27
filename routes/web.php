@@ -81,6 +81,7 @@ Route::middleware('authentication')->group(function () {
             Route::get('/', 'DraftController@index');
             Route::post('datatable', 'DraftController@datatable');
             Route::match(['get', 'post'], 'detail/{id}', 'DraftController@detail');
+            Route::delete('destroy-data', 'DraftController@destroyData');
         });
 
         Route::prefix('reject')->group(function () {
