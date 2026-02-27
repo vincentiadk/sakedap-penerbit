@@ -53,7 +53,7 @@ class RejectController extends Controller
         $order = $request->order;
 
         $whereClause = '';
-        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM')";
+        $whereCondition[] = "letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')";
         $whereCondition[] = "letter.penerbit_id = " . $request->executor_id;
         $whereCondition[] = "letter_detail.qty_reject > 0";
         $whereCondition[] = "(letter_detail.qty_hibah is null or letter_detail.qty_hibah = 0)";
