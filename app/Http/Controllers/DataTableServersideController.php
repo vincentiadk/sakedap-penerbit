@@ -103,7 +103,9 @@ class DataTableServersideController extends Controller
             left join
                 penerbit p on p.id = c.penerbit_id
             left join
-                kabupaten k on k.id = c.city_id
+                kabupaten k on k.id = ec.city_id
+            left join
+                e_collections ec on ec.id = c.edeposit_col_id
             left join
                 worksheets w on w.id = c.worksheet_id
             $whereClause
@@ -142,16 +144,18 @@ class DataTableServersideController extends Controller
                         c.isbn,
                         c.callnumber,
                         c.penerbit_id,
-                        c.city_id,
+                        ec.city_id,
                         c.worksheet_id
                     from
                         catalogs c
                     left join
                         penerbit p on p.id = c.penerbit_id
                     left join
-                        kabupaten k on k.id = c.city_id
+                        kabupaten k on k.id = ec.city_id
                     left join
                         worksheets w on w.id = c.worksheet_id
+                    left join
+                        e_collections ec on ec.id = c.edeposit_col_id
                     $whereClause
                     $orderBy
                 ) t
@@ -293,7 +297,7 @@ class DataTableServersideController extends Controller
             left join
                 penerbit p on p.id = c.penerbit_id
             left join
-                kabupaten k on k.id = c.city_id
+                kabupaten k on k.id = ec.city_id
             left join
                 worksheets w on w.id = c.worksheet_id
             inner join
@@ -334,7 +338,7 @@ class DataTableServersideController extends Controller
                         c.isbn,
                         c.callnumber,
                         c.penerbit_id,
-                        c.city_id,
+                        ec.city_id,
                         c.worksheet_id,
                         c.edeposit_col_id
                     from
@@ -342,7 +346,7 @@ class DataTableServersideController extends Controller
                     left join
                         penerbit p on p.id = c.penerbit_id
                     left join
-                        kabupaten k on k.id = c.city_id
+                        kabupaten k on k.id = ec.city_id
                     left join
                         worksheets w on w.id = c.worksheet_id
                     inner join

@@ -178,6 +178,10 @@ class DraftController extends Controller
                         <i class="ph-info me-1"></i>
                         Detail
                     </a>
+                    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="destroyData(' . $val->ID . ')">
+                        <i class="ph-trash-simple me-1"></i>
+                        Hapus Data
+                    </a>
                 ';
 
                 $data[] = [
@@ -477,5 +481,45 @@ class DraftController extends Controller
                 ]
             ]
         ]);
+    }
+
+    public function destroyData(Request $request)
+    {
+        $id = $request->id;
+
+        try {
+            QueryAPI::update('e_collections', $id, [
+                'deleted_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $collectionUpload = QueryAPI::get("
+                select
+                    *
+                from
+                    e_collection_uploads
+                where
+                    e_col_id = $id
+            ");
+
+            if ($collectionUpload) {
+                foreach ($collectionUpload as $cu) {
+                    QueryAPI::update('e_collection_uploads', $cu->ID, [
+                        'e_col_id' => null
+                    ], false);
+                }
+            }
+
+            $response = [
+                'code' => 200,
+                'message' => 'Data telah dihapus'
+            ];
+        } catch (\Exception $e) {
+            $response = [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage()
+            ];
+        }
+
+        return response()->json($response);
     }
 }
