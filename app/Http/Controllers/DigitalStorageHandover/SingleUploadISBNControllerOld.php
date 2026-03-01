@@ -48,7 +48,7 @@ class SingleUploadISBNControllerOld extends Controller
             'cfr.id',
             null,
             'ec.description',
-            'ec.city_id',
+            'ec.kabupaten_id',
             'ec.preview',
             'ec.akses',
         ];
@@ -219,7 +219,7 @@ class SingleUploadISBNControllerOld extends Controller
                     $badgeDescription = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
                 }
 
-                if (($val->CITY_ID ?: null)) {
+                if (($val->KABUPATEN_ID ?: null)) {
                     $badgeCity = '<span class="badge bg-success"><i class="ph-check"></i></span>';
                 } else {
                     $badgeCity = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
@@ -528,7 +528,7 @@ class SingleUploadISBNControllerOld extends Controller
                 ec.created_by = " . (int) session('id') . " and
                 ec.code_type = 1 and
                 ec.code is not null and
-                ec.city_id is not null and
+                ec.kabupaten_id is not null and
                 ec.publication_day is not null and
                 ec.publication_month is not null and
                 ec.publication_year is not null and

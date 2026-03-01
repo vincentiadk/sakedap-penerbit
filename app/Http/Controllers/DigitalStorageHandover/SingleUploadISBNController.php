@@ -50,7 +50,7 @@ class SingleUploadISBNController extends Controller
             'cfr.id',
             null,
             'ec.description',
-            'ec.city_id',
+            'ec.kabupaten_id',
             'ec.preview',
             'ec.akses',
         ];
@@ -221,7 +221,7 @@ class SingleUploadISBNController extends Controller
                     $badgeDescription = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
                 }
 
-                if (($val->CITY_ID ?: null)) {
+                if (($val->KABUPATEN_ID ?: null)) {
                     $badgeCity = '<span class="badge bg-success"><i class="ph-check"></i></span>';
                 } else {
                     $badgeCity = '<span class="badge bg-danger"><i class="ph-x"></i></span>';
@@ -317,7 +317,7 @@ class SingleUploadISBNController extends Controller
                 // 1) Ambil ISBN (digit doang) dari nama file
                 $isbnDigits = preg_replace('/[^0-9]/', '', (string) $basename);
                 Log::info($isbnDigits);
-               
+
                 if (strlen($isbnDigits) < 10) {
                     $rejectedCount++;
                     $errors[] = "[SKIP] <strong>{$basename}</strong>: Nama file tidak mengandung ISBN yang valid.";
@@ -330,11 +330,11 @@ class SingleUploadISBNController extends Controller
                     $uploadType = 'konten_digital';
                 } elseif ($ext === 'epub' || $mime === 'application/epub+zip') {
                     $uploadType = 'konten_digital';
-                }  elseif ($ext === 'mp4' || $mime === 'application/mp4') {
+                } elseif ($ext === 'mp4' || $mime === 'application/mp4') {
                     $uploadType = 'konten_digital';
                 } elseif ($ext === 'mp3' || $mime === 'application/mpeg') {
                     $uploadType = 'konten_digital';
-                } elseif (in_array($ext, ['jpg','jpeg','png']) || str_starts_with($mime, 'image/')) {
+                } elseif (in_array($ext, ['jpg', 'jpeg', 'png']) || str_starts_with($mime, 'image/')) {
                     $uploadType = 'cover';
                 } else {
                     $rejectedCount++;
@@ -350,13 +350,13 @@ class SingleUploadISBNController extends Controller
                     and deleted_at is null
                 ";
                 $existing = QueryAPI::get($sql, true);
-               // Log::debug($existing);
+                // Log::debug($existing);
                 if ($existing) {
                     $collectionId   = (int) $existing->ID;
                     $collectionSlug = (string) $existing->SLUG;
                     $status         = (int) ($existing->STATUS ?? 0);
 
-                    // 3a) Aturan status 
+                    // 3a) Aturan status
                     if ($status === $STATUS_DITERIMA) {
                         $rejectedCount++;
                         $errors[] = "[REJECT] <strong>{$basename}</strong>: Sudah <strong>DITERIMA</strong>. Upload ditolak.";
@@ -384,7 +384,7 @@ class SingleUploadISBNController extends Controller
                     // 3b) Draft → update file lama sesuai tipe file
                     $this->cleanUpOldFile($collectionId, $uploadType);
                     $this->uploadFileToApi($collectionId, $collectionSlug, $file, $uploadType);
-                    
+
 
                     $successUpdate++;
                     $errors[] = "[OK] <strong>{$basename}</strong>: Draft ditemukan, <strong>{$uploadType}</strong> berhasil diupdate.";
@@ -405,7 +405,7 @@ class SingleUploadISBNController extends Controller
                     continue;
                 }
 
-                // 5) Create draft baru → lalu upload file 
+                // 5) Create draft baru → lalu upload file
                 $executorId = (int) ($getISBN->penerbit_id ?? 0);
                 $executor   = $executorId ? QueryAPI::get("select * from penerbit where id = {$executorId}", true) : null;
 
@@ -549,7 +549,7 @@ class SingleUploadISBNController extends Controller
                 ec.created_by = " . (int) session('id') . " and
                 ec.code_type = 1 and
                 ec.code is not null and
-                ec.city_id is not null and
+                ec.kabupaten_id is not null and
                 ec.publication_day is not null and
                 ec.publication_month is not null and
                 ec.publication_year is not null and

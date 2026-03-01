@@ -139,13 +139,13 @@ class AcceptController extends Controller
             from
                 catalogs
             left join
-                kabupaten on kabupaten.id = e_collections.city_id
+                e_collections on catalogs.edeposit_col_id = e_collections.id
+            left join
+                kabupaten on kabupaten.id = e_collections.kabupaten_id
             left join
                 worksheets on worksheets.id = catalogs.worksheet_id
             left join
                 penerbit on penerbit.id = catalogs.penerbit_id
-            left join
-                e_collections on catalogs.edeposit_col_id  = e_collections.id
             left join
                 collectionmedias on collectionmedias.id = e_collections.collection_media_id
             $whereClause
@@ -175,13 +175,13 @@ class AcceptController extends Controller
                             from
                                 catalogs
                             left join
-                                kabupaten on kabupaten.id = e_collections.city_id
+                                e_collections on catalogs.edeposit_col_id  = e_collections.id
+                            left join
+                                kabupaten on kabupaten.id = e_collections.kabupaten_id
                             left join
                                 worksheets on worksheets.id = catalogs.worksheet_id
                             left join
                                 penerbit on penerbit.id = catalogs.penerbit_id
-                            left join
-                                e_collections on catalogs.edeposit_col_id  = e_collections.id
                             left join
                                 collectionmedias on collectionmedias.id = e_collections.collection_media_id
                             $whereClause
@@ -273,7 +273,7 @@ class AcceptController extends Controller
             left join
                 e_collections par on par.id = ec.parent_id
             left join
-                kabupaten k on k.id = ec.city_id
+                kabupaten k on k.id = ec.kabupaten_id
             left join
                 propinsi pr on pr.id = k.propinsiid
             left join
