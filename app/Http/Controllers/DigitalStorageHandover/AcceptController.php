@@ -83,7 +83,7 @@ class AcceptController extends Controller
         }
 
         if ($request->media_id) {
-            $whereCondition[] = "catalogs.collectionmedia_id = $request->media_id";
+            $whereCondition[] = "e_collections.collection_media_id = $request->media_id";
         }
 
         if ($request->date) {
@@ -237,6 +237,7 @@ class AcceptController extends Controller
                 penerbit.name as name_penerbit,
                 k.namakab as namakab,
                 pr.namapropinsi as namapropinsi,
+                ec.collection_media_id as collection_media_id_e_collection,
                 ec.code_type as code_type_e_collection,
                 ec.serial as serial_e_collection,
                 ec.received_at as received_at_e_collection,

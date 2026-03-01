@@ -121,7 +121,7 @@
                     <div class="col-md-9">
                         <input type="text" class="form-control" name="title" id="title" value="{{ $collection->COLLECTION_MEDIA_NAME }}" disabled>
                         <!--select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" disabled>
-                            <option value=""></option> 
+                            <option value=""></option>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}" {{ $collection->E_COL_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
                             @endforeach
@@ -521,7 +521,7 @@
     function getMedia() {
         const media = @json($media ?? []);
         const worksheetId = '{{ $collection->WORKSHEET_ID ?? 0 }}';
-        const selectedId = '{{ $collection->COLLECTIONMEDIA_ID ?? 0 }}';
+        const selectedId = '{{ $collection->COLLECTION_MEDIA_ID_E_COLLECTION ?? 0 }}';
 
         $('#collection_media_id').html('<option value=""></option>');
 
