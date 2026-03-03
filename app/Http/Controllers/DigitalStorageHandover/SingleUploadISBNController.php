@@ -286,7 +286,6 @@ class SingleUploadISBNController extends Controller
             ]);
         }
 
-        // ==== Konfigurasi ====
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'epub', 'mp3', 'mp4'];
 
         $STATUS_DRAFT      = 4;
@@ -307,14 +306,12 @@ class SingleUploadISBNController extends Controller
                 $mime     = $file->getMimeType() ?? '';
                 $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
-                // 0) Filter ekstensi
                 if (!in_array($ext, $allowedExtensions)) {
                     $rejectedCount++;
                     $errors[] = "[SKIP] <strong>{$basename}</strong>: Ekstensi <strong>.{$ext}</strong> tidak didukung.";
                     continue;
                 }
 
-                // 1) Ambil ISBN (digit doang) dari nama file
                 $isbnDigits = preg_replace('/[^0-9]/', '', (string) $basename);
                 Log::info($isbnDigits);
 
@@ -324,7 +321,6 @@ class SingleUploadISBNController extends Controller
                     continue;
                 }
 
-                // 2) Tentukan tipe file → cover / konten_digital
                 $uploadType = null;
                 if ($ext === 'pdf' || $mime === 'application/pdf') {
                     $uploadType = 'konten_digital';
@@ -342,7 +338,6 @@ class SingleUploadISBNController extends Controller
                     continue;
                 }
 
-                // 3) Cek apakah ISBN sudah ada di e_collections (draft/review/diterima/bermasalah)
                 $sql = "
                     select id, slug, status
                     from e_collections
@@ -350,13 +345,11 @@ class SingleUploadISBNController extends Controller
                     and deleted_at is null
                 ";
                 $existing = QueryAPI::get($sql, true);
-                // Log::debug($existing);
                 if ($existing) {
                     $collectionId   = (int) $existing->ID;
                     $collectionSlug = (string) $existing->SLUG;
                     $status         = (int) ($existing->STATUS ?? 0);
 
-                    // 3a) Aturan status
                     if ($status === $STATUS_DITERIMA) {
                         $rejectedCount++;
                         $errors[] = "[REJECT] <strong>{$basename}</strong>: Sudah <strong>DITERIMA</strong>. Upload ditolak.";
@@ -381,7 +374,6 @@ class SingleUploadISBNController extends Controller
                         continue;
                     }
 
-                    // 3b) Draft → update file lama sesuai tipe file
                     $this->cleanUpOldFile($collectionId, $uploadType);
                     $this->uploadFileToApi($collectionId, $collectionSlug, $file, $uploadType);
 
@@ -391,7 +383,6 @@ class SingleUploadISBNController extends Controller
                     continue;
                 }
 
-                // 4) Kalau belum ada di e_collections → cari ISBN di DB pusat
                 $getISBN = ISBN::get('search', ['code' => $isbnDigits], true);
                 if (!$getISBN) {
                     $rejectedCount++;
@@ -405,7 +396,6 @@ class SingleUploadISBNController extends Controller
                     continue;
                 }
 
-                // 5) Create draft baru → lalu upload file
                 $executorId = (int) ($getISBN->penerbit_id ?? 0);
                 $executor   = $executorId ? QueryAPI::get("select * from penerbit where id = {$executorId}", true) : null;
 
@@ -431,7 +421,6 @@ class SingleUploadISBNController extends Controller
                     'sync' => 0,
                     'manual' => 1,
                     'akses' => $request->access,
-                    // penting: set DRAFT !!
                     'status' => $STATUS_DRAFT,
                     'created_by' => (int) session('id'),
                     'updated_by' => (int) session('id'),
@@ -475,9 +464,9 @@ class SingleUploadISBNController extends Controller
 
         return response()->json([
             'code'    => $totalOk > 0 ? 200 : 404,
-            'logs'    => $errors,                 // isinya campuran [OK]/[SKIP]/[REJECT]
+            'logs'    => $errors,
             'message' => $messageParts,
-            'errors'  => $totalOk > 0 ? [] : $errors, // optional: kalau mau
+            'errors'  => $totalOk > 0 ? [] : $errors,
         ]);
     }
     private function cleanUpOldFile($collectionId, $type)
