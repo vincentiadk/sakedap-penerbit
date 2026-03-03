@@ -628,7 +628,7 @@
                     `);
 
                     $('#worksheet_id').val(response.WORKSHEET_ID).change();
-                    $('#media_id').val(response.COLLECTION_MEDIA_ID_E_COLLECTION).change();
+                    $('#media_id').val(response.CM_ID_E_COL).change();
                     $('#title').val(response.TITLE);
                     $('#code_type').val(response.CODE_TYPE_E_COLLECTION).change();
                     $('#code').val(response.ISBN);

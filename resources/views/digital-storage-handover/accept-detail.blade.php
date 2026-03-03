@@ -521,7 +521,7 @@
     function getMedia() {
         const media = @json($media ?? []);
         const worksheetId = '{{ $collection->WORKSHEET_ID ?? 0 }}';
-        const selectedId = '{{ $collection->COLLECTION_MEDIA_ID_E_COLLECTION ?? 0 }}';
+        const selectedId = '{{ $collection->CM_ID_E_COL ?? 0 }}';
 
         $('#collection_media_id').html('<option value=""></option>');
 

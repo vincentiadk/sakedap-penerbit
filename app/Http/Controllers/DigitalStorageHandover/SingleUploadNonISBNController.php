@@ -51,7 +51,7 @@ class SingleUploadNonISBNController extends Controller
                 penerbit.name as name_penerbit,
                 kabupaten.namakab as namakab,
                 propinsi.namapropinsi as namapropinsi,
-                e_collections.collection_media_id as collection_media_id_e_collection,
+                e_collections.collection_media_id as cm_id_e_col,
                 e_collections.code_type as code_type_e_collection,
                 e_collections.serial as serial_e_collection,
                 e_collections.currency as currency_e_collection,
