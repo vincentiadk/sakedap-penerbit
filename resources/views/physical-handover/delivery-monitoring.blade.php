@@ -248,7 +248,10 @@
                             <i class="ph-cube me-1"></i>
                             Berat Paket
                         </label>
-                        <input type="number" class="form-control" name="weight" id="weight" placeholder="0" min="0">
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="weight" id="weight" placeholder="0" min="0">
+                            <span class="input-group-text">gram</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label fw-semibold">
