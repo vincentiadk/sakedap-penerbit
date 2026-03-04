@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 
 class SingleUploadISBNController extends Controller
 {
@@ -67,7 +66,7 @@ class SingleUploadISBNController extends Controller
 
         $whereClause = '';
         $whereCondition[] = "(ec.status = '4' and ec.deleted_at is null)";
-        $whereCondition[] = "ec.created_by = " . session('id');
+        $whereCondition[] = "(ec.created_by = " . session('id') . ' or ' . 'ec.penerbit_id = ' . session('id') . ')';
         $whereCondition[] = "ec.code_type = '1'";
         $whereCondition[] = "ec.code is not null";
         $whereCondition[] = "w.category = '" . $this->worksheetCategory . "'";
@@ -377,7 +376,6 @@ class SingleUploadISBNController extends Controller
                     $this->cleanUpOldFile($collectionId, $uploadType);
                     $this->uploadFileToApi($collectionId, $collectionSlug, $file, $uploadType);
 
-
                     $successUpdate++;
                     $errors[] = "[OK] <strong>{$basename}</strong>: Draft ditemukan, <strong>{$uploadType}</strong> berhasil diupdate.";
                     continue;
@@ -456,8 +454,8 @@ class SingleUploadISBNController extends Controller
         }
 
         $totalOk = $successCreate + $successUpdate;
-
         $messageParts = [];
+
         if ($successCreate > 0) $messageParts[] = "<strong>{$successCreate}</strong> draft baru dibuat";
         if ($successUpdate > 0) $messageParts[] = "<strong>{$successUpdate}</strong> draft diperbarui";
         if ($rejectedCount > 0) $messageParts[] = "<strong>{$rejectedCount}</strong> file ditolak/di-skip";
