@@ -218,9 +218,8 @@
                                 <i class="ph-calendar me-1"></i>
                                 Tahun Terbit
                             </label>
-                            <select class="form-select" name="year" id="year">
-                                <option value="">Semua Tahun</option>
-                                @for($i = 2019; $i <= date('Y'); $i++)
+                            <select class="form-select select2-basic" name="year" id="year" data-placeholder="Semua Tahun">
+                                @for($i = date('Y'); $i >= 1998; $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </select>
@@ -274,14 +273,14 @@
                                 <i class="ph-calendar-check me-1"></i>
                                 Tgl Terima Perpusnas
                             </label>
-                            <input type="text" class="form-control date-range-picker" name="received_date_kckr" id="received_date_kckr" placeholder="Pilih rentang tanggal" readonly>
+                            <input type="text" class="form-control date-range-picker" name="received_date_kckr" id="received_date_kckr" placeholder="Semua Tanggal" readonly>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label fw-semibold">
                                 <i class="ph-calendar-check me-1"></i>
                                 Tgl Terima Provinsi
                             </label>
-                            <input type="text" class="form-control date-range-picker" name="received_date_province" id="received_date_province" placeholder="Pilih rentang tanggal" readonly>
+                            <input type="text" class="form-control date-range-picker" name="received_date_province" id="received_date_province" placeholder="Semua Tanggal" readonly>
                         </div>
                     </div>
                 </form>
@@ -458,18 +457,18 @@
             },
             columns: [
                 { orderable: false, className: 'align-middle text-center fw-semibold' },
-                { orderable: false, className: 'align-middle text-center' },
-                { orderable: false, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-center', export: false },
+                { orderable: false, className: 'align-middle text-center', export: false },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-wrap' },
-                { orderable: false, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-center', export: false },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle' },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
-                { orderable: false, className: 'align-middle text-center' },
+                { orderable: false, className: 'align-middle text-center', export: false },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
