@@ -325,6 +325,10 @@
                                 <i class="ph-flag me-1"></i>
                                 Status
                             </th>
+                            <th class="text-center text-nowrap" style="min-width: 120px">
+                                <i class="ph-image me-1"></i>
+                                Cover
+                            </th>
                             <th class="text-nowrap" style="min-width: 180px">
                                 <i class="ph-user-circle me-1"></i>
                                 Pelaksana Serah
@@ -454,6 +458,7 @@
             },
             columns: [
                 { orderable: false, className: 'align-middle text-center fw-semibold' },
+                { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-center' },
                 { orderable: false, className: 'align-middle text-wrap' },
                 { orderable: false, className: 'align-middle text-wrap' },
