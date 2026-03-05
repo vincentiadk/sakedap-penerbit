@@ -155,14 +155,6 @@ class AddDeliveryFormController extends Controller
                 $qtyProvince = $checkOnCollectionProvince >= 1 ? 0 : 1;
             }
         }
-        Log::info([
-            'data' => $data,
-            'fileCover' => $this->generateFileCoverHtml($linkCover, $code, $title),
-            'qtyPerpusnas' => $qtyPerpusnas,
-            'qtyProvince' => $qtyProvince,
-            'publishDate' => $publishDate,
-            'existsData' => $quantities ? 1 : 0,
-        ]);
 
         return response()->json([
             'data' => $data,

@@ -301,8 +301,8 @@ class SingleUploadISBNController extends Controller
 
         foreach ($files as $idx => $file) {
             try {
-                $ext      = strtolower($file->getClientOriginalExtension() ?? '');
-                $mime     = $file->getMimeType() ?? '';
+                $ext = strtolower($file->getClientOriginalExtension() ?? '');
+                $mime = $file->getMimeType() ?? '';
                 $basename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
                 if (!in_array($ext, $allowedExtensions)) {
@@ -312,11 +312,11 @@ class SingleUploadISBNController extends Controller
                 }
 
                 $isbnDigits = preg_replace('/[^0-9]/', '', (string) $basename);
-                Log::info($isbnDigits);
 
                 if (strlen($isbnDigits) < 10) {
                     $rejectedCount++;
                     $errors[] = "[SKIP] <strong>{$basename}</strong>: Nama file tidak mengandung ISBN yang valid.";
+
                     continue;
                 }
 
@@ -479,7 +479,7 @@ class SingleUploadISBNController extends Controller
         if (!$targetTable) return;
 
         $oldFiles = QueryAPI::get("select id from $targetTable where e_col_id = $collectionId");
-        Log::info($oldFiles);
+
         if ($oldFiles) {
             foreach ($oldFiles as $file) {
                 QueryAPI::removeFile(['type' => $type, 'id' => $file->ID]);

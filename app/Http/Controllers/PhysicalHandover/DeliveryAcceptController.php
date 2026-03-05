@@ -201,75 +201,7 @@ class DeliveryAcceptController extends Controller
             where
                 rnum > $start
         ");
-        Log::info("
-            select
-                *
-            from
-                (
-                    select
-                        rownum as rnum,
-                        data.*
-                    from
-                        (
-                            select distinct
-                                l.*,
-                                b.name as name_branch,
-                                p.name as name_penerbit,
-                                jp.name as name_jasa_pengiriman,
-                                nvl(td.total_eks_receipt, 0) as total_eks_receipt,
-                                nvl(td.total_title_receipt, 0) as total_title_receipt,
-                                case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
-                                    then nvl(td.total_eks_delivery, 0)
-                                    else 0
-                                end as total_eks_delivery,
-                                case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
-                                    then nvl(td.total_title_delivery, 0)
-                                    else 0
-                                end as total_title_delivery,
-                                case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
-                                    then nvl(td.total_eks_grant, 0)
-                                    else 0
-                                end as total_eks_grant,
-                                case
-                                    when l.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA')
-                                    then nvl(td.total_title_grant, 0)
-                                    else 0
-                                end as total_title_grant
-                            from
-                                letter l
-                            left join
-                                jasa_pengiriman jp on jp.id = l.jasa_pengiriman_id
-                            left join
-                                branchs b on b.id = l.branch_id
-                            left join
-                                penerbit p on p.id = l.penerbit_id
-                            left join
-                                (
-                                    select
-                                        letter_id,
-                                        sum(copy) as total_eks_delivery,
-                                        sum(quantity) as total_title_delivery,
-                                        sum(case when qty_accept > 0 then qty_accept else 0 end) as total_eks_receipt,
-                                        sum(case when qty_accept > 0 then quantity else 0 end) as total_title_receipt,
-                                        sum(case when qty_hibah > 0 then qty_hibah else 0 end) as total_eks_grant,
-                                        sum(case when qty_hibah > 0 then quantity else 0 end) as total_title_grant
-                                    from
-                                        letter_detail
-                                    group by
-                                        letter_id
-                                ) td on td.letter_id = l.letter_id
-                            $whereClause
-                            $orderBy
-                        ) data
-                    where
-                        rownum <= $length
-                )
-            where
-                rnum > $start
-        ");
+
         if ($queryData) {
             foreach ($queryData as $val) {
                 $action = '

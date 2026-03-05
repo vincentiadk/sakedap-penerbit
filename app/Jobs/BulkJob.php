@@ -332,8 +332,6 @@ class BulkJob implements ShouldQueue
                 $uploadSuccess = false;
                 $description = "GAGAL saat upload file **{$file['type']}**: " . $e->getMessage();
 
-                Log::error("Bulk ID: {$bulkId}, Title: {$title}. Gagal upload file {$file['type']}: " . $e->getMessage());
-
                 break;
             }
         }
