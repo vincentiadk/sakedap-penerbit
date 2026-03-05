@@ -401,10 +401,10 @@
                         <table class="table table-hover table-bordered">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 25%;">Edisi / Volume</th>
-                                    <th style="width: 20%;">Tgl Terbit</th>
+                                    <th style="width: 25%;">Edisi / Volume <span class="text-danger fw-bold">*</span></th>
+                                    <th style="width: 20%;">Tgl Terbit <span class="text-danger fw-bold">*</span></th>
                                     <th style="width: 20%;">Cover</th>
-                                    <th style="width: 20%;">Konten</th>
+                                    <th style="width: 20%;">Konten <span class="text-danger fw-bold">*</span></th>
                                     <th style="width: 15%;" class="text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -699,7 +699,7 @@
                 <tr>
                     <input type="hidden" name="cc_edition[]" value="1">
                     <td>
-                        <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume">
+                        <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume" required>
                     </td>
                     <td>
                         <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" readonly required>
@@ -787,12 +787,19 @@
                 const rowNumber = index + 1;
                 const $row = $(this);
 
-                const dateVal   = $row.find('input[name="cc_edition_date[]"]').val();
+                const titleVal = $row.find('input[name="cc_edition_title[]"]').val();
+                const dateVal = $row.find('input[name="cc_edition_date[]"]').val();
                 const fileInput = $row.find('input[name="cc_edition_content[]"]')[0];
-                const hasFile   = fileInput && fileInput.files && fileInput.files.length > 0;
+                const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
 
+                $row.find('input[name="cc_edition_title[]"]').removeClass('is-invalid');
                 $row.find('input[name="cc_edition_date[]"]').removeClass('is-invalid');
                 $row.find('input[name="cc_edition_content[]"]').removeClass('is-invalid');
+
+                if (!titleVal) {
+                    $row.find('input[name="cc_edition_title[]"]').addClass('is-invalid');
+                    editionErrors.push(`Baris #${rowNumber}: Judul edisi wajib diisi`);
+                }
 
                 if (!dateVal) {
                     $row.find('input[name="cc_edition_date[]"]').addClass('is-invalid');
