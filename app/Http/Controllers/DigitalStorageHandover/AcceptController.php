@@ -516,48 +516,54 @@ class AcceptController extends Controller
                         <tr><td style="font-weight:bold;">NIP. ' . ($leader->NIP ?? '-') . '</td></tr>
                     </table>
                 ';
+
+                $qrGenerator = new \Milon\Barcode\DNS2D();
+                $qrCodeBody = config('system.fo_url') . '/collections/detail/' . $collection->ID;
+                $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
+
+                $dataParseTemplate = [
+                    'publisher' => session('name'),
+                    'createdate' => Carbon::parse($collection->CREATEDATE)->isoFormat('D MMMM Y'),
+                    'title' => $collection->TITLE,
+                    'identifier' => $collection->CONTROLNUMBER,
+                    'mimes' => $collection->MIME_CATALOGFILES,
+                    'hash' => $collection->HASH_CATALOGFILES,
+                    'size' => Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES),
+                    'code' => $collection->ISBN,
+                    'director' => $signatureTable,
+                    'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
+                    'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
+                    'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
+                ];
+
+                $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
+
+                $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+                $pdf->SetMargins(15, 10, 15);
+                $pdf->SetAutoPageBreak(true, 15);
+                $pdf->AddPage();
+
+                $pdf->writeHTML($htmlContent, true, false, true, false, '');
+
+                $directory = storage_path('app/public/physical-delivery/accept/receipt');
+
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $filename = $directory . '/' . Str::slug('Koleksi Digital Diterima ' . $collection->CONTROLNUMBER, '-') . '.pdf';
+
+                return $pdf->Output($filename, 'I');
             }
 
-            $qrGenerator = new \Milon\Barcode\DNS2D();
-            $qrCodeBody = config('system.fo_url') . '/collections/detail/' . $collection->ID;
-            $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
-
-            $dataParseTemplate = [
-                'publisher' => session('name'),
-                'createdate' => Carbon::parse($collection->CREATEDATE)->isoFormat('D MMMM Y'),
-                'title' => $collection->TITLE,
-                'identifier' => $collection->CONTROLNUMBER,
-                'mimes' => $collection->MIME_CATALOGFILES,
-                'hash' => $collection->HASH_CATALOGFILES,
-                'size' => Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES),
-                'code' => $collection->ISBN,
-                'director' => $signatureTable,
-                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
-                'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
-                'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
-            ];
-
-            $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
-
-            $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetMargins(15, 10, 15);
-            $pdf->SetAutoPageBreak(true, 15);
-            $pdf->AddPage();
-
-            $pdf->writeHTML($htmlContent, true, false, true, false, '');
-
-            $directory = storage_path('app/public/physical-delivery/accept/receipt');
-
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true);
-            }
-
-            $filename = $directory . '/' . Str::slug('Koleksi Digital Diterima ' . $collection->CONTROLNUMBER, '-') . '.pdf';
-            $pdf->Output($filename, 'I');
-
-            return $filename;
+            return '
+                <script>
+                    alert("Tidak ada data direktur / pimpinan yang aktif")
+                    location.href = "' . url('digital-storage-handover/accept') . '"
+                </script>
+            ';
         } catch (\Exception $e) {
             Log::error('Error view PDF: ' . $e->getMessage());
 
