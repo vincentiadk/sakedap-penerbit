@@ -487,7 +487,22 @@
     </div>
 </div>
 
+<style>
+    #data-edition tr td input.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+        background-image: none;
+    }
+</style>
+
 <script>
+    $(document).on('change', '#data-edition input[name="cc_edition_date[]"]', function() {
+        $(this).removeClass('is-invalid');
+    });
+
+    $(document).on('change', '#data-edition input[name="cc_edition_content[]"]', function() {
+        $(this).removeClass('is-invalid');
+    });
     $(function() {
         datePickerSingle('.date-picker-single');
 
@@ -687,13 +702,13 @@
                         <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume">
                     </td>
                     <td>
-                        <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" readonly>
+                        <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" readonly required>
                     </td>
                     <td>
                         <input type="file" class="form-control" name="cc_edition_cover[]" accept=".jpg,.jpeg,.png">
                     </td>
                     <td>
-                        <input type="file" class="form-control" name="cc_edition_content[]" accept=".pdf,.epub,.mp3,.mp4,.wav">
+                        <input type="file" class="form-control" name="cc_edition_content[]" accept=".pdf,.epub,.mp3,.mp4,.wav" required>
                     </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)" data-bs-toggle="tooltip" title="Hapus baris">
@@ -752,6 +767,64 @@
     }
 
     function submitted() {
+        if ($('input[name="has_edition"]').is(':checked')) {
+            const editionRows = $('#data-edition tr');
+
+            if (editionRows.length === 0) {
+                swalInit.fire({
+                    title: 'Edisi Kosong',
+                    text: 'Anda mengaktifkan edisi serial, namun belum menambahkan edisi apapun.',
+                    icon: 'warning',
+                    confirmButtonText: '<i class="ph-check me-1"></i> Mengerti',
+                });
+
+                return;
+            }
+
+            let editionErrors = [];
+
+            editionRows.each(function(index) {
+                const rowNumber = index + 1;
+                const $row = $(this);
+
+                const dateVal   = $row.find('input[name="cc_edition_date[]"]').val();
+                const fileInput = $row.find('input[name="cc_edition_content[]"]')[0];
+                const hasFile   = fileInput && fileInput.files && fileInput.files.length > 0;
+
+                $row.find('input[name="cc_edition_date[]"]').removeClass('is-invalid');
+                $row.find('input[name="cc_edition_content[]"]').removeClass('is-invalid');
+
+                if (!dateVal) {
+                    $row.find('input[name="cc_edition_date[]"]').addClass('is-invalid');
+                    editionErrors.push(`Baris #${rowNumber}: Tanggal terbit wajib diisi`);
+                }
+
+                if (!hasFile) {
+                    $row.find('input[name="cc_edition_content[]"]').addClass('is-invalid');
+                    editionErrors.push(`Baris #${rowNumber}: File konten wajib diisi`);
+                }
+            });
+
+            if (editionErrors.length > 0) {
+                const errorListHtml = editionErrors.map(e => `<li class="text-start">${e}</li>`).join('');
+
+                swalInit.fire({
+                    title: 'Edisi Belum Lengkap',
+                    html: `<ul class="mb-0 ps-3">${errorListHtml}</ul>`,
+                    icon: 'warning',
+                    confirmButtonText: '<i class="ph-check me-1"></i> Oke, Saya Perbaiki',
+                });
+
+                const firstError = $('#data-edition tr .is-invalid').first();
+
+                if (firstError.length) {
+                    $('html, body').animate({ scrollTop: firstError.closest('tr').offset().top - 120 }, 400);
+                }
+
+                return;
+            }
+        }
+
         $.ajax({
             url: '{{ url("digital-storage-handover/single-upload-non-isbn/submitted") }}',
             type: 'POST',

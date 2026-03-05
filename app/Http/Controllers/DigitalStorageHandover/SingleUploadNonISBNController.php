@@ -197,17 +197,14 @@ class SingleUploadNonISBNController extends Controller
                         foreach ($request->cc_edition as $key => $cce) {
                             $editionTitle = $request->cc_edition_title[$key] ?? null;
                             $editionDate = $request->cc_edition_date[$key] ?? null;
-                            $editionCover = null;
-                            $editionContent = null;
 
-                            if ($request->hasFile('cc_edition_cover') && isset($request->file('cc_edition_cover')[$key])) {
-                                $editionCover = $request->file('cc_edition_cover')[$key];
-                            }
-                            if ($request->hasFile('cc_edition_content') && isset($request->file('cc_edition_content')[$key])) {
-                                $editionContent = $request->file('cc_edition_content')[$key];
-                            }
+                            $coverFiles = $request->file('cc_edition_cover') ?? [];
+                            $contentFiles = $request->file('cc_edition_content') ?? [];
 
-                            if ($editionTitle && $editionDate && $editionCover && $editionContent) {
+                            $editionCover = isset($coverFiles[$key]) && $coverFiles[$key]->isValid() ? $coverFiles[$key] : null;
+                            $editionContent = isset($contentFiles[$key]) && $contentFiles[$key]->isValid() ? $contentFiles[$key] : null;
+
+                            if ($editionTitle && $editionDate && $editionContent) {
                                 $editionData = $baseCollectionData;
                                 $editionData['deposit'] = Main::generateNumberDeposit();
                                 $editionData['parent_id'] = $createCollection->ID;
