@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\DigitalStorageHandover;
 
-use Carbon\Carbon;
 use App\Helpers\Main;
 use App\Helpers\QueryAPI;
-use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Milon\Barcode\DNS2D;
 
 class AcceptController extends Controller
 {
@@ -414,54 +415,26 @@ class AcceptController extends Controller
     {
         try {
             $collection = QueryAPI::get("
-                select
-                    c.id,
-                    c.createdate,
-                    c.title,
-                    c.controlnumber,
-                    c.isbn,
-                    cfr.hash as hash_catalogfiles,
-                    cfr.mime as mime_catalogfiles,
+                select c.id, c.createdate, c.title, c.controlnumber, c.isbn,
+                    cfr.hash as hash_catalogfiles, cfr.mime as mime_catalogfiles,
                     cfr.file_size as file_size_catalogfiles
-                from
-                    catalogs c
-                left join
-                    (
-                        select
-                            *
-                        from (
-                            select
-                                cf.catalog_id,
-                                cf.id,
-                                cf.fileurl,
-                                cf.hash,
-                                cf.mime,
-                                cf.file_size,
-                                cf.method,
-                                row_number() over (order by cf.id desc) as rn
-                            from
-                                catalogfiles cf
-                            where
-                                cf.catalog_id = $id
-                        ) where rn = 1
-                    ) cfr on cfr.catalog_id = c.id
-                where
-                    nvl(c.isdelete, 0) = 0
-                    and c.id = $id
+                from catalogs c
+                left join (
+                    select * from (
+                        select cf.catalog_id, cf.id, cf.hash, cf.mime, cf.file_size,
+                            row_number() over (order by cf.id desc) as rn
+                        from catalogfiles cf
+                        where cf.catalog_id = $id
+                    ) where rn = 1
+                ) cfr on cfr.catalog_id = c.id
+                where nvl(c.isdelete, 0) = 0 and c.id = $id
             ", true);
 
             if (!$collection) {
-                return null;
+                return "Data Koleksi dengan ID $id tidak ditemukan di database.";
             }
 
-            $settings = QueryAPI::get("
-                select
-                    *
-                from
-                    e_settings
-                where
-                    slug in ('Header','Footer','KoleksiTervalidasi')
-            ");
+            $settings = QueryAPI::get("select * from e_settings where slug in ('Header','Footer','KoleksiTervalidasi')");
 
             $templateEmailContent = null;
             $templateEmailHeader = null;
@@ -469,9 +442,11 @@ class AcceptController extends Controller
 
             if ($settings) {
                 foreach ($settings as $setting) {
-                    if ($setting->SLUG == 'KoleksiTervalidasi') $templateEmailContent = $setting;
-                    elseif ($setting->SLUG == 'Header') $templateEmailHeader = $setting;
-                    elseif ($setting->SLUG == 'Footer') $templateEmailFooter = $setting;
+                    $slug = $setting->SLUG ?? $setting->slug;
+
+                    if ($slug == 'KoleksiTervalidasi') $templateEmailContent = $setting;
+                    elseif ($slug == 'Header') $templateEmailHeader = $setting;
+                    elseif ($slug == 'Footer') $templateEmailFooter = $setting;
                 }
             }
 
@@ -479,95 +454,91 @@ class AcceptController extends Controller
             $imgFooter = '';
 
             if ($templateEmailHeader) {
-                $urlHeader = url('stream-file?type=gambar_template&id=' . ($templateEmailHeader->ID ?? '') . '&filename=' . ($templateEmailHeader->CONTENT ?? ''));
+                $hId = $templateEmailHeader->ID ?? $templateEmailHeader->id;
+                $hCont = $templateEmailHeader->CONTENT ?? $templateEmailHeader->content;
+                $urlHeader = url('stream-file?type=gambar_template&id=' . $hId . '&filename=' . $hCont);
                 $imgHeader = Main::base64File($urlHeader);
             }
 
             if ($templateEmailFooter) {
-                $urlFooter = url('stream-file?type=gambar_template&id=' . ($templateEmailFooter->ID ?? '') . '&filename=' . ($templateEmailFooter->CONTENT ?? ''));
+                $fId = $templateEmailFooter->ID ?? $templateEmailFooter->id;
+                $fCont = $templateEmailFooter->CONTENT ?? $templateEmailFooter->content;
+                $urlFooter = url('stream-file?type=gambar_template&id=' . $fId . '&filename=' . $fCont);
                 $imgFooter = Main::base64File($urlFooter);
             }
 
             $branch = Main::getBranch();
-            $branchId = ($branch->ID ?? null) ?: 0;
+            $branchId = ($branch->ID ?? $branch->id ?? 0);
             $dateNow = date('Y-m-d');
-            $signatureTable = '<br><br><br>';
 
             $leader = QueryAPI::get("
-                select
-                    *
-                from
-                    penanggung_jawab
-                where
-                    branch_id = $branchId and
-                    (tanggal_awal <= to_date('$dateNow', 'YYYY-MM-DD') and tanggal_akhir >= to_date('$dateNow', 'YYYY-MM-DD') + 1)
+                select * from penanggung_jawab
+                where branch_id = $branchId and
+                (tanggal_awal <= to_date('$dateNow', 'YYYY-MM-DD') and tanggal_akhir >= to_date('$dateNow', 'YYYY-MM-DD') + 1)
             ", true);
 
-            if ($leader) {
-                $ttdUrl = url('stream-file') . '?type=gambar_ttd&id=' . ($leader->ID ?? '') . '&filename=' . ($leader->TTD_FILE_NAME ?? '');
-                $imgTtd = Main::base64File($ttdUrl) ?: '';
-                $imgTagTtd = (strlen($imgTtd) > 100) ? '<img src="' . $imgTtd . '" height="60" style="height:60px;">' : '<br><br><br>';
-
-                $signatureTable = '
-                    <table border="0" cellspacing="0" cellpadding="0" style="text-align:center; width:100%;">
-                        <tr><td>' . ($leader->JABATAN ?? 'Pejabat') . '</td></tr>
-                        <tr><td style="height:70px;">' . $imgTagTtd . '</td></tr>
-                        <tr><td>' . ($leader->NAMA ?? '') . '</td></tr>
-                        <tr><td style="font-weight:bold;">NIP. ' . ($leader->NIP ?? '-') . '</td></tr>
-                    </table>
+            if (!$leader) {
+                return '
+                    <script>
+                        alert("Tidak ada data direktur / pimpinan yang aktif (Branch ID: ' . $branchId . ')");
+                        window.history.back();
+                    </script>
                 ';
-
-                $qrGenerator = new \Milon\Barcode\DNS2D();
-                $qrCodeBody = config('system.fo_url') . '/collections/detail/' . $collection->ID;
-                $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
-
-                $dataParseTemplate = [
-                    'publisher' => session('name'),
-                    'createdate' => Carbon::parse($collection->CREATEDATE)->isoFormat('D MMMM Y'),
-                    'title' => $collection->TITLE,
-                    'identifier' => $collection->CONTROLNUMBER,
-                    'mimes' => $collection->MIME_CATALOGFILES,
-                    'hash' => $collection->HASH_CATALOGFILES,
-                    'size' => Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES),
-                    'code' => $collection->ISBN,
-                    'director' => $signatureTable,
-                    'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
-                    'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
-                    'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
-                ];
-
-                $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
-
-                $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-                $pdf->setPrintHeader(false);
-                $pdf->setPrintFooter(false);
-                $pdf->SetMargins(15, 10, 15);
-                $pdf->SetAutoPageBreak(true, 15);
-                $pdf->AddPage();
-
-                $pdf->writeHTML($htmlContent, true, false, true, false, '');
-
-                $directory = storage_path('app/public/physical-delivery/accept/receipt');
-
-                if (!file_exists($directory)) {
-                    mkdir($directory, 0755, true);
-                }
-
-                $filename = $directory . '/' . Str::slug('Koleksi Digital Diterima ' . $collection->CONTROLNUMBER, '-') . '.pdf';
-
-                return $pdf->Output($filename, 'I');
             }
 
-            return '
-                <script>
-                    alert("Tidak ada data direktur / pimpinan yang aktif")
-                    location.href = "' . url('digital-storage-handover/accept') . '"
-                </script>
-            ';
-        } catch (\Exception $e) {
-            Log::error('Error view PDF: ' . $e->getMessage());
+            $lId = $leader->ID ?? $leader->id;
+            $lTtd = $leader->TTD_FILE_NAME ?? $leader->ttd_file_name;
+            $ttdUrl = url('stream-file') . '?type=gambar_ttd&id=' . $lId . '&filename=' . $lTtd;
+            $imgTtd = Main::base64File($ttdUrl) ?: '';
+            $imgTagTtd = (strlen($imgTtd) > 100) ? '<img src="' . $imgTtd . '" height="60">' : '<br><br><br>';
 
-            return null;
+            $signatureTable = '
+                <table border="0" style="text-align:center; width:100%;">
+                    <tr><td>' . ($leader->JABATAN ?? $leader->jabatan ?? 'Pejabat') . '</td></tr>
+                    <tr><td style="height:70px;">' . $imgTagTtd . '</td></tr>
+                    <tr><td>' . ($leader->NAMA ?? $leader->nama ?? '') . '</td></tr>
+                    <tr><td style="font-weight:bold;">NIP. ' . ($leader->NIP ?? $leader->nip ?? '-') . '</td></tr>
+                </table>
+            ';
+
+            $qrGenerator = new DNS2D();
+            $cId = $collection->ID ?? $collection->id;
+            $qrCodeBody = config('system.fo_url') . '/collections/detail/' . $cId;
+            $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
+
+            $dataParseTemplate = [
+                'publisher' => session('name'),
+                'createdate' => Carbon::parse($collection->CREATEDATE ?? $collection->createdate)->isoFormat('D MMMM Y'),
+                'title' => $collection->TITLE ?? $collection->title,
+                'identifier' => $collection->CONTROLNUMBER ?? $collection->controlnumber,
+                'mimes' => $collection->MIME_CATALOGFILES ?? $collection->mime_catalogfiles,
+                'hash' => $collection->HASH_CATALOGFILES ?? $collection->hash_catalogfiles,
+                'size' => Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES ?? $collection->file_size_catalogfiles),
+                'code' => $collection->ISBN ?? $collection->isbn,
+                'director' => $signatureTable,
+                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" style="width:100%;"></div>' : '',
+                'footer' => !empty($imgFooter) ? '<div style="text-align:center;"><img src="' . $imgFooter . '" style="width:100%;"></div>' : '',
+                'qr' => '<img src="data:image/png;base64,' . $qrBase64Raw . '" style="height:100px; width:100px">',
+            ];
+
+            $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
+
+            if (ob_get_contents()) ob_end_clean();
+
+            $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->SetMargins(15, 10, 15);
+            $pdf->SetAutoPageBreak(true, 15);
+            $pdf->AddPage();
+            $pdf->writeHTML($htmlContent, true, false, true, false, '');
+
+            $cNumber = $collection->CONTROLNUMBER ?? $collection->controlnumber ?? $id;
+            $filename = Str::slug('Receipt-' . $cNumber) . '.pdf';
+
+            return $pdf->Output($filename, 'I');
+        } catch (\Exception $e) {
+            return "Terjadi Error: " . $e->getMessage() . " di baris " . $e->getLine();
         }
     }
 }
