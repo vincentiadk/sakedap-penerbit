@@ -341,7 +341,25 @@ class DeliveryMonitoringController extends Controller
                 where
                     letter_id = $id
             ", false);
+            $isbnMap = collect();
 
+            $codes = collect($letterDetail ?? [])
+                ->pluck('ISBN')
+                ->map(fn($x) => str_replace('-', '', (string) $x))
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($codes->isNotEmpty()) {
+                $result = ISBN::get('search', [
+                    'code' => $codes->implode(','), 
+                    'start' => 0,
+                    'length' => 5000
+                ]);
+
+                $isbnMap = collect($result->data ?? [])
+                    ->keyBy(fn($row) => str_replace('-', '', (string) ($row->code ?? $row->isbn ?? '')));
+            }
             $buildQuery = http_build_query([
                 'awb' => $letter->RECEIPT_NO ?? '',
                 'courier' => $letter->CODE_JASA_PENGIRIMAN ?? ''
@@ -353,6 +371,7 @@ class DeliveryMonitoringController extends Controller
                 'data' => [
                     'letter' => $letter,
                     'letterDetail' => $letterDetail,
+                    'isbnMap' => $isbnMap,
                     'receipt' => $receipt,
                     'content' => 'physical-handover.delivery-monitoring-detail',
                     'plugins' => [

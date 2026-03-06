@@ -287,11 +287,30 @@ class DeliveryAcceptController extends Controller
             where
                 letter_id = $id
         ");
+        $isbnMap = collect();
 
+        $codes = collect($letterDetail ?? [])
+            ->pluck('ISBN')
+            ->map(fn($x) => str_replace('-', '', (string) $x))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($codes->isNotEmpty()) {
+            $result = ISBN::get('search', [
+                'code' => $codes->implode(','), 
+                'start' => 0,
+                'length' => 5000
+            ]);
+
+            $isbnMap = collect($result->data ?? [])
+                ->keyBy(fn($row) => str_replace('-', '', (string) ($row->code ?? $row->isbn ?? '')));
+        }
         return view('layouts.index', [
             'data' => [
                 'letter' => $letter,
                 'letterDetail' => $letterDetail,
+                'isbnMap' => $isbnMap,
                 'content' => 'physical-handover.delivery-accept-detail',
                 'plugins' => [
                     'select2',
