@@ -489,7 +489,7 @@ class AcceptController extends Controller
             }
 
             $branch = Main::getBranch();
-            $branchId = $branch->ID ?? 0;
+            $branchId = ($branch->ID ?? null) ?: 0;
             $dateNow = date('Y-m-d');
             $signatureTable = '<br><br><br>';
 

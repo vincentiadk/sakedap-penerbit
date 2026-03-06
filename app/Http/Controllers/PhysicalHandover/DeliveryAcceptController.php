@@ -382,7 +382,7 @@ class DeliveryAcceptController extends Controller
                 $imgFooter = Main::base64File($urlFooter);
             }
 
-            $branchId = session('branch_id');
+            $branchId = session('branch_id') ?? 0;
             $dateNow = date('Y-m-d');
             $signatureTable = '<br><br><br>';
 
