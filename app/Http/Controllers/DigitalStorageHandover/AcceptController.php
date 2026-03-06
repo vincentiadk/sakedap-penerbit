@@ -481,7 +481,7 @@ class AcceptController extends Controller
                 return '
                     <script>
                         alert("Tidak ada data direktur / pimpinan yang aktif (Branch ID: ' . $branchId . ')");
-                        window.history.back();
+                        location.href="' . url('digital-storage-handover/accept') . '";
                     </script>
                 ';
             }
@@ -534,7 +534,7 @@ class AcceptController extends Controller
             $pdf->writeHTML($htmlContent, true, false, true, false, '');
 
             $cNumber = $collection->CONTROLNUMBER ?? $collection->controlnumber ?? $id;
-            $filename = Str::slug('Receipt-' . $cNumber) . '.pdf';
+            $filename = Str::slug('TandaTerimaKoleksiDigitalSakedap-' . $cNumber) . '.pdf';
 
             return $pdf->Output($filename, 'I');
         } catch (\Exception $e) {
