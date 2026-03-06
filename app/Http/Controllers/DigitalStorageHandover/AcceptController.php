@@ -481,7 +481,7 @@ class AcceptController extends Controller
                 return '
                     <script>
                         alert("Tidak ada data direktur / pimpinan yang aktif (Branch ID: ' . $branchId . ')");
-                        location.href="' . url('digital-storage-handover/accept') . '";
+                        window.close();
                     </script>
                 ';
             }
