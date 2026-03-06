@@ -422,7 +422,7 @@ class DeliveryMonitoringController extends Controller
                     propinsi on propinsi.id = branchs.province_id
                 where
                     letter.letter_id = $id and
-                    letter.status in ('DIKIRIM', 'DALAM PENGIRIMAN') and
+                    letter.status in ('DIKIRIM', 'DALAM PENGIRIMAN', 'TERKIRIM') and
                     letter.order_no is null
             ";
 

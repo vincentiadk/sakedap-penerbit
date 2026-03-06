@@ -132,8 +132,7 @@ class DeliveryAcceptController extends Controller
                 penerbit p on p.id = l.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
-
-        $queryData = QueryAPI::get("
+        $sql = "
             select
                 *
             from
@@ -201,7 +200,8 @@ class DeliveryAcceptController extends Controller
                 )
             where
                 rnum > $start
-        ");
+        ";
+        $queryData = QueryAPI::get($sql);
 
         if ($queryData) {
             foreach ($queryData as $val) {
