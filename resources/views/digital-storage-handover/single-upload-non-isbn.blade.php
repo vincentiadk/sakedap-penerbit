@@ -503,6 +503,7 @@
     $(document).on('change', '#data-edition input[name="cc_edition_content[]"]', function() {
         $(this).removeClass('is-invalid');
     });
+
     $(function() {
         datePickerSingle('.date-picker-single');
 

@@ -382,7 +382,7 @@ class DeliveryAcceptController extends Controller
                 $imgFooter = Main::base64File($urlFooter);
             }
 
-            $branchId = session('branch_id') ?? 0;
+            $branchId = $letter->BRANCH_ID;
             $dateNow = date('Y-m-d');
             $signatureTable = '<br><br><br>';
 
@@ -409,120 +409,129 @@ class DeliveryAcceptController extends Controller
                         <tr><td style="font-weight:bold;">NIP. ' . ($leader->NIP ?? '-') . '</td></tr>
                     </table>
                 ';
-            }
 
-            $qrGenerator = new \Milon\Barcode\DNS2D();
-            $qrCodeBody = config('system.fo_url') . '/track-shipment?receipt=' . $letter->RECEIPT_NO;
-            $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
+                $qrGenerator = new \Milon\Barcode\DNS2D();
+                $qrCodeBody = config('system.fo_url') . '/track-shipment?receipt=' . $letter->RECEIPT_NO;
+                $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
 
-            $dataParseTemplate = [
-                'accepted_date' => Carbon::parse($letter->ACCEPT_DATE)->isoFormat('D MMMM Y'),
-                'letter_no' => $letter->LETTER_NUMBER_UT ?: '-',
-                'publisher_name' => $letter->NAME_PENERBIT,
-                'director' => $signatureTable,
-                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
-                'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
-                'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
-            ];
+                $dataParseTemplate = [
+                    'accepted_date' => Carbon::parse($letter->ACCEPT_DATE)->isoFormat('D MMMM Y'),
+                    'letter_no' => $letter->LETTER_NUMBER_UT ?: '-',
+                    'publisher_name' => $letter->NAME_PENERBIT,
+                    'director' => $signatureTable,
+                    'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="300" style="width:100%;"></div><br><br>' : '',
+                    'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="550" style="width:100%;"></div>' : '',
+                    'qr' => '<br><br><img alt="QR" src="data:image/png;base64,' . $qrBase64Raw . '" style="height:120px; width:120px">',
+                ];
 
-            $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
-            $finalHtml = '
-                <style>
-                    table {
-                        border-collapse: collapse;
-                        padding: 0;
-                        margin: 0;
+                $htmlContent = Main::parseTemplateEmail($dataParseTemplate, $templateEmailContent);
+                $finalHtml = '
+                    <style>
+                        table {
+                            border-collapse: collapse;
+                            padding: 0;
+                            margin: 0;
+                        }
+
+                        td {
+                            vertical-align: top;
+                        }
+
+                        body {
+                            font-family: helvetica;
+                            font-size: 10pt;
+                        }
+                    </style>
+                    <table border="0" cellspacing="0" cellpadding="0" width="100%">
+                        <tr><td>' . $htmlContent . '</td></tr>
+                    </table>
+                ';
+
+                $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+                $pdf->setPrintHeader(false);
+                $pdf->setPrintFooter(false);
+                $pdf->SetMargins(15, 10, 15);
+                $pdf->SetAutoPageBreak(true, 15);
+                $pdf->AddPage();
+
+                $pdf->writeHTML($finalHtml, true, false, true, false, '');
+
+                $collections = QueryAPI::get("
+                    select
+                        ld.letter_id,
+                        l.accept_date as accept_date_letter,
+                        ld.title,
+                        cm.name as name_cm,
+                        ld.isbn,
+                        case when ld.collection_id LIKE '%,%' and t.lvl > 0 THEN 1 ELSE ld.qty_accept end as qty_accept,
+                        c.noinduk as noinduk_collection, c.mark_province as mark_province_collection
+                    from
+                        letter_detail ld
+                    left join
+                        letter l on l.letter_id = ld.letter_id
+                    left join
+                        collectionmedias cm on cm.id = ld.collection_type_id
+                    cross join
+                        (select level as lvl from dual connect by level <= 1000) t
+                    left join
+                        collections c on c.id = to_number(nvl(trim(regexp_substr(ld.collection_id,'[^,]+',1,t.lvl)),'0'))
+                    where
+                        ld.letter_id = $letter->LETTER_ID
+                        and ld.qty_accept is not null
+                        and ld.qty_accept > 0
+                        and T.lvl <= regexp_count(nvl(ld.collection_id, 'X'), ',') + 1
+                ");
+
+                $htmlCollections = '
+                    <table border="1" cellpadding="4" cellspacing="0" style="font-size:8px; border-collapse:collapse;">
+                        <tr style="background-color:#f0f0f0; font-weight:bold;">
+                            <th width="5%" align="center">No</th>
+                            <th width="15%" align="center">Tgl Terima</th>
+                            <th width="40%" align="center">Judul</th>
+                            <th width="15%" align="center">Jenis</th>
+                            <th width="15%" align="center">ISBN</th>
+                            <th width="10%" align="center">Jml</th>
+                        </tr>
+                ';
+
+                if ($collections) {
+                    foreach ($collections as $key => $c) {
+                        $htmlCollections .= '<tr>';
+                        $htmlCollections .= '<td align="center">' . ($key + 1) . '</td>';
+                        $htmlCollections .= '<td align="center">' . date('d-m-Y', strtotime($c->ACCEPT_DATE_LETTER)) . '</td>';
+                        $htmlCollections .= '<td>' . ($c->TITLE ?? '-') . '</td>';
+                        $htmlCollections .= '<td align="center">' . ($c->NAME_CM ?? '-') . '</td>';
+                        $htmlCollections .= '<td align="center">' . ($c->ISBN ?? '-') . '</td>';
+                        $htmlCollections .= '<td align="center">' . ($c->QTY_ACCEPT ?? '-') . '</td>';
+                        $htmlCollections .= '</tr>';
                     }
-
-                    td {
-                        vertical-align: top;
-                    }
-
-                    body {
-                        font-family: helvetica;
-                        font-size: 10pt;
-                    }
-                </style>
-                <table border="0" cellspacing="0" cellpadding="0" width="100%">
-                    <tr><td>' . $htmlContent . '</td></tr>
-                </table>
-            ';
-
-            $pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-            $pdf->setPrintHeader(false);
-            $pdf->setPrintFooter(false);
-            $pdf->SetMargins(15, 10, 15);
-            $pdf->SetAutoPageBreak(true, 15);
-            $pdf->AddPage();
-
-            $pdf->writeHTML($finalHtml, true, false, true, false, '');
-
-            $collections = QueryAPI::get("
-                select
-                    ld.letter_id,
-                    l.accept_date as accept_date_letter,
-                    ld.title,
-                    ld.jenis_media,
-                    ld.isbn,
-                    case when ld.collection_id LIKE '%,%' and t.lvl > 0 THEN 1 ELSE ld.qty_accept end as qty_accept,
-                    c.noinduk as noinduk_collection, c.mark_province as mark_province_collection
-                from
-                    letter_detail ld
-                left join
-                    letter l on l.letter_id = ld.letter_id
-                cross join
-                    (select level as lvl from dual connect by level <= 1000) t
-                left join
-                    collections c on c.id = to_number(nvl(trim(regexp_substr(ld.collection_id,'[^,]+',1,t.lvl)),'0'))
-                where
-                    ld.letter_id = $letter->LETTER_ID
-                    and ld.qty_accept is not null
-                    and ld.qty_accept > 0
-                    and T.lvl <= regexp_count(nvl(ld.collection_id, 'X'), ',') + 1
-            ");
-
-            $htmlCollections = '
-                <table border="1" cellpadding="4" cellspacing="0" style="font-size:8px; border-collapse:collapse;">
-                    <tr style="background-color:#f0f0f0; font-weight:bold;">
-                        <th width="5%" align="center">No</th>
-                        <th width="15%" align="center">Tgl Terima</th>
-                        <th width="40%" align="center">Judul</th>
-                        <th width="15%" align="center">Jenis</th>
-                        <th width="15%" align="center">ISBN</th>
-                        <th width="10%" align="center">Jml</th>
-                    </tr>
-            ';
-
-            if ($collections) {
-                foreach ($collections as $key => $c) {
-                    $htmlCollections .= '<tr>';
-                    $htmlCollections .= '<td align="center">' . ($key + 1) . '</td>';
-                    $htmlCollections .= '<td align="center">' . date('d-m-Y', strtotime($c->ACCEPT_DATE_LETTER)) . '</td>';
-                    $htmlCollections .= '<td>' . ($c->TITLE ?? '-') . '</td>';
-                    $htmlCollections .= '<td align="center">' . ($c->JENIS_MEDIA ?? '-') . '</td>';
-                    $htmlCollections .= '<td align="center">' . ($c->ISBN ?? '-') . '</td>';
-                    $htmlCollections .= '<td align="center">' . ($c->QTY_ACCEPT ?? '-') . '</td>';
-                    $htmlCollections .= '</tr>';
                 }
+
+                $htmlCollections .= '</table>';
+
+                $pdf->AddPage();
+                $pdf->writeHTML($htmlCollections, true, false, true, false, '');
+
+                $letterNumber = $letter->LETTER_ID ?? date('YmdHis');
+                $nameExecutor = $letter->NAME_PENERBIT ?? '';
+                $directory = storage_path('app/public/physical-handover/delivery-accept/receipt');
+
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $filename = $directory . '/' . Str::slug('Pengiriman Fisik Koleksi ' . $letterNumber . ' ' . $nameExecutor, '-') . '.pdf';
+                $pdf->Output($filename, 'F');
+
+                return $filename;
+            } else {
+                return '
+                    <script>
+                        alert("Tidak ada data direktur / pimpinan yang aktif (Branch ID: ' . $branchId . ')");
+                        window.close();
+                    </script>
+                ';
             }
-
-            $htmlCollections .= '</table>';
-
-            $pdf->AddPage();
-            $pdf->writeHTML($htmlCollections, true, false, true, false, '');
-
-            $letterNumber = $letter->LETTER_ID ?? date('YmdHis');
-            $nameExecutor = $letter->NAME_PENERBIT ?? '';
-            $directory = storage_path('app/public/physical-handover/delivery-accept/receipt');
-
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true);
-            }
-
-            $filename = $directory . '/' . Str::slug('Pengiriman Fisik Koleksi ' . $letterNumber . ' ' . $nameExecutor, '-') . '.pdf';
-            $pdf->Output($filename, 'F');
-
-            return $filename;
         } catch (\Exception $e) {
             Log::error('Error generating PDF: ' . $e->getMessage());
 

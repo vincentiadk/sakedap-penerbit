@@ -467,8 +467,7 @@ class AcceptController extends Controller
                 $imgFooter = Main::base64File($urlFooter);
             }
 
-            $branch = Main::getBranch();
-            $branchId = ($branch->ID ?? $branch->id ?? 0);
+            $branchId = 37;
             $dateNow = date('Y-m-d');
 
             $leader = QueryAPI::get("
