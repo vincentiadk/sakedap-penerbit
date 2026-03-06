@@ -61,7 +61,7 @@ class SingleUploadISBNController extends Controller
         $data = [];
         $search = strtoupper($request->search['value']);
 
-        $orderBy = '';
+        $orderBy = 'order by ec.id desc';
         $order = $request->order;
 
         $whereClause = '';
