@@ -209,17 +209,21 @@ class DeliveryAcceptController extends Controller
                     <a href="' . url('physical-handover/delivery-accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-check me-1"></i>
                         Detail
-                    </a>
-                    <a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
+                    </a>';
+                if($val->STATUS == 'TERKIRIM' || $val->STATUS == 'DALAM PENGIRIMAN') {
+                        $action .='<a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
                         <i class="ph-barcode me-1"></i>
                         Cetak Label
-                    </a>
-                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
-                        <i class="ph-printer me-1"></i>
-                        Resi Penerimaan
-                    </a>
-                ';
-
+                    </a>';
+                }
+                if($val->STATUS == 'DITERIMA' || $val->STATUS == 'DITERIMA PENUH' || $val->STATUS ==  'DITERIMA PARSIAL'){
+                    $action .= '
+                        <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
+                            <i class="ph-printer me-1"></i>
+                            Resi Penerimaan
+                        </a>
+                    ';
+                }
                 $letterDate = '
                     <div>' . Carbon::parse($val->LETTER_DATE)->isoFormat('D MMM Y') . '</div>
                     <small>Jam : ' . Carbon::parse($val->LETTER_DATE)->format('H.i') . ' WIB</small>
