@@ -323,7 +323,7 @@
                         <th>No.</th>
                         <th>Identifier</th>
                         <th>Judul</th>
-                        <th>Tgl Terbit</th>
+                        <th>Th. Terbit</th>
                         <th>Jns Koleksi</th>
                         <th>Jml</th>
                     </tr>
@@ -353,7 +353,7 @@
                                     @endif
                                 </td>
                                 <td class="col-title">{{ $ld->TITLE }} {{ $ld->EDISI_SERIAL }}</td>
-                                <td class="col-title">{{ $ld->TANGGAL_TERBIT ? Carbon::parse($ld->TANGGAL_TERBIT)->format('d/m/Y') : '' }}</td>
+                                <td class="col-title">{{ $ld->PUBLISH_YEAR }}</td>
                                 <td class="col-title">{{ $ld->JENIS_MEDIA }}</td>
                                 <td class="col-qty">{{ $ld->COPY }}</td>
                             </tr>
