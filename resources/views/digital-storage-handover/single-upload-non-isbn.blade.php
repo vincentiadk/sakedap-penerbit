@@ -28,6 +28,7 @@
     <form id="form-data">
         <input type="hidden" name="upload_id_cover" id="upload_id_cover" value="{{ $uploadIDCover }}">
         <input type="hidden" name="upload_id_content" id="upload_id_content" value="{{ $uploadIDCover }}">
+        <input type="hidden" name="upload_id" id="upload_id" value="{{ $uploadID }}">
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="mb-0 fw-semibold">
@@ -424,7 +425,7 @@
                 </div>
             </div>
         </div>
-        @if(!$uploadIDCover && !$uploadIDContent)
+        @if(!$uploadIDCover && !$uploadIDContent && !$uploadID)
             <div class="row g-3">
                 <div class="col-md-6" id="section-file-cover">
                     <div class="card shadow-sm">

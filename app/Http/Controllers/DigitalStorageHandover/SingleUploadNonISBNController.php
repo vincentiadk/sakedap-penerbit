@@ -23,6 +23,7 @@ class SingleUploadNonISBNController extends Controller
     {
         $uploadIDCover = $request->upload_id_cover;
         $uploadIDContent = $request->upload_id_content;
+        $uploadID = $request->upload_id;
 
         return view('layouts.index', [
             'data' => [
@@ -31,6 +32,7 @@ class SingleUploadNonISBNController extends Controller
                 'category' => QueryAPI::get("select * from e_categories where deleted_at is null") ?? [],
                 'uploadIDCover' => $uploadIDCover,
                 'uploadIDContent' => $uploadIDContent,
+                'uploadID' => $uploadID,
                 'content' => 'digital-storage-handover.single-upload-non-isbn',
                 'plugins' => [
                     'select2',
@@ -129,6 +131,7 @@ class SingleUploadNonISBNController extends Controller
 
                     $uploadIDCover = $request->upload_id_cover;
                     $uploadIDContent = $request->upload_id_content;
+                    $uploadID = $request->upload_id;
 
                     $baseCollectionData = [
                         'id_old' => 0,
@@ -287,8 +290,9 @@ class SingleUploadNonISBNController extends Controller
                     }
 
                     if ($uploadIDCover && $uploadIDContent) {
-                        QueryAPI::query("update catalogcovers set e_col_id = $createCollection->ID where upload_id = $uploadIDCover");
-                        QueryAPI::query("update catalogfiles set e_col_id = $createCollection->ID where upload_id = $uploadIDContent");
+                        QueryAPI::update('catalogcovers', $uploadIDCover, ['e_col_id' => $createCollection->ID]);
+                        QueryAPI::update('catalogfiles', $uploadIDContent, ['e_col_id' => $createCollection->ID]);
+                        QueryAPI::update('e_collection_uploads', $uploadID, ['e_col_id' => $createCollection->ID]);
                     }
 
                     $response = [
