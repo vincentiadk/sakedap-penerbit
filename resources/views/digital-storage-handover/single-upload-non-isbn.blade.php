@@ -599,7 +599,6 @@
 
         if(worksheetId == 142) {
             $('#form-parent').removeClass('d-none');
-            $('#column-edition').removeClass('d-none');
             $('#card-edition').removeClass('d-none');
             $('#section-file-cover').removeClass('d-none');
             $('#section-file-content').addClass('d-none');
@@ -610,26 +609,37 @@
             $('#card-edition').addClass('d-none');
             $('#section-file-cover').removeClass('d-none');
             $('#section-file-content').removeClass('d-none');
-            $('#column-edition').addClass('d-none');
             $('#form-input-serial').addClass('d-none');
+            $('#column-edition').addClass('d-none');
         }
 
         $('#card-edition #data-edition').html('');
 
+        catalogParent();
         getMedia();
     }
 
     function catalogParent() {
-        $('#btn-cancel-parent').removeClass('d-none');
-        $('#section-file-cover').addClass('d-none');
+        var catalogId = $('#catalog_id').val();
 
-        if($('#catalog_id').val()) {
+        if(catalogId) {
+            $('#column-edition').addClass('d-none');
+            $('#card-edition').addClass('d-none');
+        } else {
+            $('#column-edition').addClass('d-none');
+            $('#card-edition').removeClass('d-none');
+        }
+
+        if(catalogId) {
+            $('#btn-cancel-parent').removeClass('d-none');
+            $('#section-file-cover').addClass('d-none');
+
             $.ajax({
                 url: '{{ url("digital-storage-handover/single-upload-non-isbn/catalog-parent") }}',
                 type: 'GET',
                 dataType: 'JSON',
                 data: {
-                    id: $('#catalog_id').val()
+                    id: catalogId
                 },
                 beforeSend: function() {
                     onLoading('show', 'body');
