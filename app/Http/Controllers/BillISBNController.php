@@ -165,6 +165,14 @@ class BillISBNController extends Controller
                         </a>
                     ';
                 }
+                if(trim($val->jenis_media) != 'cetak'){
+                    if($val->received_date_kckr != ''){
+                        $status = '<span class="btn btn-success btn-sm" >
+                            <i class="ph-check me-1"></i>
+                            Sudah Diterima
+                        </span>';
+                    }
+                }
 
                 $cover = '
                     <a href="' . Main::getCoverISBN($val->cover_file_name ?? null) . '" data-lightbox="cover-' . $isbn . '" data-title="' . $val->title . '">
