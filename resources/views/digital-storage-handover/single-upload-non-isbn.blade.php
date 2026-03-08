@@ -117,7 +117,7 @@
                                 <span class="input-group-text">
                                     <i class="ph-calendar-blank"></i>
                                 </span>
-                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" placeholder="Pilih Tanggal" readonly>
+                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" placeholder="Pilih Tanggal">
                             </div>
                         </div>
                     </div>
@@ -225,7 +225,7 @@
                             <span class="input-group-text">
                                 <i class="ph-calendar-blank"></i>
                             </span>
-                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" readonly>
+                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal">
                         </div>
                     </div>
                 </div>
@@ -714,7 +714,7 @@
                         <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume" required>
                     </td>
                     <td>
-                        <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" readonly required>
+                        <input type="text" class="form-control date-picker-edition" name="cc_edition_date[]" placeholder="Pilih Tanggal" required>
                     </td>
                     <td>
                         <input type="file" class="form-control" name="cc_edition_cover[]" accept=".jpg,.jpeg,.png">

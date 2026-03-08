@@ -172,7 +172,7 @@
                                 <span class="input-group-text">
                                     <i class="ph-calendar-blank"></i>
                                 </span>
-                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" readonly>
+                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal">
                             </div>
                         </div>
                     </div>
@@ -285,7 +285,7 @@
                             <span class="input-group-text">
                                 <i class="ph-calendar-blank"></i>
                             </span>
-                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" readonly>
+                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}">
                         </div>
                     </div>
                 </div>

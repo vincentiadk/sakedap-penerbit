@@ -273,14 +273,14 @@
                                 <i class="ph-calendar-check me-1"></i>
                                 Tgl Terima Perpusnas
                             </label>
-                            <input type="text" class="form-control date-range-picker" name="received_date_kckr" id="received_date_kckr" placeholder="Semua Tanggal" readonly>
+                            <input type="text" class="form-control date-range-picker" name="received_date_kckr" id="received_date_kckr" placeholder="Semua Tanggal">
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label fw-semibold">
                                 <i class="ph-calendar-check me-1"></i>
                                 Tgl Terima Provinsi
                             </label>
-                            <input type="text" class="form-control date-range-picker" name="received_date_province" id="received_date_province" placeholder="Semua Tanggal" readonly>
+                            <input type="text" class="form-control date-range-picker" name="received_date_province" id="received_date_province" placeholder="Semua Tanggal">
                         </div>
                     </div>
                 </form>

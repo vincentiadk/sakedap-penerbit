@@ -15,6 +15,23 @@ $(function () {
     readmoreJS();
     initTooltip();
 
+    $(document).on('mousedown', 'input[readonly]', function (e) {
+        if ($(this).data('daterangepicker')) {
+            e.stopImmediatePropagation();
+
+            return false;
+        }
+    });
+
+    $('.input-group-append').on('click', function (e) {
+        if ($(this).siblings('input').attr('readonly')) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            return false;
+        }
+    });
+
     $(document).on('select2:opening', function (e) {
         if ($(e.target).attr('readonly')) {
             e.preventDefault();
@@ -444,6 +461,12 @@ function logout() {
 }
 
 function datePickerBasic(selector, additionalConfig = {}) {
+    if ($(selector).attr('readonly')) {
+        e.preventDefault();
+
+        return false;
+    }
+
     if (typeof $.fn.daterangepicker !== 'undefined') {
         moment.locale('id');
 
@@ -472,6 +495,12 @@ function datePickerBasic(selector, additionalConfig = {}) {
 }
 
 function datePickerSingle(selector, additionalConfig = {}) {
+    if ($(selector).attr('readonly')) {
+        e.preventDefault();
+
+        return false;
+    }
+
     if (typeof $.fn.daterangepicker !== 'undefined') {
         moment.locale('id');
 
