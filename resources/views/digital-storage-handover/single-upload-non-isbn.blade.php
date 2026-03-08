@@ -169,11 +169,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true).val('') : $('#qrcbn').attr('disabled', false)" checked>
+                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('readonly', true).val('') : $('#qrcbn').attr('readonly', false)" checked>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="Masukkan kode QRCBN" disabled>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" placeholder="Masukkan kode QRCBN" readonly>
                         </div>
                     </div>
                 </div>
@@ -186,11 +186,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true).val('') : $('#series').attr('disabled', false)" checked>
+                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('readonly', true).val('') : $('#series').attr('readonly', false)" checked>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" placeholder="Masukkan seri koleksi" disabled>
+                            <input type="text" class="form-control" name="series" id="series" placeholder="Masukkan seri koleksi" readonly>
                         </div>
                     </div>
                 </div>
@@ -754,10 +754,10 @@
         var codeType = $('#code_type').val();
 
         $('#code').val('');
-        $('#code').attr('disabled', false);
+        $('#code').attr('readonly', false);
 
         if(codeType == '') {
-            $('#code').attr('disabled', true);
+            $('#code').attr('readonly', true);
             $('#code').attr('placeholder', 'Pilih jenis identifier terlebih dahulu');
         } else {
             $('#code').attr('placeholder', 'Masukkan kode identifier');

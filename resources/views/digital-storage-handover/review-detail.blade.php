@@ -166,7 +166,7 @@
                             Edisi
                         </label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="Masukkan edisi koleksi" disabled>
+                            <input type="text" class="form-control" name="edition" id="edition" value="{{ $collection->EDITION }}" placeholder="Masukkan edisi koleksi" readonly>
                         </div>
                     </div>
                     <div class="row form-group">
@@ -179,7 +179,7 @@
                                 <span class="input-group-text">
                                     <i class="ph-calendar-blank"></i>
                                 </span>
-                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" disabled>
+                                <input type="text" class="form-control date-picker-single" name="edition_date" id="edition_date" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" placeholder="Pilih Tanggal" readonly>
                             </div>
                         </div>
                     </div>
@@ -190,7 +190,7 @@
                         Jenis Koleksi
                     </label>
                     <div class="col-md-9">
-                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" data-placeholder="Pilih Jenis Koleksi" disabled>
+                        <select class="form-select select2-basic" name="collection_media_id" id="collection_media_id" onchange="getCategory()" data-placeholder="Pilih Jenis Koleksi" readonly>
                             <option value=""></option>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
@@ -204,7 +204,7 @@
                         Judul
                     </label>
                     <div class="col-md-9">
-                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="Masukkan judul koleksi" disabled>
+                        <input type="text" class="form-control" name="title" id="title" value="{{ $collection->TITLE }}" placeholder="Masukkan judul koleksi" readonly>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -214,7 +214,7 @@
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" disabled style="max-width: 150px;">
+                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" readonly style="max-width: 150px;">
                                 <option value="">Tidak Ada</option>
                                 <option value="1" {{ $collection->CODE_TYPE == 1 ? 'selected' : '' }}>ISBN</option>
                                 <option value="2" {{ $collection->CODE_TYPE == 2 ? 'selected' : '' }}>ISMN</option>
@@ -222,7 +222,7 @@
                                 <option value="4" {{ $collection->CODE_TYPE == 4 ? 'selected' : '' }}>ISSN</option>
                                 <option value="5" {{ $collection->CODE_TYPE == 5 ? 'selected' : '' }}>ISAN</option>
                             </select>
-                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="Masukkan kode identifier" disabled>
+                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="Masukkan kode identifier" readonly>
                         </div>
                     </div>
                 </div>
@@ -235,11 +235,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true).val('') : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }} disabled>
+                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('readonly', true).val('') : $('#qrcbn').attr('readonly', false)" {{ $collection->QRCBN ? '' : 'checked' }} readonly>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="Masukkan kode QRCBN" disabled>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="Masukkan kode QRCBN" readonly>
                         </div>
                     </div>
                 </div>
@@ -252,11 +252,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true).val('') : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }} disabled>
+                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('readonly', true).val('') : $('#series').attr('readonly', false)" {{ $collection->SERIES ? '' : 'checked' }} readonly>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="Masukkan seri koleksi" disabled>
+                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="Masukkan seri koleksi" readonly>
                         </div>
                     </div>
                 </div>
@@ -266,7 +266,7 @@
                         Kala Terbit
                     </label>
                     <div class="col-md-9">
-                        <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada" disabled>
+                        <select class="form-select select2-basic" name="serial" id="serial" data-placeholder="Tidak Ada" readonly>
                             <option value=""></option>
                             <option value="1" {{ $collection->SERIAL == 1 ? 'selected' : '' }}>Harian</option>
                             <option value="2" {{ $collection->SERIAL == 2 ? 'selected' : '' }}>Mingguan</option>
@@ -290,7 +290,7 @@
                             <span class="input-group-text">
                                 <i class="ph-calendar-blank"></i>
                             </span>
-                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" disabled>
+                            <input type="text" class="form-control date-picker-single" name="publish_time" id="publish_time" placeholder="Pilih Tanggal" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -300,7 +300,7 @@
                         Preview
                     </label>
                     <div class="col-md-9">
-                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="Contoh: 1-5 / 00:01-00:20" disabled>
+                        <input type="text" class="form-control" name="preview" id="preview" value="{{ $collection->PREVIEW }}" placeholder="Contoh: 1-5 / 00:01-00:20" readonly>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -310,10 +310,10 @@
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="currency" id="currency" style="max-width: 120px;" disabled>
+                            <select class="form-select w-auto flex-grow-0" name="currency" id="currency" style="max-width: 120px;" readonly>
                                 <option value="{{ $collection->CURRENCY }}" selected>{{ $collection->CURRENCY }}</option>
                             </select>
-                            <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="Masukkan harga jual" min="0" disabled>
+                            <input type="number" class="form-control" name="price" id="price" value="{{ $collection->PRICE }}" placeholder="Masukkan harga jual" min="0" readonly>
                         </div>
                     </div>
                 </div>
@@ -323,7 +323,7 @@
                         Jilid
                     </label>
                     <div class="col-md-9">
-                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="Masukkan informasi jilid" disabled>
+                        <input type="text" class="form-control" name="binding" id="binding" value="{{ $collection->JILID }}" placeholder="Masukkan informasi jilid" readonly>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -336,8 +336,8 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Total Halaman / Durasi</span>
-                                    <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="Jumlah" disabled>
-                                    <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" style="max-width: 120px;" disabled>
+                                    <input type="number" class="form-control" name="physical_description[paging]" id="physical_description[paging]" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" placeholder="Jumlah" readonly>
+                                    <select class="form-select flex-grow-0 w-auto" name="physical_description[paging_flag]" id="physical_description[paging_flag]" style="max-width: 120px;" readonly>
                                         <option value="Halaman" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Halaman' ? 'selected' : '') : '' }}>Halaman</option>
                                         <option value="Menit" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Menit' ? 'selected' : '') : '' }}>Menit</option>
                                         <option value="Jam" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Jam' ? 'selected' : '') : '' }}>Jam</option>
@@ -347,7 +347,7 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Ilustrasi</span>
-                                    <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="Pilih atau ketik" autocomplete="off" disabled>
+                                    <input type="text" class="form-control" name="physical_description[ill]" list="suggestion-physical-description-ill" id="physical_description[ill]" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" placeholder="Pilih atau ketik" autocomplete="off" readonly>
                                     <datalist id="suggestion-physical-description-ill">
                                         <option value="Tidak Ada">Tidak Ada</option>
                                         <option value="Ada (Berwarna)">Ada (Berwarna)</option>
@@ -358,7 +358,7 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Ukuran / Dimensi</span>
-                                    <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="Contoh: 21 x 14 cm" disabled>
+                                    <input type="text" class="form-control" name="physical_description[sizes]" id="physical_description[sizes]" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" placeholder="Contoh: 21 x 14 cm" readonly>
                                 </div>
                             </div>
                         </div>
@@ -370,7 +370,7 @@
                         Sinopsis
                     </label>
                     <div class="col-md-9">
-                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="Masukkan sinopsis atau deskripsi koleksi" disabled>{{ $collection->DESCRIPTION }}</textarea>
+                        <textarea name="description" class="form-control" id="description" rows="5" placeholder="Masukkan sinopsis atau deskripsi koleksi" readonly>{{ $collection->DESCRIPTION }}</textarea>
                     </div>
                 </div>
             </div>
@@ -384,28 +384,28 @@
             </div>
             <div class="card-body">
                 <div class="form-check form-group">
-                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-1">
                         <strong>Akses Full</strong>
                         <div class="small text-muted">Akses full file berwatermak secara online</div>
                     </label>
                 </div>
                 <div class="form-check form-group">
-                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-2">
                         <strong>Akses Preview + LAN</strong>
                         <div class="small text-muted">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</div>
                     </label>
                 </div>
                 <div class="form-check form-group">
-                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-3">
                         <strong>Akses Preview + Embargo 5 Tahun</strong>
                         <div class="small text-muted">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</div>
                     </label>
                 </div>
                 <div class="form-check form-group mb-0">
-                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-4">
                         <strong>Akses Preview Saja</strong>
                         <div class="small text-muted">Akses hanya file preview secara online selamanya dan tidak didayagunakan dimana pun</div>
@@ -432,7 +432,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <select class="form-select" name="author[]" id="author" data-placeholder="Ketik nama kontributor (Penulis, Editor, dll)" multiple disabled>
+                <select class="form-select" name="author[]" id="author" data-placeholder="Ketik nama kontributor (Penulis, Editor, dll)" multiple readonly>
                     @if($collectionContributor)
                         @foreach($collectionContributor as $cc)
                             <option value="{{ $cc }}" selected>{{ $cc }}</option>
@@ -626,7 +626,7 @@
 
             return `
                 <div class="form-check ${index !== filteredCategories.length - 1 ? 'mb-2' : ''}">
-                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked} disabled>
+                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked} readonly>
                     <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
                 </div>
             `;

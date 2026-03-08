@@ -86,14 +86,14 @@
                                     <i class="ph-tag me-1"></i>
                                     Kategori
                                 </label>
-                                <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_KATEGORI ?? '-' }}" disabled readonly>
+                                <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_KATEGORI ?? '-' }}" readonly readonly>
                             </div>
                             <div class="col-lg-6">
                                 <label class="form-label fw-semibold">
                                     <i class="ph-list-bullets me-1"></i>
                                     Jenis
                                 </label>
-                                <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_JENIS ?? '-' }}" disabled readonly>
+                                <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_JENIS ?? '-' }}" readonly readonly>
                             </div>
                             <div class="col-lg-12">
                                 <label class="form-label fw-semibold">
@@ -510,7 +510,7 @@
                     value: value
                 },
                 beforeSend: function() {
-                    $('#btnSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Mengirim OTP...');
+                    $('#btnSubmit').prop('readonly', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Mengirim OTP...');
                 },
                 success: function(response) {
                     if (response.code == 200 || response.code == 201) {
@@ -525,7 +525,7 @@
                     showNotification('error', message);
                 },
                 complete: function() {
-                    $('#btnSubmit').prop('disabled', false).html('<i class="ph-floppy-disk me-1"></i>Simpan Perubahan');
+                    $('#btnSubmit').prop('readonly', false).html('<i class="ph-floppy-disk me-1"></i>Simpan Perubahan');
                 }
             });
         }
@@ -579,7 +579,7 @@
 
             otpCountdown = seconds;
 
-            $('#btnResendOtp').prop('disabled', true);
+            $('#btnResendOtp').prop('readonly', true);
 
             otpTimer = setInterval(function() {
                 if (otpCountdown <= 0) {
@@ -588,7 +588,7 @@
                     otpTimer = null;
 
                     $('#otpTimer').html('');
-                    $('#btnResendOtp').prop('disabled', false);
+                    $('#btnResendOtp').prop('readonly', false);
 
                     return;
                 }
@@ -636,7 +636,7 @@
                     value: value
                 },
                 beforeSend: function() {
-                    $('#btnVerifyOtp').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Memverifikasi...');
+                    $('#btnVerifyOtp').prop('readonly', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Memverifikasi...');
                 },
                 success: function(response) {
                     if (response.code == 200 || response.code == 201) {
@@ -682,7 +682,7 @@
                     $('#otpCode').val('').focus();
                 },
                 complete: function() {
-                    $('#btnVerifyOtp').prop('disabled', false).html('<i class="ph-check-circle me-1"></i>Verifikasi Kode');
+                    $('#btnVerifyOtp').prop('readonly', false).html('<i class="ph-check-circle me-1"></i>Verifikasi Kode');
                 }
             });
         });
@@ -690,7 +690,7 @@
         function submitFormDirectly() {
             const form = $('#profileForm')[0];
 
-            $('#btnSubmit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...');
+            $('#btnSubmit').prop('readonly', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...');
             $('#profileForm').off('submit');
 
             form.submit();

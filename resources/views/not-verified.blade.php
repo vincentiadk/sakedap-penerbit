@@ -356,14 +356,14 @@
                                                         <i class="ph-tag me-1"></i>
                                                         Kategori
                                                     </label>
-                                                    <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_KATEGORI ?? '-' }}" disabled readonly>
+                                                    <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_KATEGORI ?? '-' }}" readonly readonly>
                                                 </div>
                                                 <div class="col-lg-6">
                                                     <label class="form-label fw-semibold">
                                                         <i class="ph-list-bullets me-1"></i>
                                                         Jenis
                                                     </label>
-                                                    <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_JENIS ?? '-' }}" disabled readonly>
+                                                    <input type="text" class="form-control bg-light" value="{{ $executor->NAME_PENERBIT_JENIS ?? '-' }}" readonly readonly>
                                                 </div>
                                                 <div class="col-lg-12">
                                                     <label class="form-label fw-semibold">
@@ -484,7 +484,7 @@
                                                         <span class="input-group-text">
                                                             <i class="ph-envelope"></i>
                                                         </span>
-                                                        <input type="email" class="form-control bg-light" name="email1" id="email1" value="{{ old('email1', $executor->EMAIL1) }}" placeholder="email@example.com" disabled>
+                                                        <input type="email" class="form-control bg-light" name="email1" id="email1" value="{{ old('email1', $executor->EMAIL1) }}" placeholder="email@example.com" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6">
@@ -508,7 +508,7 @@
                                                         <span class="input-group-text">
                                                             <i class="ph-phone"></i>
                                                         </span>
-                                                        <input type="text" class="form-control bg-light" name="phone1" id="phone1" value="{{ old('phone1', $executor->TELP1) }}" placeholder="08xxxxxxxxxx" disabled>
+                                                        <input type="text" class="form-control bg-light" name="phone1" id="phone1" value="{{ old('phone1', $executor->TELP1) }}" placeholder="08xxxxxxxxxx" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-lg-6">

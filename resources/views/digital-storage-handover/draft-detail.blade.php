@@ -217,7 +217,7 @@
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" disabled style="max-width: 150px;">
+                            <select class="form-select w-auto flex-grow-0" name="code_type" id="code_type" readonly style="max-width: 150px;">
                                 <option value="">Tidak Ada</option>
                                 <option value="1" {{ $collection->CODE_TYPE == 1 ? 'selected' : '' }}>ISBN</option>
                                 <option value="2" {{ $collection->CODE_TYPE == 2 ? 'selected' : '' }}>ISMN</option>
@@ -225,7 +225,7 @@
                                 <option value="4" {{ $collection->CODE_TYPE == 4 ? 'selected' : '' }}>ISSN</option>
                                 <option value="5" {{ $collection->CODE_TYPE == 5 ? 'selected' : '' }}>ISAN</option>
                             </select>
-                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="Masukkan kode identifier" disabled>
+                            <input type="text" class="form-control" name="code" id="code" value="{{ $collection->CODE }}" placeholder="Masukkan kode identifier" readonly>
                         </div>
                     </div>
                 </div>
@@ -238,11 +238,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('disabled', true).val('') : $('#qrcbn').attr('disabled', false)" {{ $collection->QRCBN ? '' : 'checked' }}>
+                                    <input type="checkbox" class="form-check-input" onchange="$(this).is(':checked') ? $('#qrcbn').attr('readonly', true).val('') : $('#qrcbn').attr('readonly', false)" {{ $collection->QRCBN ? '' : 'checked' }}>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="Masukkan kode QRCBN" {{ $collection->QRCBN ? '' : 'disabled' }}>
+                            <input type="text" class="form-control" name="qrcbn" id="qrcbn" value="{{ $collection->QRCBN }}" placeholder="Masukkan kode QRCBN" {{ $collection->QRCBN ? '' : 'readonly' }}>
                         </div>
                     </div>
                 </div>
@@ -255,11 +255,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('disabled', true).val('') : $('#series').attr('disabled', false)" {{ $collection->SERIES ? '' : 'checked' }}>
+                                    <input type="checkbox" class="form-check-input" id="series_checkbox" onchange="$(this).is(':checked') ? $('#series').attr('readonly', true).val('') : $('#series').attr('readonly', false)" {{ $collection->SERIES ? '' : 'checked' }}>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="Masukkan seri koleksi" {{ $collection->SERIES ? '' : 'disabled' }}>
+                            <input type="text" class="form-control" name="series" id="series" value="{{ $collection->SERIES }}" placeholder="Masukkan seri koleksi" {{ $collection->SERIES ? '' : 'readonly' }}>
                         </div>
                     </div>
                 </div>

@@ -162,7 +162,7 @@
                         <span class="input-group-text">
                             <i class="ph-link"></i>
                         </span>
-                        <input type="text" class="form-control" value="{{ $collection->TITLE_PARENT }}" disabled>
+                        <input type="text" class="form-control" value="{{ $collection->TITLE_PARENT }}" readonly>
                     </div>
                 </div>
             </div>
@@ -182,7 +182,7 @@
                             Edisi
                         </label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" value="{{ $collection->EDITION }}" disabled>
+                            <input type="text" class="form-control" value="{{ $collection->EDITION }}" readonly>
                         </div>
                     </div>
                     <div class="row form-group">
@@ -195,7 +195,7 @@
                                 <span class="input-group-text">
                                     <i class="ph-calendar-blank"></i>
                                 </span>
-                                <input type="text" class="form-control" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $collection->EDITION_DATE ? date('d/m/Y', strtotime($collection->EDITION_DATE)) : '' }}" readonly>
                             </div>
                         </div>
                     </div>
@@ -206,7 +206,7 @@
                         Jenis Koleksi
                     </label>
                     <div class="col-md-9">
-                        <select class="form-select" disabled>
+                        <select class="form-select" readonly>
                             @foreach($media as $m)
                                 <option value="{{ $m->ID }}" {{ $collection->COLLECTION_MEDIA_ID == $m->ID ? 'selected' : '' }}>{{ $m->NAME }}</option>
                             @endforeach
@@ -219,7 +219,7 @@
                         Judul
                     </label>
                     <div class="col-md-9">
-                        <textarea class="form-control" rows="3" disabled>{{ $collection->TITLE }}</textarea>
+                        <textarea class="form-control" rows="3" readonly>{{ $collection->TITLE }}</textarea>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -229,7 +229,7 @@
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" disabled style="max-width: 150px;">
+                            <select class="form-select w-auto flex-grow-0" readonly style="max-width: 150px;">
                                 <option value="">Tidak Ada</option>
                                 <option value="1" {{ $collection->CODE_TYPE == 1 ? 'selected' : '' }}>ISBN</option>
                                 <option value="2" {{ $collection->CODE_TYPE == 2 ? 'selected' : '' }}>ISMN</option>
@@ -237,7 +237,7 @@
                                 <option value="4" {{ $collection->CODE_TYPE == 4 ? 'selected' : '' }}>ISSN</option>
                                 <option value="5" {{ $collection->CODE_TYPE == 5 ? 'selected' : '' }}>ISAN</option>
                             </select>
-                            <input type="text" class="form-control" value="{{ $collection->CODE }}" disabled>
+                            <input type="text" class="form-control" value="{{ $collection->CODE }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -250,11 +250,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" {{ $collection->QRCBN ? '' : 'checked' }} disabled>
+                                    <input type="checkbox" class="form-check-input" {{ $collection->QRCBN ? '' : 'checked' }} readonly>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" value="{{ $collection->QRCBN }}" disabled>
+                            <input type="text" class="form-control" value="{{ $collection->QRCBN }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -267,11 +267,11 @@
                         <div class="input-group">
                             <span class="input-group-text">
                                 <div class="form-check form-check-inline mb-0">
-                                    <input type="checkbox" class="form-check-input" {{ $collection->SERIES ? '' : 'checked' }} disabled>
+                                    <input type="checkbox" class="form-check-input" {{ $collection->SERIES ? '' : 'checked' }} readonly>
                                     <label class="form-check-label">Tidak Ada</label>
                                 </div>
                             </span>
-                            <input type="text" class="form-control" value="{{ $collection->SERIES }}" disabled>
+                            <input type="text" class="form-control" value="{{ $collection->SERIES }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -281,7 +281,7 @@
                         Kala Terbit
                     </label>
                     <div class="col-md-9">
-                        <select class="form-select" disabled>
+                        <select class="form-select" readonly>
                             <option value="">Tidak Ada</option>
                             <option value="1" {{ $collection->SERIAL == 1 ? 'selected' : '' }}>Harian</option>
                             <option value="2" {{ $collection->SERIAL == 2 ? 'selected' : '' }}>Mingguan</option>
@@ -305,7 +305,7 @@
                             <span class="input-group-text">
                                 <i class="ph-calendar-blank"></i>
                             </span>
-                            <input type="text" class="form-control" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" disabled>
+                            <input type="text" class="form-control" value="{{ ($collection->PUBLICATION_DAY && $collection->PUBLICATION_MONTH && $collection->PUBLICATION_YEAR) ? $collection->PUBLICATION_YEAR . '/' . $collection->PUBLICATION_MONTH . '/' . $collection->PUBLICATION_DAY : '' }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -315,7 +315,7 @@
                         Preview
                     </label>
                     <div class="col-md-9">
-                        <input type="text" class="form-control" value="{{ $collection->PREVIEW }}" disabled>
+                        <input type="text" class="form-control" value="{{ $collection->PREVIEW }}" readonly>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -325,10 +325,10 @@
                     </label>
                     <div class="col-md-9">
                         <div class="input-group">
-                            <select class="form-select w-auto flex-grow-0" disabled style="max-width: 120px;">
+                            <select class="form-select w-auto flex-grow-0" readonly style="max-width: 120px;">
                                 <option value="{{ $collection->CURRENCY }}" selected>{{ $collection->CURRENCY }}</option>
                             </select>
-                            <input type="number" class="form-control" value="{{ $collection->PRICE }}" disabled>
+                            <input type="number" class="form-control" value="{{ $collection->PRICE }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -338,7 +338,7 @@
                         Jilid
                     </label>
                     <div class="col-md-9">
-                        <input type="text" class="form-control" value="{{ $collection->JILID }}" disabled>
+                        <input type="text" class="form-control" value="{{ $collection->JILID }}" readonly>
                     </div>
                 </div>
                 <div class="row form-group">
@@ -351,8 +351,8 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Total Halaman / Durasi</span>
-                                    <input type="number" class="form-control" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" disabled>
-                                    <select class="form-select flex-grow-0 w-auto" disabled style="max-width: 120px;">
+                                    <input type="number" class="form-control" value="{{ isset($physicalDescription->paging) ? $physicalDescription->paging : '' }}" readonly>
+                                    <select class="form-select flex-grow-0 w-auto" readonly style="max-width: 120px;">
                                         <option value="Halaman" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Halaman' ? 'selected' : '') : '' }}>Halaman</option>
                                         <option value="Menit" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Menit' ? 'selected' : '') : '' }}>Menit</option>
                                         <option value="Jam" {{ isset($physicalDescription->paging_flag) ? ($physicalDescription->paging_flag == 'Jam' ? 'selected' : '') : '' }}>Jam</option>
@@ -362,13 +362,13 @@
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Ilustrasi</span>
-                                    <input type="text" class="form-control" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" disabled>
+                                    <input type="text" class="form-control" value="{{ isset($physicalDescription->ill) ? $physicalDescription->ill : '' }}" readonly>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="input-group">
                                     <span class="input-group-text">Ukuran / Dimensi</span>
-                                    <input type="text" class="form-control" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" disabled>
+                                    <input type="text" class="form-control" value="{{ isset($physicalDescription->sizes) ? $physicalDescription->sizes : '' }}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -380,7 +380,7 @@
                         Sinopsis
                     </label>
                     <div class="col-md-9">
-                        <textarea class="form-control" rows="5" disabled>{{ $collection->DESCRIPTION }}</textarea>
+                        <textarea class="form-control" rows="5" readonly>{{ $collection->DESCRIPTION }}</textarea>
                     </div>
                 </div>
             </div>
@@ -394,28 +394,28 @@
             </div>
             <div class="card-body">
                 <div class="form-check mb-2">
-                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-1" value="1" {{ $collection->AKSES == 1 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-1">
                         <strong>Akses Full</strong>
                         <div class="small text-muted">Akses full file berwatermak secara online</div>
                     </label>
                 </div>
                 <div class="form-check mb-2">
-                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-2" value="2" {{ $collection->AKSES == 2 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-2">
                         <strong>Akses Preview + LAN</strong>
                         <div class="small text-muted">Akses hanya preview file secara online, namun tetap dapat di dayagunakan di lingkungan perpustakaan nasional RI dengan jaringan internet LAN</div>
                     </label>
                 </div>
                 <div class="form-check mb-2">
-                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-3" value="3" {{ $collection->AKSES == 3 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-3">
                         <strong>Akses Preview + Embargo 5 Tahun</strong>
                         <div class="small text-muted">Akses hanya file preview secara online, dan tidak didayagunakan di lingkungan Perpustakaan Nasional RI selama 5 tahun sejak diserahkan. Setelah 5 tahun, akan didayagunakan oleh Perpustakaan Nasional RI di jaringan internet LAN</div>
                     </label>
                 </div>
                 <div class="form-check mb-0">
-                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} disabled>
+                    <input type="radio" class="form-check-input" name="access" id="access-4" value="4" {{ $collection->AKSES == 4 ? 'checked' : '' }} readonly>
                     <label class="form-check-label" for="access-4">
                         <strong>Akses Preview Saja</strong>
                         <div class="small text-muted">Akses hanya file preview secara online selamanya dan tidak didayagunakan dimana pun</div>
@@ -442,7 +442,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <select class="form-select" name="author[]" id="author" multiple disabled>
+                <select class="form-select" name="author[]" id="author" multiple readonly>
                     @if($collectionContributor)
                         @foreach($collectionContributor as $cc)
                             <option value="{{ $cc }}" selected>{{ $cc }}</option>
@@ -625,7 +625,7 @@
 
             return `
                 <div class="form-check ${index !== filteredCategories.length - 1 ? 'mb-2' : ''}">
-                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked} disabled>
+                    <input type="checkbox" class="form-check-input" name="category[]" id="category-${val.ID}" value="${val.ID}" ${checked} readonly>
                     <label class="form-check-label" for="category-${val.ID}">${val.NAME}</label>
                 </div>
             `;

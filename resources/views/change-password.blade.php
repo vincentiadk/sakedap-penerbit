@@ -157,7 +157,7 @@
                                 <i class="ph-arrow-left me-1"></i>
                                 Kembali
                             </a>
-                            <button type="submit" class="btn btn-primary" id="btn-submit" disabled>
+                            <button type="submit" class="btn btn-primary" id="btn-submit" readonly>
                                 <i class="ph-floppy-disk me-1"></i>
                                 Simpan Password Baru
                             </button>
@@ -255,7 +255,7 @@
             const isConfirmValid = checkConfirmPassword(newPassValue, confirmPassValue);
             const finalValidation = isNewPassValid && isConfirmValid;
 
-            $submitButton.prop('disabled', !finalValidation);
+            $submitButton.prop('readonly', !finalValidation);
 
             return finalValidation;
         }
