@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Helpers\ISBN;
 
 class DeliveryAcceptController extends Controller
 {
@@ -131,8 +132,7 @@ class DeliveryAcceptController extends Controller
                 penerbit p on p.id = l.penerbit_id
             $whereClause
         ", true)->TOTAL ?? 0;
-
-        $queryData = QueryAPI::get("
+        $sql = "
             select
                 *
             from
@@ -200,7 +200,8 @@ class DeliveryAcceptController extends Controller
                 )
             where
                 rnum > $start
-        ");
+        ";
+        $queryData = QueryAPI::get($sql);
 
         if ($queryData) {
             foreach ($queryData as $val) {
@@ -208,17 +209,21 @@ class DeliveryAcceptController extends Controller
                     <a href="' . url('physical-handover/delivery-accept/detail/' . $val->LETTER_ID) . '" class="btn btn-primary btn-sm text-nowrap">
                         <i class="ph-check me-1"></i>
                         Detail
-                    </a>
-                    <a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
+                    </a>';
+                if($val->STATUS == 'TERKIRIM' || $val->STATUS == 'DALAM PENGIRIMAN') {
+                        $action .='<a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
                         <i class="ph-barcode me-1"></i>
                         Cetak Label
-                    </a>
-                    <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
-                        <i class="ph-printer me-1"></i>
-                        Resi Penerimaan
-                    </a>
-                ';
-
+                    </a>';
+                }
+                if($val->STATUS == 'DITERIMA' || $val->STATUS == 'DITERIMA PENUH' || $val->STATUS ==  'DITERIMA PARSIAL'){
+                    $action .= '
+                        <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
+                            <i class="ph-printer me-1"></i>
+                            Resi Penerimaan
+                        </a>
+                    ';
+                }
                 $letterDate = '
                     <div>' . Carbon::parse($val->LETTER_DATE)->isoFormat('D MMM Y') . '</div>
                     <small>Jam : ' . Carbon::parse($val->LETTER_DATE)->format('H.i') . ' WIB</small>
@@ -287,11 +292,30 @@ class DeliveryAcceptController extends Controller
             where
                 letter_id = $id
         ");
+        $isbnMap = collect();
 
+        $codes = collect($letterDetail ?? [])
+            ->pluck('ISBN')
+            ->map(fn($x) => str_replace('-', '', (string) $x))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($codes->isNotEmpty()) {
+            $result = ISBN::get('search', [
+                'code' => $codes->implode(','), 
+                'start' => 0,
+                'length' => 5000
+            ]);
+
+            $isbnMap = collect($result->data ?? [])
+                ->keyBy(fn($row) => str_replace('-', '', (string) ($row->code ?? $row->isbn ?? '')));
+        }
         return view('layouts.index', [
             'data' => [
                 'letter' => $letter,
                 'letterDetail' => $letterDetail,
+                'isbnMap' => $isbnMap,
                 'content' => 'physical-handover.delivery-accept-detail',
                 'plugins' => [
                     'select2',

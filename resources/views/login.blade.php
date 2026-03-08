@@ -40,8 +40,16 @@
 									<div class="d-inline-flex align-items-center justify-content-center mb-3 mt-2">
 										<img src="{{ asset('assets/icon.png') }}" style="max-width:125px" alt="">
 									</div>
-									<h5 class="mb-0">PELAKSANA SERAH PANEL</h5>
+									<h5 class="mb-0">PELAKSANA SERAH SIMPAN PANEL</h5>
 									<span class="d-block text-muted">Masukan Kredensial</span>
+									<span class="d-block text-warning">
+										Gunakan username dan password akun ISBN Anda (jika sudah memiliki akun). 
+										Jika belum memiliki akun, silakan melakukan registrasi melalui tautan berikut:
+										<br>
+										<a href="https://sakedap.perpusnas.go.id/register" target="_blank">
+											https://sakedap.perpusnas.go.id/register
+										</a>
+									</span>
 								</div>
                                 @if($errors->any())
                                     <div class="alert alert-danger">

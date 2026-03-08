@@ -335,13 +335,7 @@
                                 @php
                                     $strRand = Str::random(5);
                                     $code = str_replace('-', '', $ld->ISBN);
-                                    $getDataISBN = null;
-
-                                    if ($code) {
-                                        $getDataISBN = ISBN::get('search', [
-                                            'code' => $code
-                                        ], true);
-                                    }
+                                    $getDataISBN = $code ? ($isbnMap[$code] ?? null) : null;
 
                                     $totalItem = ($ld->QTY_ACCEPT ?: 0) + ($ld->QTY_REJECT ?: 0);
                                     $percentItem = $totalItem > 0 ? round((($ld->QTY_ACCEPT ?: 0) / $totalItem) * 100, 1) : 0;
@@ -351,8 +345,9 @@
                                         <span class="badge bg-light text-dark border">{{ $key + 1 }}</span>
                                     </td>
                                     <td class="text-center align-middle">
-                                        <a href="{{ Main::getCoverISBN($getDataISBN->cover_file_name ?? '') }}" data-lightbox="cover-{{ $code }}" data-title="{{ $ld->TITLE }}">
-                                            <img src="{{ Main::getCoverISBN($getDataISBN->cover_file_name ?? '') }}" class="img-fluid img-thumbnail rounded shadow-sm" style="max-width: 80px; max-height: 100px; object-fit: cover;" alt="Cover">
+                                        @php $cover = Main::getCoverISBN($getDataISBN->cover_file_name ?? null); @endphp
+                                        <a href="{{ $cover }}" data-lightbox="cover-{{ $code }}" data-title="{{ $ld->TITLE }}">
+                                            <img src="{{ $cover }}" class="img-fluid img-thumbnail rounded shadow-sm" style="max-width: 80px; max-height: 100px; object-fit: cover;" alt="Cover">
                                         </a>
                                     </td>
                                     <td class="align-middle">

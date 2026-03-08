@@ -160,10 +160,18 @@ class BillISBNController extends Controller
                 if ($letterDetail || $collection) {
                     $status = '
                         <a href="' . url('physical-handover/delivery-accept/print/' . ($letterDetail ? ($letterDetail->LETTER_ID ?? 0) : ($collection->LETTER_ID ?? 0))) . '" class="btn btn-success btn-sm" target="_blank">
-                            <i class="ph-check me-1"></i>
-                            Sudah Diterima
+                            <i class="ph-printer me-1"></i>
+                            Bukti Penerimaan
                         </a>
                     ';
+                }
+                if(trim($val->jenis_media) != 'cetak'){
+                    if($val->received_date_kckr != ''){
+                        $status = '<span class="btn btn-success btn-sm" >
+                            <i class="ph-check me-1"></i>
+                            Sudah Diterima
+                        </span>';
+                    }
                 }
 
                 $cover = '

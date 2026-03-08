@@ -188,7 +188,7 @@ class AcceptController extends Controller
                     $val->NAME_PENERBIT,
                     ($val->LETTER_DATE_LETTER ?: null) ? $letterDate : '',
                     ($val->ACCEPT_DATE_LETTER ?: null) ? $acceptDate : '',
-                    $val->TITLE . $identifier,
+                    $val->TITLE .' '. $val->NOMORPANGGILJILID. $identifier,
                     $val->NAME_BRANCH,
                     $val->NAME_JASA_PENGIRIMAN,
                     $val->RECEIPT_NO_LETTER,

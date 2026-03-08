@@ -323,7 +323,7 @@
                         <th>No.</th>
                         <th>Identifier</th>
                         <th>Judul</th>
-                        <th>Tgl Terbit</th>
+                        <th>Th. Terbit</th>
                         <th>Jns Koleksi</th>
                         <th>Jml</th>
                     </tr>
@@ -336,12 +336,24 @@
                             <tr>
                                 <td class="col-no">{{ $key + 1 }}</td>
                                 <td class="col-isbn">
-                                    <div>ISBN: {{ $ld->ISBN ?: '-' }}</div>
-                                    <div>QRCBN: {{ $ld->QRCBN ?: '-' }}</div>
-                                    <div>ISSN: {{ $ld->ISSN ?: '-' }}</div>
+                                    @if($ld->ISBN)
+                                        <div>ISBN: {{ $ld->ISBN ?? '-' }} {{ $ld->NOMORPANGGILJILID }}</div>
+                                    @elseif($ld->QRCBN)
+                                        <div>QRCBN: {{ $ld->QRCBN ?? '-' }}</div>
+                                    @elseif($ld->ISSN)
+                                        <div>ISSN: {{ $ld->ISSN ?? '-' }}</div>
+                                    @elseif($ld->ISMN)
+                                        <div>ISMN: {{ $ld->ISMN ?? '-' }}</div>
+                                    @elseif($ld->ISRC)
+                                        <div>ISMN: {{ $ld->ISRC ?? '-' }}</div>
+                                    @elseif($ld->ISSN)
+                                        <div>ISSN: {{ $ld->ISSN ?? '-' }}</div>
+                                    @else
+                                        <div>-</div>
+                                    @endif
                                 </td>
-                                <td class="col-title">{{ $ld->TITLE }}</td>
-                                <td class="col-title">{{ $ld->TANGGAL_TERBIT ? Carbon::parse($ld->TANGGAL_TERBIT)->format('d/m/Y') : '' }}</td>
+                                <td class="col-title">{{ $ld->TITLE }} {{ $ld->EDISI_SERIAL }}</td>
+                                <td class="col-title">{{ $ld->PUBLISH_YEAR }}</td>
                                 <td class="col-title">{{ $ld->JENIS_MEDIA }}</td>
                                 <td class="col-qty">{{ $ld->COPY }}</td>
                             </tr>

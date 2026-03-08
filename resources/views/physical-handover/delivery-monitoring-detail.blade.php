@@ -289,19 +289,14 @@
                             @foreach($letterDetail ?? [] as $key => $ld)
                                 @php
                                     $code = str_replace('-', '', $ld->ISBN);
-                                    $getDataISBN = null;
-
-                                    if ($code) {
-                                        $getDataISBN = ISBN::get('search', [
-                                            'code' => $code
-                                        ], true);
-                                    }
+                                    $getDataISBN = $code ? ($isbnMap[$code] ?? null) : null;
                                 @endphp
                                 <tr>
                                     <td class="text-center">{{ $key + 1 }}</td>
                                     <td class="text-center">
-                                        <a href="{{ Main::getCoverISBN($getDataISBN->cover_file_name ?? '') }}" data-lightbox="cover-{{ $code }}" data-title="{{ $ld->TITLE }}">
-                                            <img src="{{ Main::getCoverISBN($getDataISBN->cover_file_name ?? '') }}" class="img-fluid img-thumbnail rounded shadow-sm" style="max-width: 80px; max-height: 100px; object-fit: cover;" alt="Cover">
+                                        @php $cover = Main::getCoverISBN($getDataISBN->cover_file_name ?? null); @endphp
+                                        <a href="{{ $cover }}" data-lightbox="cover-{{ $code }}" data-title="{{ $ld->TITLE }}">
+                                            <img src="{{ $cover }}" class="img-fluid img-thumbnail rounded shadow-sm" style="max-width: 80px; max-height: 100px; object-fit: cover;" alt="Cover">
                                         </a>
                                     </td>
                                     <td class="align-middle">
