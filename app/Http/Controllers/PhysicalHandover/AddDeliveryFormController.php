@@ -94,6 +94,7 @@ class AddDeliveryFormController extends Controller
                 FROM collections c
                 WHERE REPLACE(c.isbn, '-', '') LIKE '%$code%'
                     AND c.branch_id = 37
+                    AND c.source_id = 6
                 GROUP BY c.branch_id
 
                 UNION ALL
@@ -118,6 +119,7 @@ class AddDeliveryFormController extends Controller
                 FROM collections c
                 WHERE REPLACE(c.isbn, '-', '') LIKE '%$code%'
                     AND c.branch_id = $currentBranchId
+                    AND c.source_id = 6
                 GROUP BY c.branch_id
 
                 UNION ALL
