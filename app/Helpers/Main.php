@@ -416,9 +416,9 @@ class Main
      * @param  mixed $precision
      * @return void
      */
-    public static function formatFileSize($bytes, $precision = 2)
+    public static function formatFileSize($kb, $precision = 2)
     {
-        $bytes = (int) $bytes;
+        $bytes = (int) $kb * 1024;
         $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
 
         if ($bytes == 0) {
