@@ -27,7 +27,7 @@
     </div>
     <form id="form-data">
         <input type="hidden" name="upload_id_cover" id="upload_id_cover" value="{{ $uploadIDCover }}">
-        <input type="hidden" name="upload_id_content" id="upload_id_content" value="{{ $uploadIDCover }}">
+        <input type="hidden" name="upload_id_content" id="upload_id_content" value="{{ $uploadIDContent }}">
         <input type="hidden" name="upload_id" id="upload_id" value="{{ $uploadID }}">
         <div class="card shadow-sm">
             <div class="card-header">
@@ -709,8 +709,8 @@
         for(var i = 1; i <= total; i++) {
             $('#data-edition').append(`
                 <tr>
-                    <input type="hidden" name="cc_edition[]" value="1">
                     <td>
+                        <input type="hidden" name="cc_edition[]" value="1">
                         <input type="text" class="form-control" name="cc_edition_title[]" placeholder="Masukkan edisi/volume" required>
                     </td>
                     <td>

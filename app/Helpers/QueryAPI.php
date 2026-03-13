@@ -268,12 +268,15 @@ class QueryAPI
         static::initialize();
 
         $data = false;
-        $param = array_merge($payload, [
-            'token' => static::$token,
-            'op' => 'uploadfile',
-            'uploadby' => session('username'),
-            'terminal' => request()->ip(),
-        ]);
+        $param = array_merge(
+            array_diff_key($payload, array_flip(['file', 'filename'])),
+            [
+                'token'    => static::$token,
+                'op'       => 'uploadfile',
+                'uploadby' => session('username'),
+                'terminal' => request()->ip(),
+            ]
+        );
 
         $fileInput = $payload['file'];
         $fileContent = null;

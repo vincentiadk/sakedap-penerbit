@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\DigitalStorageHandover;
 
-use App\Helpers\ISBN;
 use App\Helpers\Main;
 use App\Helpers\QueryAPI;
 use Illuminate\Support\Str;
@@ -169,7 +168,7 @@ class SingleUploadNonISBNController extends Controller
                         'currency' => $request->currency,
                         'description' => $request->description,
                         'edition' => $request->edition,
-                        'edition_date' => date('Y-m-d H:i:s', strtotime($request->edition_date)),
+                        'edition_date' => $request->edition_date ? date('Y-m-d H:i:s', strtotime($request->edition_date)) : null,
                         'qrcbn' => $request->qrcbn,
                     ];
 
@@ -196,13 +195,12 @@ class SingleUploadNonISBNController extends Controller
 
                     if ($request->cc_edition && $request->has_edition) {
                         $filesToUpload = [];
+                        $coverFiles = $request->file('cc_edition_cover') ?? [];
+                        $contentFiles = $request->file('cc_edition_content') ?? [];
 
                         foreach ($request->cc_edition as $key => $cce) {
                             $editionTitle = $request->cc_edition_title[$key] ?? null;
                             $editionDate = $request->cc_edition_date[$key] ?? null;
-
-                            $coverFiles = $request->file('cc_edition_cover') ?? [];
-                            $contentFiles = $request->file('cc_edition_content') ?? [];
 
                             $editionCover = isset($coverFiles[$key]) && $coverFiles[$key]->isValid() ? $coverFiles[$key] : null;
                             $editionContent = isset($contentFiles[$key]) && $contentFiles[$key]->isValid() ? $contentFiles[$key] : null;
@@ -227,22 +225,39 @@ class SingleUploadNonISBNController extends Controller
                                         'jilid' => $request->binding,
                                         'currency' => $request->currency,
                                     ];
+
+                                    if ($request->category && is_array($request->category)) {
+                                        $categoryData = [];
+
+                                        foreach ($request->category as $categoryId) {
+                                            $categoryData[] = [
+                                                'collection_id' => $createEdition->ID,
+                                                'category_id' => $categoryId
+                                            ];
+                                        }
+
+                                        foreach ($categoryData as $data) {
+                                            QueryAPI::create('e_collection_categories', $data);
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         foreach ($filesToUpload as $fileData) {
-                            QueryAPI::uploadFile([
-                                'type' => 'cover',
-                                'id' => $fileData['collection_id'],
-                                'status' => 1,
-                                'hash' => md5('FILE-COVER-' . $fileData['slug']),
-                                'mime' => $fileData['cover']->getMimeType(),
-                                'filesize' => $fileData['cover']->getSize(),
-                                'method' => 3,
-                                'iszip' => false,
-                                'file' => $fileData['cover'],
-                            ]);
+                            if ($fileData['cover']) {
+                                QueryAPI::uploadFile([
+                                    'type' => 'cover',
+                                    'id' => $fileData['collection_id'],
+                                    'status' => 1,
+                                    'hash' => md5('FILE-COVER-' . $fileData['slug']),
+                                    'mime' => $fileData['cover']->getMimeType(),
+                                    'filesize' => $fileData['cover']->getSize(),
+                                    'method' => 3,
+                                    'iszip' => false,
+                                    'file' => $fileData['cover'],
+                                ]);
+                            }
 
                             QueryAPI::uploadFile([
                                 'type' => 'konten_digital',
