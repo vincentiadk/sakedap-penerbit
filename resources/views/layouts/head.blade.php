@@ -43,4 +43,12 @@
     @stack('readmore-js')
     @stack('lookup-js')
 	<script src="{{ asset('plugins/custom.js') }}?v={{ uniqid() }}"></script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-F4VZCGM4KE"></script>
+	<script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-F4VZCGM4KE');
+	</script>
 </head>
