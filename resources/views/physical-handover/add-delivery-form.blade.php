@@ -438,10 +438,10 @@
 
                 formData.isbn_collections.push({
                     code: row.find('input[name="ci_code[]"]').val(),
-                    html: row.prop('outerHTML')
+                    publish_date: row.find('input[name="ci_publish_date[]"]').val(),
+                    qty_perpusnas: row.find('input[name="ci_qty_perpusnas[]"]').val(),
+                    qty_province: row.find('input[name="ci_qty_province[]"]').val(),
                 });
-
-                readmoreJS();
             });
 
             $('#data-collection-non-isbn tr').not('#empty-non-isbn-row').each(function() {
@@ -551,6 +551,8 @@
         try {
             onLoading('show', 'body');
 
+            $('#form-data').off('input change');
+
             if (!formData || typeof formData !== 'object') {
                 throw new Error('Invalid form data structure');
             }
@@ -569,11 +571,61 @@
             if (Array.isArray(formData.isbn_collections) && formData.isbn_collections.length > 0) {
                 $('#empty-isbn-row').remove();
 
-                formData.isbn_collections.forEach(item => {
-                    if (item && item.html) {
-                        $('#data-collection-isbn').append(item.html);
-                    }
+                const fetchPromises = formData.isbn_collections.map(item => {
+                    return $.ajax({
+                        url: '{{ url("physical-handover/add-delivery-form/search-isbn") }}',
+                        type: 'GET',
+                        dataType: 'JSON',
+                        data: {
+                            code: item.code,
+                            executor_id: $('#executor_id').val(),
+                            destination: $('#destination').val(),
+                        }
+                    }).then(response => {
+                        if (!response.data) return;
 
+                        const data = response.data;
+                        var safeTitle = $('<div>').text(data.title ?? '-').html();
+                        var safeKepeng = $('<div>').text(data.kepeng ?? '-').html();
+                        var safePenerbit = $('<div>').text(data.nama_penerbit ?? '-').html();
+                        var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
+                        var safeISBN = $('<div>').text(data.isbn ?? '-').html();
+
+                        $('#data-collection-isbn').append(`
+                            <tr class="animate__animated animate__fadeIn">
+                                <input type="hidden" name="ci[]" value="1">
+                                <input type="hidden" name="ci_code[]" value="${safeISBN}">
+                                <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
+                                <td class="align-middle" nowrap>
+                                    <input type="date" class="form-control form-control-sm" name="ci_publish_date[]" value="${item.publish_date || response.publishDate}">
+                                </td>
+                                <td class="align-middle text-wrap">${safeTitle}</td>
+                                <td class="align-middle text-wrap">${safeKepeng}</td>
+                                <td class="align-middle text-wrap">${safePenerbit}</td>
+                                <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
+                                <td class="align-middle text-nowrap">${safeISBN}</td>
+                                <td class="align-middle text-wrap">
+                                    <div class="readmore-block">${safeSinopsis}</div>
+                                </td>
+                                <td class="align-middle">
+                                    <input type="hidden" name="ci_qty_perpusnas[]" value="${item.qty_perpusnas ?? response.qtyPerpusnas}">
+                                    ${item.qty_perpusnas ?? response.qtyPerpusnas}
+                                </td>
+                                <td class="align-middle">
+                                    <input type="hidden" name="ci_qty_province[]" value="${item.qty_province ?? response.qtyProvince}">
+                                    ${item.qty_province ?? response.qtyProvince}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
+                                        <i class="ph-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                });
+
+                Promise.allSettled(fetchPromises).then(() => {
                     readmoreJS();
                 });
             }
@@ -827,6 +879,7 @@
                 }, 2000);
             }
 
+            setupAutoSave();
             onLoading('close', 'body');
             notification('success', 'Data berhasil dipulihkan');
         } catch (error) {
@@ -1230,9 +1283,9 @@
 
                         return false;
                     }
-
-                    readmoreJS();
                 });
+
+                readmoreJS();
 
                 if (isDuplicate) {
                     swalInit.fire({
@@ -1503,7 +1556,7 @@
         $('input[name="cni_price[]"]').number(true);
 
         select2Basic();
-        autoSaveForm();
+        autoSaveFom();
     }
 
     function selectCollectionNonISBN(param) {

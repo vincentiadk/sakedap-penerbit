@@ -94,7 +94,7 @@ class AddDeliveryFormController extends Controller
                 from
                     collections c
                 where
-                    replace(c.isbn, '-', '') like '%$code%'
+                    replace(c.isbn, '-', '') = '$code'
                     and c.branch_id = 37
                     and c.source_id = 6
                 group by
@@ -120,7 +120,7 @@ class AddDeliveryFormController extends Controller
                 from
                     collections c
                 where
-                    replace(c.isbn, '-', '') like '%$code%'
+                    replace(c.isbn, '-', '') = '$code'
                     and c.branch_id = $currentBranchId
                     and c.source_id = 6
                 group by
