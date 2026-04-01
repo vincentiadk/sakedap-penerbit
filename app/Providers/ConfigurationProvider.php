@@ -38,11 +38,19 @@ class ConfigurationProvider extends ServiceProvider
                 $collectedSettings['inlis.aes_key'] = $sp->firstWhere('NAME', 'EAesInlisKey')->VALUE ?? null;
                 $collectedSettings['inlis.aes_iv'] = $sp->firstWhere('NAME', 'EAesInlisIV')->VALUE ?? null;
 
-                $collectedSettings['database.redis.client'] = $sp->firstWhere('NAME', 'ERedisClient')->VALUE ?? 'phpredis';
+                $collectedSettings['database.redis.client'] = $sp->firstWhere('NAME', 'ERedisClient')->VALUE ?? 'predis';
                 $collectedSettings['database.redis.default.host'] = $sp->firstWhere('NAME', 'ERedisHost')->VALUE ?? '127.0.0.1';
                 $collectedSettings['database.redis.default.username'] = $sp->firstWhere('NAME', 'ERedisUsername')->VALUE ?? null;
                 $collectedSettings['database.redis.default.password'] = $sp->firstWhere('NAME', 'ERedisPassword')->VALUE ?? null;
                 $collectedSettings['database.redis.default.port'] = $sp->firstWhere('NAME', 'ERedisPort')->VALUE ?? '6379';
+                $collectedSettings['database.redis.cache.host'] = $sp->firstWhere('NAME', 'ERedisHost')->VALUE ?? '127.0.0.1';
+                $collectedSettings['database.redis.cache.username'] = $sp->firstWhere('NAME', 'ERedisUsername')->VALUE ?? null;
+                $collectedSettings['database.redis.cache.password'] = $sp->firstWhere('NAME', 'ERedisPassword')->VALUE ?? null;
+                $collectedSettings['database.redis.cache.port'] = $sp->firstWhere('NAME', 'ERedisPort')->VALUE ?? '6379';
+                $collectedSettings['database.redis.queue.host'] = $sp->firstWhere('NAME', 'ERedisHost')->VALUE ?? '127.0.0.1';
+                $collectedSettings['database.redis.queue.username'] = $sp->firstWhere('NAME', 'ERedisUsername')->VALUE ?? null;
+                $collectedSettings['database.redis.queue.password'] = $sp->firstWhere('NAME', 'ERedisPassword')->VALUE ?? null;
+                $collectedSettings['database.redis.queue.port'] = $sp->firstWhere('NAME', 'ERedisPort')->VALUE ?? '6379';
 
                 $collectedSettings['session.driver'] = $sp->firstWhere('NAME', 'ESessionDriver')->VALUE ?? 'redis';
                 $collectedSettings['session.lifetime'] = (int) ($sp->firstWhere('NAME', 'ESessionLifeTime')->VALUE ?? 120);

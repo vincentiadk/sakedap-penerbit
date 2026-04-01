@@ -61,7 +61,7 @@ return [
         ],
         'admin_receipt' => [
             'driver' => 'local',
-            'root' => 'F:/sakedap/admin/storage/app/public',
+            'root' => 'F:/sakedap/admin/storage/app/public/physical-delivery/accept/receipt',
             'throw' => false,
         ],
     ],
