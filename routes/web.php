@@ -17,7 +17,9 @@ Route::get('stream-file', function (Request $request) {
         ]);
     }
 });
-
+Route::get('/receipt-admin/{filename}', 'ReceiptController@openFromAdmin')
+    ->name('receipt.admin');
+    
 Route::middleware('authentication')->group(function () {
     Route::prefix('download')->group(function () {
         Route::get('from-public', 'DownloadController@fromPublic');

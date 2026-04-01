@@ -59,7 +59,11 @@ return [
             'throw' => false,
             'report' => false,
         ],
-
+        'admin_receipt' => [
+            'driver' => 'local',
+            'root' => 'F:/sakedap/admin/storage/app/public',
+            'throw' => false,
+        ],
     ],
 
     /*
