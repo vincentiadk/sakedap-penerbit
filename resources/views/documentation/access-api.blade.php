@@ -18,8 +18,9 @@
                 <div>API Key adalah kunci autentikasi yang diperlukan untuk mengakses layanan API SAKEDAP. Pastikan untuk menjaga kerahasiaan API Key Anda.</div>
             </div>
             @php
-                $apiStatus = session('api_status') ?? null;
-                $apiKey = session('api_key') ?? null;
+                $p_api = \App\Helpers\QueryApi::get("SELECT api_status, x_api_key, is_api_enable FROM penerbit WHERE id  = " . session('id') , true);
+                $apiStatus = $p_api->API_STATUS;
+                $apiKey = $p_api->X_API_KEY;
             @endphp
             @if($apiStatus == 'APPROVED')
                 <div class="alert alert-success border-0">

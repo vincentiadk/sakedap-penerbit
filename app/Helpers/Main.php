@@ -327,7 +327,8 @@ class Main
                     'postal_code' => $user->KODEPOS,
                     'address' => $user->ALAMAT,
                     'api_key' => $user->X_API_KEY,
-                    'api_status' => $user->IS_API_ENABLE ?: 0,
+                    'api_status' => $user->API_STATUS ?: 0,
+                    'is_api_enable' => $user->IS_API_ENABLE ?: 0,
                     'status' => $user->STATUS ?: 1,
                     'is_isbn' => $user->IS_ISBN ?: 0,
                 ]);
