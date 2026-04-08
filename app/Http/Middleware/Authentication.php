@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\Helpers\Main;
 use App\Helpers\QueryAPI;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -48,13 +47,13 @@ class Authentication
 
         $totalPhysicalCollectionReject = QueryAPI::get("
             select
-                count(letter_detail.letter_detail_id) as total
+                count(*) as total
             from
                 letter_detail
             join
                 letter on letter.letter_id = letter_detail.letter_id
             where
-                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM') and
+                letter.status in ('DITERIMA PENUH', 'DITERIMA PARSIAL', 'CEK FISIK', 'TERKIRIM', 'DITERIMA') and
                 letter.penerbit_id = $id and
                 letter_detail.qty_reject > 0 and
                 (letter_detail.qty_hibah = 0 or letter_detail.qty_hibah is null) and
