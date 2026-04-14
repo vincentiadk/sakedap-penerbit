@@ -591,7 +591,7 @@
                         var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
                         var safeISBN = $('<div>').text(data.isbn ?? '-').html();
 
-                        $('#data-collection-isbn').append(`
+                        $('#data-collection-isbn').prepend(`
                             <tr class="animate__animated animate__fadeIn">
                                 <input type="hidden" name="ci[]" value="1">
                                 <input type="hidden" name="ci_code[]" value="${safeISBN}">
@@ -643,7 +643,7 @@
                     var safeAuthor = $('<div>').text(item.author || '').html();
                     var safeExecutor = $('<div>').text(item.executor || '').html();
 
-                    $('#data-collection-non-isbn').append(`
+                    $('#data-collection-non-isbn').prepend(`
                         <tr class="animate__animated animate__fadeIn">
                             <input type="hidden" name="cni[]" value="1">
                             <input type="hidden" name="cni_is_analog[]" class="cni-is-analog-${randStr}" value="0">
@@ -750,7 +750,7 @@
                     const cpIndex = item.cpIndex || (Date.now() + '_' + Math.random());
                     var safeTitle = $('<div>').text(item.manual_title || '').html();
 
-                    $('#data-collection-periodicals').append(`
+                    $('#data-collection-periodicals').prepend(`
                         <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
                             <input type="hidden" name="cp[${cpIndex}]" value="1">
                             <td width="5%" rowspan="2" class="align-top">
@@ -828,7 +828,7 @@
                             const editionRandStr = randomString(10);
                             var safeEdition = $('<div>').text(edition.edition || '').html();
 
-                            $(`#data-collection-periodicals-edition-${cpIndex}`).append(`
+                            $(`#data-collection-periodicals-edition-${cpIndex}`).prepend(`
                                 <div class="card border mb-2 edition-card-${editionRandStr}">
                                     <div class="card-body p-3">
                                         <input type="hidden" name="cpe[${cpIndex}][]" value="1">
@@ -911,7 +911,7 @@
         });
 
         if ($('#clear-autosave-btn').length === 0) {
-            $('#remove-btn-autosave').append(`
+            $('#remove-btn-autosave').prepend(`
                 <button type="button" id="clear-autosave-btn" class="btn btn-danger btn-sm" onclick="confirmClearAutoSave()" style="display:none;">
                     <i class="ph-trash me-1"></i>
                     Hapus Data Tersimpan
@@ -1315,7 +1315,7 @@
                 var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
                 var safeISBN = $('<div>').text(data.isbn ?? '-').html();
 
-                $('#data-collection-isbn').append(`
+                $('#data-collection-isbn').prepend(`
                     <tr class="animate__animated animate__fadeIn">
                         <input type="hidden" name="ci[]" value="1">
                         <input type="hidden" name="ci_code[]" value="${safeISBN}">
@@ -1463,7 +1463,7 @@
         for (var i = 1; i <= total; i++) {
             var randStr = randomString(10);
 
-            $('#data-collection-non-isbn').append(`
+            $('#data-collection-non-isbn').prepend(`
                 <tr class="animate__animated animate__fadeIn">
                     <input type="hidden" name="cni[]" value="1">
                     <input type="hidden" name="cni_is_analog[]" class="cni-is-analog-${randStr}" value="0">
@@ -1650,7 +1650,7 @@
             var randStr = randomString(10);
             var cpIndex = Date.now() + '_' + i;
 
-            $('#data-collection-periodicals').append(`
+            $('#data-collection-periodicals').prepend(`
                 <tr class="periodical-row-${randStr} animate__animated animate__fadeIn" data-cp-index="${cpIndex}">
                     <input type="hidden" name="cp[${cpIndex}]" value="1">
                     <td width="5%" rowspan="2" class="align-top">
@@ -1787,7 +1787,7 @@
 
         $('#data-collection-periodicals-edition-' + cpIndex + ' .alert-info').remove();
 
-        $('#data-collection-periodicals-edition-' + cpIndex).append(`
+        $('#data-collection-periodicals-edition-' + cpIndex).prepend(`
             <div class="card border mb-2 animate__animated animate__fadeIn edition-card-${randStr}">
                 <div class="card-body p-3">
                     <input type="hidden" name="cpe[${cpIndex}][]" value="1">
@@ -1856,7 +1856,7 @@
         $('#validation-data').html('');
 
         $.each(data, function(index, value) {
-            $('#validation-data').append('<li>' + value + '</li>');
+            $('#validation-data').prepend('<li>' + value + '</li>');
         });
 
         $('.btn-to-top button').click();
