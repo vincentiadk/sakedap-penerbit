@@ -115,7 +115,7 @@
                         <tbody>
                             <tr>
                                 <td class="fw-semibold" width="200">Base URL</td>
-                                <td><code>https://api-sakedap.pusnasdev.online/api</code></td>
+                                <td><code>https://api-penerbitsakedap.perpusnas.go.id/api</code></td>
                             </tr>
                             <tr>
                                 <td class="fw-semibold">Versi Dokumen</td>
@@ -136,10 +136,10 @@
             <hr class="my-4">
             <div class="mb-3">
                 <h6 class="fw-semibold mb-3">Unduh Dokumentasi Lengkap</h6>
-                <p class="text-muted">Untuk informasi lebih detail dan contoh implementasi, silakan unduh dokumen PDF lengkap.</p>
-                <a href="{{ url('download/from-public?path=assets/Dokumentasi API Pelaksana Serah Sakedap.pdf') }}" class="btn btn-teal" target="_blank">
-                    <i class="ph-file-pdf me-2"></i>
-                    Download Dokumentasi PDF
+                <p class="text-muted">Untuk informasi lebih detail dan contoh implementasi, silakan akses dokumentasi lengkap.</p>
+                <a href="https://api-penerbitsakedap.perpusnas.go.id" class="btn btn-teal" target="_blank">
+                    <i class="ph-paper-plane-tilt me-2"></i>
+                    Akses Dokumentasi API
                 </a>
             </div>
         </div>
