@@ -42,6 +42,7 @@
     @stack('videojs-js')
     @stack('readmore-js')
     @stack('lookup-js')
+	<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 	<script src="{{ asset('plugins/custom.js') }}?v={{ uniqid() }}"></script>
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-F4VZCGM4KE"></script>
 	<script>
