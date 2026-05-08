@@ -272,20 +272,13 @@ class DeliveryMonitoringController extends Controller
                 $deliveryServiceId = $request->delivery_service_id;
                 $deliveryService = QueryAPI::get("select * from jasa_pengiriman where id = $deliveryServiceId", true);
 
-                $buildQuery = http_build_query([
-                    'awb' => $receiptNo,
-                    'courier' => $deliveryService->CODE ?? ''
-                ]);
-
-                $receipt = RajaOngkir::post('track/waybill?' . $buildQuery);
-
                 QueryAPI::update('letter', $id, [
                     'type_of_delivery' => ($deliveryService->NAME ?? null) ? 'Pos' : 'Datang Langsung',
                     'receipt_no' => $receiptNo,
                     'biaya_kirim' => $request->delivery_fee,
                     'jasa_pengiriman_id' => $deliveryServiceId,
                     'sender' => $request->sender_name,
-                    'berat' => $receipt->details->weight ?? ($request->weight ?? 0),
+                    'berat' => $request->weight ?? 0,
                     'status' => 'DALAM PENGIRIMAN'
                 ], false);
 
@@ -353,7 +346,7 @@ class DeliveryMonitoringController extends Controller
 
             if ($codes->isNotEmpty()) {
                 $result = ISBN::get('search', [
-                    'code' => $codes->implode(','), 
+                    'code' => $codes->implode(','),
                     'start' => 0,
                     'length' => 5000
                 ]);
