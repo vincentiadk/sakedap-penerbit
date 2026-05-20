@@ -51,13 +51,6 @@ return [
     */
 
     'channels' => [
-        'raja-ongkir-api' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/raja-ongkir-api.log'),
-            'days' => 7,
-            'level' => 'debug',
-        ],
-
         'isbn-api' => [
             'driver' => 'daily',
             'path' => storage_path('logs/isbn-api.log'),
