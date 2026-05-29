@@ -210,13 +210,13 @@ class DeliveryAcceptController extends Controller
                         <i class="ph-check me-1"></i>
                         Detail
                     </a>';
-                if($val->STATUS == 'TERKIRIM' || $val->STATUS == 'DALAM PENGIRIMAN') {
-                        $action .='<a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
+                if ($val->STATUS == 'TERKIRIM' || $val->STATUS == 'DALAM PENGIRIMAN') {
+                    $action .= '<a href="' . url('physical-handover/delivery-monitoring/print-label/' . $val->LETTER_ID) . '" class="btn btn-success btn-sm text-nowrap" target="_blank">
                         <i class="ph-barcode me-1"></i>
                         Cetak Label
                     </a>';
                 }
-                if($val->STATUS == 'DITERIMA' || $val->STATUS == 'DITERIMA PENUH' || $val->STATUS ==  'DITERIMA PARSIAL'){
+                if ($val->STATUS == 'DITERIMA' || $val->STATUS == 'DITERIMA PENUH' || $val->STATUS ==  'DITERIMA PARSIAL') {
                     $action .= '
                         <a href="' . url('physical-handover/delivery-accept/print/' . $val->LETTER_ID) . '" class="btn btn-teal btn-sm mt-1 text-nowrap" target="_blank">
                             <i class="ph-printer me-1"></i>
@@ -303,7 +303,7 @@ class DeliveryAcceptController extends Controller
 
         if ($codes->isNotEmpty()) {
             $result = ISBN::get('search', [
-                'code' => $codes->implode(','), 
+                'code' => $codes->implode(','),
                 'start' => 0,
                 'length' => 5000
             ]);
@@ -481,30 +481,23 @@ class DeliveryAcceptController extends Controller
                 $pdf->writeHTML($finalHtml, true, false, true, false, '');
 
                 $collections = QueryAPI::get("
-                    select
+                    SELECT
                         ld.letter_id,
-                        l.accept_date as accept_date_letter,
+                        l.accept_date AS accept_date_letter,
                         ld.title,
-                        cm.name as name_cm,
+                        cm.name AS name_cm,
                         ld.isbn,
-                        case when ld.collection_id LIKE '%,%' and t.lvl > 0 THEN 1 ELSE ld.qty_accept end as qty_accept,
-                        c.noinduk as noinduk_collection, c.mark_province as mark_province_collection
-                    from
+                        ld.received_date,
+                        ld.qty_accept,
+                        ld.collection_id
+                    FROM
                         letter_detail ld
-                    left join
-                        letter l on l.letter_id = ld.letter_id
-                    left join
-                        collectionmedias cm on cm.id = ld.collection_type_id
-                    cross join
-                        (select level as lvl from dual connect by level <= 1000) t
-                    left join
-                        collections c on c.id = to_number(nvl(trim(regexp_substr(ld.collection_id,'[^,]+',1,t.lvl)),'0'))
-                    where
-                        ld.letter_id = $letter->LETTER_ID
-                        and ld.qty_accept is not null
-                        and ld.qty_accept > 0
-                        and T.lvl <= regexp_count(nvl(ld.collection_id, 'X'), ',') + 1
-                ");
+                    LEFT JOIN letter l ON l.letter_id = ld.letter_id
+                    LEFT JOIN collectionmedias cm ON cm.id = ld.collection_type_id
+                    WHERE
+                        ld.letter_id = " . $letter->LETTER_ID . "
+                        AND ld.qty_accept > 0
+                ", false, 15, 60) ?? [];
 
                 $htmlCollections = '
                     <table border="1" cellpadding="4" cellspacing="0" style="font-size:8px; border-collapse:collapse;">
