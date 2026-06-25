@@ -435,7 +435,6 @@ class AcceptController extends Controller
             }
 
             $settings = QueryAPI::get("select * from e_settings where slug in ('Header','Footer','KoleksiTervalidasi')");
-
             $templateEmailContent = null;
             $templateEmailHeader = null;
             $templateEmailFooter = null;
@@ -445,8 +444,8 @@ class AcceptController extends Controller
                     $slug = $setting->SLUG ?? $setting->slug;
 
                     if ($slug == 'KoleksiTervalidasi') $templateEmailContent = $setting;
-                    elseif ($slug == 'Header') $templateEmailHeader = $setting;
-                    elseif ($slug == 'Footer') $templateEmailFooter = $setting;
+                    elseif ($slug == 'Header' && $setting->PROVINCE_ID == 31) $templateEmailHeader = $setting;
+                    elseif ($slug == 'Footer' && $setting->PROVINCE_ID == 31) $templateEmailFooter = $setting;
                 }
             }
 
@@ -456,15 +455,22 @@ class AcceptController extends Controller
             if ($templateEmailHeader) {
                 $hId = $templateEmailHeader->ID ?? $templateEmailHeader->id;
                 $hCont = $templateEmailHeader->CONTENT ?? $templateEmailHeader->content;
-                $urlHeader = url('stream-file?type=gambar_template&id=' . $hId . '&filename=' . $hCont);
-                $imgHeader = Main::base64File($urlHeader);
+                $imgHeader = QueryAPI::getFileBase64([
+                    'type' => 'gambar_template',
+                    'id' => $hId            ?? '',
+                    'filename' => $hCont,
+                ]);
+                
             }
 
             if ($templateEmailFooter) {
                 $fId = $templateEmailFooter->ID ?? $templateEmailFooter->id;
                 $fCont = $templateEmailFooter->CONTENT ?? $templateEmailFooter->content;
-                $urlFooter = url('stream-file?type=gambar_template&id=' . $fId . '&filename=' . $fCont);
-                $imgFooter = Main::base64File($urlFooter);
+                $imgFooter = QueryAPI::getFileBase64([
+                    'type' => 'gambar_template',
+                    'id' => $fId            ?? '',
+                    'filename' => $fCont,
+                ]);
             }
 
             $branchId = 37;
@@ -504,6 +510,7 @@ class AcceptController extends Controller
             $cId = $collection->ID ?? $collection->id;
             $qrCodeBody = config('system.fo_url') . '/collections/detail/' . $cId;
             $qrBase64Raw = $qrGenerator->getBarcodePNG((string) $qrCodeBody, 'QRCODE', 4, 4);
+            $emptyHeader = '';
 
             $dataParseTemplate = [
                 'publisher' => session('name'),
@@ -515,8 +522,8 @@ class AcceptController extends Controller
                 'size' => Main::formatFileSize($collection->FILE_SIZE_CATALOGFILES ?? $collection->file_size_catalogfiles),
                 'code' => $collection->ISBN ?? $collection->isbn,
                 'director' => $signatureTable,
-                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" style="width:100%;"></div>' : '',
-                'footer' => !empty($imgFooter) ? '<div style="text-align:center;"><img src="' . $imgFooter . '" style="width:100%;"></div>' : '',
+                'header' => !empty($imgHeader) ? '<div style="text-align:center;"><img src="' . $imgHeader . '" width="500" style="width:100%;"></div>' : $emptyHeader,
+                'footer' => !empty($imgFooter) ? '<br><br><br><br><br><br><br><br><div style="text-align:center;"><img src="' . $imgFooter . '" width="650" style="width:100%;"></div>' : '',
                 'qr' => '<img src="data:image/png;base64,' . $qrBase64Raw . '" style="height:100px; width:100px">',
             ];
 
