@@ -683,7 +683,7 @@ class AuthController extends Controller
                 } else {
                     try {
                         QueryAPI::update('penerbit', $user->ID, [
-                            'isbn_password1' => md5($request->new_password),
+                            'isbn_password' => md5($request->new_password),
                             'isbn_password2' => Main::AESCrypt($request->new_password, config('inlis.aes_key'), config('inlis.aes_iv')),
                             'updateby' => $user->ISBN_USER_NAME,
                             'updatedate' => date('Y-m-d H:i:s'),
