@@ -672,11 +672,11 @@ class SingleUploadISBNController extends Controller
                     $publishTime = strtotime($request->publish_time);
                     $status = $request->param;
                     $executorId = $collection->PENERBIT_ID ?? null;
-                    $executor = QueryAPI::get("select * from penerbit where id = $executorId", true);
+                    $executor = QueryAPI::get("select * from penerbit where id = $userId", true);
 
                     $baseCollectionData = [
                         'id_old' => 0,
-                        'publisher_id' => $executorId,
+                        'publisher_id' => $userId, // $executorId,
                         'city_id' => $executor->CITY_ID ?? session('city_id'),
                         'title_ori' => $request->title,
                         'album' => $request->album,
@@ -695,9 +695,9 @@ class SingleUploadISBNController extends Controller
                         'created_by' => $userId,
                         'updated_by' => $userId,
                         'price' => str_replace([',', '.'], '', $request->price),
-                        'copyright' => Main::copyright($executorId),
+                        'copyright' => Main::copyright($userId),
                         'collection_media_id' => $request->collection_media_id,
-                        'penerbit_id' => $executorId,
+                        'penerbit_id' => $userId,
                         'kabupaten_id' => $executor->CITY_ID ?? session('city_id'),
                         'title' => $request->title,
                         'author' => implode(';', ($request->author ?? [])),
