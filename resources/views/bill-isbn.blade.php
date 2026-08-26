@@ -219,6 +219,7 @@
                                 Tahun Terbit
                             </label>
                             <select class="form-select select2-basic" name="year" id="year" data-placeholder="Semua Tahun">
+                                <option value=""></option>
                                 @for($i = date('Y'); $i >= 1998; $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
