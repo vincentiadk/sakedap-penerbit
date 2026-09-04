@@ -219,10 +219,12 @@
                                 Tahun Terbit
                             </label>
                             <select class="form-select select2-basic" name="year" id="year" data-placeholder="Semua Tahun">
+                                <option value=""></option>
                                 @for($i = date('Y'); $i >= 1998; $i--)
                                     <option value="{{ $i }}">{{ $i }}</option>
                                 @endfor
                             </select>
+                            <small class="text-muted">Kosongkan untuk menampilkan semua tahun. Wajib diisi saat download seluruh data.</small>
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label class="form-label fw-semibold">
@@ -433,6 +435,24 @@
             deferRender: true,
             scrollX: true,
             destroy: true,
+            downloadGuard: function () {
+                if (!$('#year').val()) {
+                    $('#filterCollapse').collapse('show');
+
+                    swalInit.fire({
+                        title: 'Pilih Tahun Terbit',
+                        text: 'Download seluruh data hanya dapat dilakukan per tahun terbit. Silakan pilih Tahun Terbit pada Filter Pencarian, klik "Cari Data", lalu ulangi proses download.',
+                        icon: 'warning',
+                        confirmButtonText: 'Oke'
+                    }).then(function () {
+                        $('#year').select2('open');
+                    });
+
+                    return false;
+                }
+
+                return true;
+            },
             ajax: {
                 url: '{{ url("bill-isbn/datatable") }}',
                 dataType: 'JSON',

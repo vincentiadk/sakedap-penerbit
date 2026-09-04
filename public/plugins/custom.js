@@ -224,6 +224,12 @@ function configDataTable() {
                                 text: 'Semua Data',
                                 action: function (e, dt, button, config) {
                                     var self = this;
+                                    var downloadGuard = dt.init().downloadGuard;
+
+                                    if (typeof downloadGuard === 'function' && downloadGuard(dt) === false) {
+                                        return;
+                                    }
+
                                     var info = dt.page.info();
                                     var totalRecords = info.recordsDisplay;
                                     var chunkSize = 50;
