@@ -143,6 +143,13 @@ Route::middleware('authentication')->group(function () {
             Route::post('submitted', 'AddDeliveryFormController@submitted');
         });
 
+        Route::prefix('add-delivery-form-v2')->group(function () {
+            Route::get('/', 'AddDeliveryFormV2Controller@index');
+            Route::get('search-isbn', 'AddDeliveryFormV2Controller@searchISBN');
+            Route::get('calculate-cost', 'AddDeliveryFormV2Controller@calculateCost');
+            Route::post('submitted', 'AddDeliveryFormV2Controller@submitted');
+        });
+
         Route::prefix('delivery-monitoring')->group(function () {
             Route::get('/', 'DeliveryMonitoringController@index');
             Route::post('datatable', 'DeliveryMonitoringController@datatable');
