@@ -76,11 +76,11 @@ class BillISBNController extends Controller
         }
 
         if ($request->is_perpusnas) {
-            $filter['is_perpusnas'] = $request->is_perpusnas == 1 ? 1 : 0;
+            $filter['isperpusnas'] = $request->is_perpusnas == 1 ? 1 : 0;
         }
 
         if ($request->is_province) {
-            $filter['is_province'] = $request->is_province == 1 ? 1 : 0;
+            $filter['isprovinsi'] = $request->is_province == 1 ? 1 : 0;
         }
 
         if ($request->received_date_kckr) {
