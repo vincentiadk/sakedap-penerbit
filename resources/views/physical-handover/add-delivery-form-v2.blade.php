@@ -2,7 +2,83 @@
     use App\Helpers\Main;
     use App\Http\Controllers\PhysicalHandover\AddDeliveryFormController;
 @endphp
+<style>
+.letter-preview-paper {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    padding: 35px 45px;
+    min-height: 700px;
+    font-family: "Times New Roman", Times, serif;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
 
+.letter-preview-title {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.letter-preview-title h4 {
+    margin: 0;
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 18px;
+}
+
+.letter-preview-number {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.letter-preview-meta {
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.letter-preview-meta td {
+    padding: 2px 0;
+    vertical-align: top;
+}
+
+.letter-preview-text {
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: justify;
+    margin-bottom: 18px;
+}
+
+.letter-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+.letter-preview-table th,
+.letter-preview-table td {
+    border: 1px solid #000;
+    padding: 6px;
+}
+
+.letter-preview-table th {
+    text-align: center;
+}
+
+.letter-preview-signature {
+    width: 42%;
+    margin-left: auto;
+    margin-top: 35px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.letter-preview-signature-space {
+    height: 70px;
+}
+</style>
 <div class="page-header page-header-light shadow">
     <div class="page-header-content d-lg-flex border-top">
         <div class="d-flex">
@@ -257,6 +333,89 @@
                 </div>
                 <div class="card-body" id="summary-body"></div>
             </div>
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="ph-file-text me-1"></i>
+                            Preview Surat Pengantar
+                        </h5>
+
+                        <div class="text-muted small mt-1">
+                            Periksa kembali isi surat sebelum pengiriman disimpan.
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-light btn-sm"
+                        onclick="renderLetter()"
+                    >
+                        <i class="ph-arrows-clockwise me-1"></i>
+                        Perbarui Preview
+                    </button>
+                </div>
+
+                <div class="card-body bg-light">
+                    <div
+                        id="cover-letter-preview-loading"
+                        class="text-center py-5 d-none"
+                    >
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                        <div class="text-muted small mt-2">
+                            Memuat preview surat pengantar...
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                    {{-- Preview Perpusnas --}}
+                    <div
+                        id="preview-perpusnas-wrapper"
+                        class="col-lg-6 d-none"
+                    >
+                        <div class="fw-semibold mb-2">
+                            <i class="ph-bank me-1"></i>
+                            Surat Pengantar Perpusnas
+                        </div>
+
+                        <iframe
+                            id="preview-perpusnas"
+                            style="
+                                width: 100%;
+                                height: 800px;
+                                border: 1px solid #ddd;
+                                background: #fff;
+                                border-radius: 6px;
+                            "
+                        ></iframe>
+                    </div>
+
+
+                    {{-- Preview Provinsi --}}
+                    <div
+                        id="preview-province-wrapper"
+                        class="col-lg-6 d-none"
+                    >
+                        <div class="fw-semibold mb-2">
+                            <i class="ph-map-pin me-1"></i>
+                            Surat Pengantar Perpustakaan Provinsi
+                        </div>
+
+                        <iframe
+                            id="preview-province"
+                            style="
+                                width: 100%;
+                                height: 800px;
+                                border: 1px solid #ddd;
+                                background: #fff;
+                                border-radius: 6px;
+                            "
+                        ></iframe>
+                    </div>
+
+                </div>
+
+                </div>
+            </div>
         </div>
     </form>
 </div>
@@ -342,6 +501,7 @@
 
         if (step === 3) {
             renderSummary();
+            renderLetter();
         }
 
         autoSaveForm();
@@ -917,7 +1077,7 @@
         pendingExpedition[type] = null;
     }
 
-    function loadExpeditionForm() {
+    function loadExpeditionForm2() {
         clearTimeout(expeditionLoadTimeout);
 
         expeditionLoadTimeout = setTimeout(function () {
@@ -958,8 +1118,72 @@
             });
         }, 500);
     }
+    function loadExpeditionForm() {
+        clearTimeout(expeditionLoadTimeout);
 
-    function buildExpeditionOptions(data, type) {
+        expeditionLoadTimeout = setTimeout(function () {
+            var destination = $('#destination').val();
+
+            $('#expedition-card-perpusnas')
+                .toggleClass('d-none', !['1', '3'].includes(destination));
+
+            $('#expedition-card-province')
+                .toggleClass('d-none', !['2', '3'].includes(destination));
+
+            $.ajax({
+                url: '{{ url("physical-handover/add-delivery-form-v2/calculate-cost") }}',
+                type: 'GET',
+                dataType: 'JSON',
+                data: {
+                    destination: destination
+                },
+
+                beforeSend: function () {
+                    $('#expedition-card-body-perpusnas, #expedition-card-body-province')
+                        .html(`
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary"></div>
+                                <div class="mt-2 text-muted small">
+                                    Memuat jasa pengiriman...
+                                </div>
+                            </div>
+                        `);
+                },
+
+                success: function (response) {
+                    $('#expedition-card-body-perpusnas').html(
+                        buildExpeditionOptions(
+                            response ? response.perpusnas : null,
+                            'perpusnas'
+                        )
+                    );
+
+                    $('#expedition-card-body-province').html(
+                        buildExpeditionOptions(
+                            response ? response.province : null,
+                            'province'
+                        )
+                    );
+
+                    applyPendingExpedition('perpusnas');
+                    applyPendingExpedition('province');
+                },
+
+                error: function () {
+                    var err = `
+                        <div class="alert alert-danger border-0 mb-0">
+                            Gagal memuat jasa pengiriman.
+                        </div>
+                    `;
+
+                    $('#expedition-card-body-perpusnas, #expedition-card-body-province')
+                        .html(err);
+                }
+            });
+
+        }, 300);
+    }
+    function buildExpeditionOptions2(data, type) {
         if (!data || typeof data !== 'object') {
             return '<div class="alert alert-warning border-0 mb-0">Tidak ada pengiriman yang tersedia.</div>';
         }
@@ -989,6 +1213,44 @@
                             <span class="badge bg-primary">Rp ${$.number(cost)}</span>
                         </div>
                         <div class="mt-1 small text-muted"><i class="ph-clock me-1"></i> Estimasi: ${escapeHtml(val.etd || '-')}</div>
+                    </label>
+                </div>
+            `;
+        }).join('');
+    }
+    function buildExpeditionOptions(data, type) {
+        if (!Array.isArray(data) || data.length < 1) {
+            return `
+                <div class="alert alert-warning border-0 mb-0">
+                    Tidak ada jasa pengiriman yang tersedia.
+                </div>
+            `;
+        }
+
+        return data.map(function (val, i) {
+            var id = val.ID ?? val.id ?? '';
+            var name = escapeHtml(val.NAME ?? val.name ?? '');
+            var code = escapeHtml(val.CODE ?? val.code ?? '');
+
+            return `
+                <div class="form-check border rounded p-3 mb-2">
+                    <input
+                        type="radio"
+                        class="form-check-input"
+                        name="${type}_delivery"
+                        id="${type}_opt_${i}"
+                        value="${id};${code};${name}"
+                        ${i === 0 ? 'checked' : ''}
+                        onchange="autoSaveForm()"
+                    >
+
+                    <label
+                        class="form-check-label w-100"
+                        for="${type}_opt_${i}"
+                    >
+                        <div class="fw-semibold">
+                            ${name}
+                        </div>
                     </label>
                 </div>
             `;
@@ -1245,7 +1507,49 @@
             }
         });
     }
+    function loadCoverLetterPreview(
+        form,
+        target,
+        iframeSelector,
+        wrapperSelector
+    ) {
 
+        var formData = new FormData(form);
+
+        formData.append('target', target);
+
+        return fetch(
+            '{{ url("physical-handover/add-delivery-form-v2/preview-cover-letter") }}',
+            {
+                method: 'POST',
+
+                headers: {
+                    'X-CSRF-TOKEN':
+                        '{{ csrf_token() }}'
+                },
+                body: formData
+            }
+        )
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error(
+                    'Gagal membuat preview ' + target
+                );
+            }
+            return response.blob();
+
+        })
+        .then(function (blob) {
+            var pdfUrl = URL.createObjectURL(blob);
+            $(iframeSelector).attr('src', pdfUrl);
+            $(wrapperSelector).removeClass('d-none');
+
+        })
+        .catch(function (error) {
+            console.error(error);
+        });
+    }
     function processSubmit() {
         $.ajax({
             url: '{{ url("physical-handover/add-delivery-form-v2/submitted") }}',
@@ -1291,6 +1595,71 @@
             }
         });
     }
+    function renderLetter() {
+
+        var form = document.getElementById('form-data');
+
+        if (!form) {
+            console.error('Form #form-data tidak ditemukan');
+            return;
+        }
+
+        var destination = $('#destination').val();
+
+        // Reset
+        $('#preview-perpusnas-wrapper').addClass('d-none');
+        $('#preview-province-wrapper').addClass('d-none');
+
+        $('#cover-letter-preview-loading').removeClass('d-none');
+
+
+        var requests = [];
+
+
+        // ==========================================
+        // PERPUSNAS
+        // ==========================================
+
+        if (destination == '1' || destination == '3') {
+
+            requests.push(
+                loadCoverLetterPreview(
+                    form,
+                    'perpusnas',
+                    '#preview-perpusnas',
+                    '#preview-perpusnas-wrapper'
+                )
+            );
+
+        }
+
+
+        // ==========================================
+        // PROVINSI
+        // ==========================================
+
+        if (destination == '2' || destination == '3') {
+
+            requests.push(
+                loadCoverLetterPreview(
+                    form,
+                    'province',
+                    '#preview-province',
+                    '#preview-province-wrapper'
+                )
+            );
+
+        }
+
+
+        Promise.all(requests)
+            .finally(function () {
+
+                $('#cover-letter-preview-loading')
+                    .addClass('d-none');
+
+            });
+    }
 
     // ---------------------------------------------------------------- init
 
@@ -1299,7 +1668,7 @@
         goToStep(1);
         refreshBar();
 
-        $('#weight, #destination').on('change', function () {
+        $('#destination').on('change', function () {
             if ($('#type_delivery').val() == 2) {
                 loadExpeditionForm();
             }

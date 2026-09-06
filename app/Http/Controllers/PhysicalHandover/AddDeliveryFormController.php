@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AddDeliveryFormController extends Controller
 {
@@ -1233,6 +1234,251 @@ class AddDeliveryFormController extends Controller
             Log::error("Error fetching catalog detail {$catalogId}: " . $e->getMessage());
 
             return null;
+        }
+    }
+    public function calculateCost2(Request $request)
+    {
+        $destination = (int) $request->destination;
+
+        $response = [
+            'perpusnas' => [],
+            'province' => [],
+        ];
+
+        $shippingServices = QueryAPI::get("
+            SELECT
+                ID,
+                NAME,
+                CODE
+            FROM JASA_PENGIRIMAN
+            WHERE CODE <> 'dl'
+            ORDER BY NAME ASC
+        ");
+
+        if (!$shippingServices) {
+            return response()->json($response);
+        }
+
+        if (in_array($destination, [1, 3])) {
+            $response['perpusnas'] = $shippingServices;
+        }
+
+        if (in_array($destination, [2, 3])) {
+            $response['province'] = $shippingServices;
+        }
+
+        return response()->json($response);
+    }
+
+    public function previewCoverLetter(Request $request)
+    {
+        try {
+            $target = $request->target;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tentukan tujuan preview
+            |--------------------------------------------------------------------------
+            */
+
+            if ($target === 'perpusnas') {
+                $branch = QueryAPI::get("
+                    SELECT *
+                    FROM BRANCHS
+                    WHERE ID = 37
+                ", true);
+
+                $copyType = 2;
+            } elseif ($target === 'province') {
+                $branch = Main::getBranch();
+                $copyType = 1;
+            } else {
+                abort(400, 'Tujuan preview tidak valid');
+            }
+
+            if (!$branch) {
+                abort(404, 'Data tujuan tidak ditemukan');
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Object LETTER sementara
+            |--------------------------------------------------------------------------
+            */
+
+            $letter = (object) [
+                'LETTER_ID' => null,
+
+                'LETTER_NUMBER' =>
+                    $request->cover_letter_number,
+
+                'LETTER_DATE' =>
+                    now()->format('Y-m-d H:i:s'),
+
+                'PHONE' =>
+                    $request->phone,
+
+                'SENDER' =>
+                    $request->sender_name,
+
+                'BRANCH_NAME' =>
+                    $branch->NAME ?? '-',
+
+                'BRANCH_ALAMAT' =>
+                    $branch->ALAMAT ?? '-',
+
+                'BRANCH_PHONE' =>
+                    $branch->PHONE ?? '-',
+
+                'BRANCH_KODE_POS' =>
+                    $branch->KODE_POS ?? '-',
+
+                'NAMAPROPINSI' =>
+                    $branch->NAMAPROPINSI
+                        ?? $branch->PROVINCE_NAME
+                        ?? '-',
+            ];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Detail koleksi sementara
+            |--------------------------------------------------------------------------
+            */
+
+            $letterDetail = [];
+
+            $codes = is_array($request->ci_code)
+                ? array_values($request->ci_code)
+                : [];
+
+            $qtyPerpusnas = is_array($request->ci_qty_perpusnas)
+                ? array_values($request->ci_qty_perpusnas)
+                : [];
+
+            $qtyProvince = is_array($request->ci_qty_province)
+                ? array_values($request->ci_qty_province)
+                : [];
+
+            $publishDates = is_array($request->ci_publish_date)
+                ? array_values($request->ci_publish_date)
+                : [];
+
+            foreach ($codes as $key => $code) {
+
+                $copy = $copyType == 2
+                    ? (int) ($qtyPerpusnas[$key] ?? 0)
+                    : (int) ($qtyProvince[$key] ?? 0);
+
+                /*
+                * Tidak perlu masuk surat kalau kuota tujuan ini = 0.
+                */
+                if ($copy < 1) {
+                    continue;
+                }
+
+                /*
+                * Ambil metadata ISBN.
+                * Ini sama seperti proses penyimpanan final,
+                * tetapi TANPA QueryAPI::create().
+                */
+                $isbn = Cache::remember(
+                    "isbn:{$code}",
+                    60,
+                    function () use ($code) {
+                        return ISBN::get(
+                            'search',
+                            ['code' => $code],
+                            true
+                        );
+                    }
+                );
+
+                if (!$isbn) {
+                    continue;
+                }
+
+                $publishDate = $publishDates[$key] ?? null;
+
+                $letterDetail[] = (object) [
+
+                    'ISBN' =>
+                        $code,
+
+                    'QRCBN' =>
+                        null,
+
+                    'ISSN' =>
+                        null,
+
+                    'ISMN' =>
+                        null,
+
+                    'ISRC' =>
+                        null,
+
+                    'NOMORPANGGILJILID' =>
+                        $isbn->keterangan ?? null,
+
+                    'TITLE' =>
+                        $isbn->title ?? '-',
+
+                    'EDISI_SERIAL' =>
+                        null,
+
+                    'PUBLISH_YEAR' =>
+                        $publishDate
+                            ? Carbon::parse($publishDate)->format('Y')
+                            : ($isbn->tahun_terbit ?? null),
+
+                    'JENIS_MEDIA' =>
+                        $isbn->jenis_media ?? 'Cetak',
+
+                    'COPY' =>
+                        $copy,
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Render Blade PDF YANG SUDAH ADA
+            |--------------------------------------------------------------------------
+            */
+
+            $pdf = Pdf::setOptions([
+                'dpi' => 61,
+                'adminUsername' => session('username')
+            ])
+            ->loadView('pdf.delivery-label', [
+                'title' => 'Preview Surat Pengantar',
+                'letter' => $letter,
+                'letterDetail' => $letterDetail,
+
+                // supaya hanya Surat Pengantar,
+                // bukan halaman label
+                'previewLetterOnly' => true,
+            ])
+            ->setWarnings(false);
+
+            return $pdf->stream(
+                'Preview Surat Pengantar.pdf'
+            );
+
+        } catch (\Exception $e) {
+
+            Log::error(
+                'Preview cover letter error: ' . $e->getMessage(),
+                [
+                    'user_id' => session('id'),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+
+            abort(
+                500,
+                config('app.debug')
+                    ? $e->getMessage()
+                    : 'Gagal membuat preview surat pengantar.'
+            );
         }
     }
 }

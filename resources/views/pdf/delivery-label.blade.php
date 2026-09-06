@@ -2,152 +2,168 @@
 <html>
 <head>
     <meta charset="utf-8">
+
     <title>{{ $title }}</title>
 
     <style>
         @page {
-            margin: 10mm;
             size: A4;
+            margin: 12mm;
         }
 
         body {
             font-family: DejaVu Sans, sans-serif;
             margin: 0;
             padding: 0;
-            font-size: 9pt;
+            font-size: 10pt;
             color: #000;
         }
 
-        .section {
-            margin-bottom: 12px;
+        /* =========================================================
+           UMUM
+        ========================================================== */
+
+        .page-break {
+            page-break-before: always;
         }
 
-        .avoid-break {
-            page-break-inside: avoid;
-        }
-
-        .header {
-            background-color: #023BAD;
-            color: white;
-            padding: 10px 15px;
+        .text-center {
             text-align: center;
-            border-bottom: 3px solid #06732A;
         }
 
-        .header-top {
-            display: table;
-            width: 100%;
-            margin-bottom: 6px;
+        .text-right {
+            text-align: right;
         }
 
-        .title-section {
-            display: table-cell;
-            vertical-align: middle;
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        /* =========================================================
+           HALAMAN 1 - LABEL
+        ========================================================== */
+
+        .label-header {
+            border: 2px solid #000;
+            padding: 12px 15px;
             text-align: center;
-            padding: 0 10px;
+            margin-bottom: 15px;
         }
 
-        .header h1 {
-            font-size: 14pt;
-            margin: 0 0 3px 0;
+        .label-header h1 {
+            margin: 0;
+            font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
         }
 
-        .header h2 {
-            font-size: 9pt;
-            margin: 0;
-        }
-
-        .document-type {
-            background-color: #06732A;
-            color: white;
-            padding: 5px;
-            margin-top: 6px;
+        .label-document-type {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #000;
+            font-size: 11pt;
             font-weight: bold;
-            font-size: 9.5pt;
+            text-transform: uppercase;
         }
 
         .info-grid {
             display: table;
             width: 100%;
-            border: 2px solid #023BAD;
-            background-color: white;
+            table-layout: fixed;
+            border: 2px solid #000;
         }
 
         .info-column {
             display: table-cell;
             width: 50%;
-            padding: 10px;
             vertical-align: top;
+            padding: 12px;
         }
 
         .info-column.sender {
-            border-right: 2px solid #023BAD;
-            background-color: #eef6ff;
-        }
-
-        .info-column.receiver {
-            background-color: #ecfff3;
+            border-right: 2px solid #000;
         }
 
         .info-header {
-            background-color: #023BAD;
-            color: white;
-            padding: 5px 8px;
-            margin: -10px -10px 8px -10px;
-            font-size: 9.5pt;
+            text-align: center;
+            font-size: 10pt;
             font-weight: bold;
             text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 7px;
+            margin-bottom: 12px;
         }
 
         .info-row {
-            margin-bottom: 6px;
-            line-height: 1.3;
+            margin-bottom: 11px;
+            line-height: 1.45;
         }
 
         .info-label {
-            color: #495057;
-            font-weight: bold;
+            display: block;
             font-size: 8pt;
+            font-weight: bold;
+            margin-bottom: 2px;
         }
 
         .info-value {
-            font-size: 8.5pt;
+            font-size: 10pt;
         }
 
-        .highlight-value {
-            background-color: #fff;
-            padding: 3px 5px;
-            border-left: 3px solid #06732A;
-            margin-top: 2px;
-            font-weight: bold;
-        }
-
-        .cut-line {
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        .cut-line hr {
-            border: none;
-            border-top: 2px dashed #6c757d;
-        }
-
-        .cut-line-text {
-            background: #fafafa;
-            padding: 1px 12px;
-            position: relative;
-            top: -11.5px;
-            font-weight: bold;
-            color: #6c757d;
-            border: 1px dashed #6c757d;
+        .label-note {
+            margin-top: 12px;
+            border: 1px solid #000;
+            padding: 8px 10px;
             font-size: 8pt;
+            line-height: 1.4;
         }
 
-        .table-section {
-            padding: 0 0 10px 0;
+        /* =========================================================
+           HALAMAN 2 - SURAT PENGANTAR
+        ========================================================== */
+
+        .letter-header {
+            text-align: center;
+            margin-bottom: 18px;
         }
+
+        .letter-header h1 {
+            margin: 0 0 6px 0;
+            font-size: 15pt;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .letter-number {
+            font-size: 10pt;
+            margin-bottom: 5px;
+        }
+
+        .letter-meta {
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 9pt;
+        }
+
+        .letter-meta td {
+            border: none;
+            padding: 2px 0;
+            vertical-align: top;
+        }
+
+        .letter-meta-label {
+            width: 110px;
+        }
+
+        .letter-opening {
+            margin-bottom: 12px;
+            line-height: 1.5;
+            text-align: justify;
+        }
+
+        /* =========================================================
+           TABEL KOLEKSI
+        ========================================================== */
 
         table.collection-table {
             width: 100%;
@@ -159,239 +175,624 @@
         }
 
         table.collection-table th {
-            background-color: #023BAD;
-            color: white;
-            padding: 3;
-            border: 1px solid #023BAD;
+            border: 1px solid #000;
+            padding: 5px 4px;
             text-align: center;
-            font-size: 9pt;
+            vertical-align: middle;
+            font-size: 8pt;
             font-weight: bold;
+            background: #fff;
+            color: #000;
         }
 
         table.collection-table td {
-            border: 1px solid #cfd3d9;
-            padding: 3px;
+            border: 1px solid #000;
+            padding: 5px 4px;
+            vertical-align: top;
             font-size: 8pt;
+            line-height: 1.35;
         }
 
-        .collection-table tbody tr:nth-child(even) {
-            background-color: #f2f4f7;
+        table.collection-table tr {
+            page-break-inside: avoid;
         }
 
         .col-no {
+            width: 5%;
             text-align: center;
-            color: #023BAD;
         }
 
-        .col-isbn {
-            font-family: 'Courier New', monospace;
+        .col-identifier {
+            width: 22%;
         }
 
-        .col-title {
-            font-family: 'Courier New', monospace;
+        .col-year {
+            width: 10%;
+            text-align: center;
+        }
+
+        .col-media {
+            width: 12%;
+            text-align: center;
         }
 
         .col-qty {
+            width: 7%;
             text-align: center;
-            color: #06732A;
         }
 
         .total-row td {
-            background: #06732A;
-            color: white;
             font-weight: bold;
+            border-top: 2px solid #000;
         }
 
-        .footer {
-            margin-top: 10px;
-            padding: 10px 15px;
-            background-color: #eef1f5;
-            border-top: 3px solid #023BAD;
+        /* =========================================================
+           BAGIAN BAWAH SURAT
+        ========================================================== */
+
+        .letter-closing {
+            margin-top: 15px;
+            line-height: 1.5;
+            font-size: 9pt;
+            text-align: justify;
         }
 
         .legal-notice {
-            background-color: #fff3cd;
-            border-left: 4px solid #06732A;
-            padding: 6px 10px;
-            margin-bottom: 10px;
+            margin-top: 15px;
+            border: 1px solid #000;
+            padding: 8px 10px;
             font-size: 8pt;
+            line-height: 1.4;
         }
 
         .signature-section {
             display: table;
             width: 100%;
-            margin-top: 8px;
+            margin-top: 20px;
+            page-break-inside: avoid;
         }
 
         .signature-box {
             display: table-cell;
             width: 50%;
             text-align: center;
-            padding: 6px;
-        }
-
-        .signature-box.left {
-            border-right: 1px solid #cfd3d9;
+            vertical-align: top;
+            padding: 5px 15px;
         }
 
         .signature-label {
-            font-weight: bold;
             font-size: 9pt;
-            margin-bottom: 3px;
-            color: #023BAD;
+            margin-bottom: 5px;
         }
 
         .signature-space {
-            height: 45px;
-            border-bottom: 1px solid #000;
-            margin: 6px 12px;
+            height: 55px;
         }
 
         .signature-name {
-            margin-top: 3px;
-            font-size: 8pt;
+            border-bottom: 1px solid #000;
+            display: inline-block;
+            width: 180px;
+            height: 15px;
         }
     </style>
 </head>
+
 <body>
-    <div class="section avoid-break">
-        <div class="header">
-            <div class="header-top">
-                <div class="title-section">
-                    <h1>{{ $letter->BRANCH_NAME }}</h1>
-                </div>
-            </div>
-            <div class="document-type">
-                LABEL RESI PENGIRIMAN KOLEKSI FISIK
-            </div>
+
+    {{-- =========================================================
+         HALAMAN 1
+         LABEL PENGIRIMAN
+    ========================================================== --}}
+
+    <div class="label-header">
+
+        <h1>
+            {{ $letter->BRANCH_NAME }}
+        </h1>
+
+        <div class="label-document-type">
+            Label Pengiriman Koleksi Fisik
         </div>
+
     </div>
-    <div class="section avoid-break">
-        <div class="info-grid">
-            <div class="info-column sender">
-                <div class="info-header">DATA PENGIRIM</div>
-                <div class="info-row">
-                    <span class="info-label">Nama :</span>
-                    <div class="info-value">{{ session('name') }}</div>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Alamat Lengkap :</span>
-                    <div class="info-value">{{ session('address') }}</div>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Provinsi / Kode Pos :</span>
-                    <div class="info-value">{{ session('province_name') }}, {{ session('postal_code') }}</div>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">No. Telepon :</span>
-                    <div class="info-value">{{ $letter->PHONE }}</div>
-                </div>
+
+
+    <div class="info-grid">
+
+        {{-- =====================================================
+             DATA PENGIRIM
+        ====================================================== --}}
+
+        <div class="info-column sender">
+
+            <div class="info-header">
+                Data Pengirim
             </div>
-            <div class="info-column receiver">
-                <div class="info-header">DATA PENERIMA</div>
-                <div class="info-row">
-                    <span class="info-label">Nama :</span>
-                    <div class="info-value">{{ $letter->BRANCH_NAME }}</div>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Alamat Lengkap :</span>
-                    <div class="info-value">{{ $letter->BRANCH_ALAMAT }}</div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Nama Pengirim
+                </span>
+
+                <div class="info-value">
+                    {{ session('name') }}
                 </div>
 
-                <div class="info-row">
-                    <span class="info-label">Provinsi / Kode Pos :</span>
-                    <div class="info-value">{{ $letter->NAMAPROPINSI }}, {{ $letter->BRANCH_KODE_POS }}</div>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Tanggal Pengiriman :</span>
-                    <div class="info-value">{{ Carbon::parse($letter->LETTER_DATE ?: now())->isoFormat('D MMMM Y') }}</div>
-                </div>
             </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Alamat Lengkap
+                </span>
+
+                <div class="info-value">
+                    {{ session('address') }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Provinsi / Kode Pos
+                </span>
+
+                <div class="info-value">
+                    {{ session('province_name') }},
+                    {{ session('postal_code') }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Nomor Telepon
+                </span>
+
+                <div class="info-value">
+                    {{ $letter->PHONE }}
+                </div>
+
+            </div>
+
         </div>
-    </div>
-    <div class="section avoid-break">
-        <div class="cut-line">
-            <hr>
-            <span class="cut-line-text">&#x2702; POTONG DI SINI - jika diperlukan</span>
+
+
+        {{-- =====================================================
+             DATA PENERIMA
+        ====================================================== --}}
+
+        <div class="info-column">
+
+            <div class="info-header">
+                Data Penerima
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Nama Penerima
+                </span>
+
+                <div class="info-value">
+                    {{ $letter->BRANCH_NAME }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Alamat Lengkap
+                </span>
+
+                <div class="info-value">
+                    {{ $letter->BRANCH_ALAMAT }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Provinsi / Kode Pos
+                </span>
+
+                <div class="info-value">
+                    {{ $letter->NAMAPROPINSI }},
+                    {{ $letter->BRANCH_KODE_POS }}
+                </div>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Tanggal Pengiriman
+                </span>
+
+                <div class="info-value">
+                    {{
+                        Carbon::parse(
+                            $letter->LETTER_DATE ?: now()
+                        )->isoFormat('D MMMM Y')
+                    }}
+                </div>
+
+            </div>
+
         </div>
+
     </div>
-    <div class="section">
-        <div class="table-section">
-            <table class="collection-table">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Identifier</th>
-                        <th>Judul</th>
-                        <th>Th. Terbit</th>
-                        <th>Jns Koleksi</th>
-                        <th>Jml</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if($letterDetail)
-                        @php $total = 0; @endphp
-                        @foreach($letterDetail as $key => $ld)
-                            @php $total += $ld->COPY ?: 0; @endphp
-                            <tr>
-                                <td class="col-no">{{ $key + 1 }}</td>
-                                <td class="col-isbn">
-                                    @if($ld->ISBN)
-                                        <div>ISBN: {{ $ld->ISBN ?? '-' }} {{ $ld->NOMORPANGGILJILID }}</div>
-                                    @elseif($ld->QRCBN)
-                                        <div>QRCBN: {{ $ld->QRCBN ?? '-' }}</div>
-                                    @elseif($ld->ISSN)
-                                        <div>ISSN: {{ $ld->ISSN ?? '-' }}</div>
-                                    @elseif($ld->ISMN)
-                                        <div>ISMN: {{ $ld->ISMN ?? '-' }}</div>
-                                    @elseif($ld->ISRC)
-                                        <div>ISMN: {{ $ld->ISRC ?? '-' }}</div>
-                                    @elseif($ld->ISSN)
-                                        <div>ISSN: {{ $ld->ISSN ?? '-' }}</div>
-                                    @else
-                                        <div>-</div>
-                                    @endif
-                                </td>
-                                <td class="col-title">{{ $ld->TITLE }} {{ $ld->EDISI_SERIAL }}</td>
-                                <td class="col-title">{{ $ld->PUBLISH_YEAR }}</td>
-                                <td class="col-title">{{ $ld->JENIS_MEDIA }}</td>
-                                <td class="col-qty">{{ $ld->COPY }}</td>
-                            </tr>
-                        @endforeach
-                        <tr class="total-row">
-                            <td colspan="5" style="text-align:right;">TOTAL KESELURUHAN EKSEMPLAR</td>
-                            <td style="text-align:center;">
-                                <strong>{{ $total }}</strong>
-                            </td>
-                        </tr>
-                    @else
+
+
+    <div class="label-note">
+
+        <strong>Dokumen Pengiriman Koleksi</strong><br>
+
+        Harap tempelkan label ini pada bagian luar paket.
+        Surat pengantar dan daftar koleksi terdapat pada halaman berikutnya.
+
+    </div>
+
+
+
+    {{-- =========================================================
+         HALAMAN 2
+         SURAT PENGANTAR
+    ========================================================== --}}
+
+    <div class="page-break">
+
+
+        <div class="letter-header">
+
+            <h1>
+                SURAT PENGANTAR
+            </h1>
+
+            <div class="letter-number">
+
+                Nomor:
+                <strong>
+                    {{ $letter->LETTER_NUMBER ?? $letter->letter_number ?? '-' }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        {{-- =====================================================
+             INFORMASI SURAT
+        ====================================================== --}}
+
+        <table class="letter-meta">
+
+            <tr>
+
+                <td class="letter-meta-label">
+                    Tanggal
+                </td>
+
+                <td style="width:15px;">
+                    :
+                </td>
+
+                <td>
+                    {{
+                        Carbon::parse(
+                            $letter->LETTER_DATE ?: now()
+                        )->isoFormat('D MMMM Y')
+                    }}
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="letter-meta-label">
+                    Tujuan
+                </td>
+
+                <td>
+                    :
+                </td>
+
+                <td>
+                    {{ $letter->BRANCH_NAME }}
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td class="letter-meta-label">
+                    Alamat
+                </td>
+
+                <td>
+                    :
+                </td>
+
+                <td>
+                    {{ $letter->BRANCH_ALAMAT }},
+                    {{ $letter->NAMAPROPINSI }}
+                    {{ $letter->BRANCH_KODE_POS }}
+                </td>
+
+            </tr>
+
+        </table>
+
+
+        {{-- =====================================================
+             PENGANTAR
+        ====================================================== --}}
+
+        <div class="letter-opening">
+
+            Bersama surat pengantar ini disampaikan koleksi fisik
+            untuk pelaksanaan kewajiban serah simpan karya cetak
+            sebagaimana daftar berikut:
+
+        </div>
+
+
+        {{-- =====================================================
+             DAFTAR KOLEKSI
+        ====================================================== --}}
+
+        <table class="collection-table">
+
+            <thead>
+
+                <tr>
+
+                    <th class="col-no">
+                        No.
+                    </th>
+
+                    <th class="col-identifier">
+                        Identifier
+                    </th>
+
+                    <th>
+                        Judul
+                    </th>
+
+                    <th class="col-year">
+                        Tahun Terbit
+                    </th>
+
+                    <th class="col-media">
+                        Jenis Koleksi
+                    </th>
+
+                    <th class="col-qty">
+                        Jml.
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                @if($letterDetail)
+
+                    @php
+                        $total = 0;
+                    @endphp
+
+
+                    @foreach($letterDetail as $key => $ld)
+
+                        @php
+                            $total += $ld->COPY ?: 0;
+                        @endphp
+
+
                         <tr>
-                            <td colspan="6" style="text-align:center;">Tidak ada data</td>
+
+                            <td class="col-no">
+                                {{ $key + 1 }}
+                            </td>
+
+
+                            <td class="col-identifier">
+
+                                @if($ld->ISBN)
+
+                                    ISBN:
+                                    {{ $ld->ISBN }}
+
+                                    @if($ld->NOMORPANGGILJILID)
+                                        {{ $ld->NOMORPANGGILJILID }}
+                                    @endif
+
+
+                                @elseif($ld->QRCBN)
+
+                                    QRCBN:
+                                    {{ $ld->QRCBN }}
+
+
+                                @elseif($ld->ISSN)
+
+                                    ISSN:
+                                    {{ $ld->ISSN }}
+
+
+                                @elseif($ld->ISMN)
+
+                                    ISMN:
+                                    {{ $ld->ISMN }}
+
+
+                                @elseif($ld->ISRC)
+
+                                    ISRC:
+                                    {{ $ld->ISRC }}
+
+
+                                @else
+
+                                    -
+
+                                @endif
+
+                            </td>
+
+
+                            <td>
+
+                                {{ $ld->TITLE }}
+
+                                @if($ld->EDISI_SERIAL)
+                                    {{ $ld->EDISI_SERIAL }}
+                                @endif
+
+                            </td>
+
+
+                            <td class="col-year">
+                                {{ $ld->PUBLISH_YEAR }}
+                            </td>
+
+
+                            <td class="col-media">
+                                {{ $ld->JENIS_MEDIA }}
+                            </td>
+
+
+                            <td class="col-qty">
+                                {{ $ld->COPY }}
+                            </td>
+
                         </tr>
-                    @endif
-                </tbody>
-            </table>
+
+                    @endforeach
+
+
+                    <tr class="total-row">
+
+                        <td
+                            colspan="5"
+                            class="text-right"
+                        >
+                            TOTAL KESELURUHAN EKSEMPLAR
+                        </td>
+
+                        <td class="col-qty">
+                            {{ $total }}
+                        </td>
+
+                    </tr>
+
+
+                @else
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="text-center"
+                        >
+                            Tidak ada data koleksi.
+                        </td>
+
+                    </tr>
+
+                @endif
+
+            </tbody>
+
+        </table>
+
+
+        {{-- =====================================================
+             PENUTUP
+        ====================================================== --}}
+
+        <div class="letter-closing">
+
+            Demikian surat pengantar ini disampaikan.
+            Mohon koleksi dapat diterima dan diproses sesuai
+            dengan ketentuan yang berlaku.
+
         </div>
-    </div>
-    <div class="section avoid-break">
-        <div class="footer">
-            <div class="legal-notice">
-                <strong>DASAR HUKUM :</strong>
-                Label resi ini berlaku sebagai bukti pengiriman sesuai UU No. 13 Tahun 2018.
-            </div>
-            <div class="signature-section">
-                <div class="signature-box left">
-                    <div class="signature-label">PETUGAS PENGIRIM</div>
-                    <div class="signature-space"></div>
-                    <div class="signature-name">( _____________________________________ )</div>
-                </div>
-                <div class="signature-box">
-                    <div class="signature-label">PETUGAS PENERIMA</div>
-                    <div class="signature-space"></div>
-                    <div class="signature-name">( _____________________________________ )</div>
-                </div>
-            </div>
+
+
+        <div class="legal-notice">
+
+            <strong>Dasar Hukum:</strong>
+            Undang-Undang Nomor 13 Tahun 2018
+            tentang Serah Simpan Karya Cetak dan Karya Rekam.
+
         </div>
+
+
+        {{-- =====================================================
+             TANDA TANGAN
+        ====================================================== --}}
+
+        <div class="signature-section">
+
+            <div style="width: 55%; display: inline-block;"></div>
+
+            <div style="
+                width: 40%;
+                display: inline-block;
+                text-align: center;
+                vertical-align: top;
+            ">
+
+                <div>
+                    Hormat kami,
+                </div>
+
+                <div style="font-weight: bold; margin-top: 3px;">
+                    Pimpinan Penerbit
+                </div>
+
+                <div style="font-weight: bold;">
+                    {{ session('name') }}
+                </div>
+
+                <div style="height: 65px;"></div>
+
+                <div style="
+                    display: inline-block;
+                    width: 190px;
+                    border-bottom: 1px solid #000;
+                "></div>
+
+                <div style="font-size: 8pt; margin-top: 3px;">
+                    Nama Jelas, Tanda Tangan, dan Stempel
+                </div>
+
+            </div>
+
+        </div>
+
+
     </div>
+
 </body>
 </html>
