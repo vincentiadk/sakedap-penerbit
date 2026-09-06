@@ -735,10 +735,13 @@ class AddDeliveryFormController extends Controller
         if (count($deliveryParts) < 4) {
             throw new \Exception('Format data pengiriman tidak valid');
         }
+        $jasaPengirimanId = (int) ($deliveryParts[0] ?? 0);
 
         $letterData = array_merge($baseLetterData, [
             'branch_id' => $branchId,
             'status' => 'DIKIRIM',
+            'jasa_pengiriman_id' => $jasaPengirimanId,
+            'type_of_delivery' => 'Pos'
         ], $auditData);
 
         $letter = QueryAPI::create('letter', $letterData, false);

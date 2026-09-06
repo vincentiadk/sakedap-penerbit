@@ -121,6 +121,12 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="fw-bold border-bottom ms-3 mt-2 pb-2 mb-2">Pengiriman Karya Fisik</div>
+                                    <a href="{{ url('physical-handover/add-delivery-form-v2') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'add-delivery-form-v2' ? 'active' : '' }}">
+                                       <span class="badge bg-success me-1"
+                                            style="font-size: 6px; padding: 2px 4px; vertical-align: middle;">
+                                            BARU
+                                        </span>
+                                        Tambah Form Pengiriman ISBN
                                     <a href="{{ url('physical-handover/add-delivery-form') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'add-delivery-form' ? 'active' : '' }}">Tambah Form Pengiriman</a>
                                     <a href="{{ url('physical-handover/delivery-monitoring') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-monitoring' ? 'active' : '' }}">Monitoring Pengiriman</a>
                                     <a href="{{ url('physical-handover/delivery-accept') }}" class="dropdown-item rounded {{ Request::segment(1) == 'physical-handover' && Request::segment(2) == 'delivery-accept' ? 'active' : '' }}">Pengiriman Diterima</a>
