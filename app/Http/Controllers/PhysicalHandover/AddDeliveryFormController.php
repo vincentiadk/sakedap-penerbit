@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Validator;
 
 class AddDeliveryFormController extends Controller
 {
+    // Harga jual minimal yang boleh diisikan pada koleksi
+    const MIN_PRICE = 1000;
+
     public function index()
     {
         $worksheetAnalog = Main::COLLECTION_ANALOG;
@@ -55,8 +58,8 @@ class AddDeliveryFormController extends Controller
         $currentBranchId = Main::getBranch()->ID ?? 0;
         $publishDate = '';
 
-        $qtyPerpusnas = 2;
-        $qtyProvince = 1;
+        $quotaPerpusnas = 2;
+        $quotaProvince = 1;
 
         $data = ISBN::get('search', [
             'code' => $code,
@@ -83,14 +86,17 @@ class AddDeliveryFormController extends Controller
         $sql = "
             select
                 nvl(sum(case when branch_id = 37 then collection_count else 0 end), 0) as perpusnas_collection,
-                nvl(sum(case when branch_id = 37 then letter_detail_copy else 0 end), 0) as perpusnas_letter_detail,
+                nvl(sum(case when branch_id = 37 then accepted_copy else 0 end), 0) as perpusnas_accepted,
+                nvl(sum(case when branch_id = 37 then intransit_copy else 0 end), 0) as perpusnas_intransit,
                 nvl(sum(case when branch_id = $currentBranchId then collection_count else 0 end), 0) as province_collection,
-                nvl(sum(case when branch_id = $currentBranchId then letter_detail_copy else 0 end), 0) as province_letter_detail
+                nvl(sum(case when branch_id = $currentBranchId then accepted_copy else 0 end), 0) as province_accepted,
+                nvl(sum(case when branch_id = $currentBranchId then intransit_copy else 0 end), 0) as province_intransit
             from (
                 select
                     c.branch_id,
                     count(c.id) as collection_count,
-                    0 as letter_detail_copy
+                    0 as accepted_copy,
+                    0 as intransit_copy
                 from
                     collections c
                 where
@@ -103,20 +109,22 @@ class AddDeliveryFormController extends Controller
                 select
                     37 as branch_id,
                     0 as collection_count,
-                    nvl(sum(ld.copy), 0) as letter_detail_copy
+                    nvl(sum(case when ld.qty_accept is not null then ld.qty_accept else 0 end), 0) as accepted_copy,
+                    nvl(sum(case when ld.qty_accept is null then ld.copy else 0 end), 0) as intransit_copy
                 from
                     letter_detail ld
                 join
                     letter l on l.letter_id = ld.letter_id
                 where
                     l.branch_id = 37
-                    and (ld.qty_accept < 1 or ld.qty_accept is null)
+                    and nvl(l.status, '-') <> 'DRAFT'
                     and replace(ld.isbn, '-', '') = '$code'
                 union all
                 select
                     c.branch_id,
                     count(c.id) as collection_count,
-                    0 as letter_detail_copy
+                    0 as accepted_copy,
+                    0 as intransit_copy
                 from
                     collections c
                 where
@@ -129,14 +137,15 @@ class AddDeliveryFormController extends Controller
                 select
                     $currentBranchId as branch_id,
                     0 as collection_count,
-                    nvl(sum(ld.copy), 0) as letter_detail_copy
+                    nvl(sum(case when ld.qty_accept is not null then ld.qty_accept else 0 end), 0) as accepted_copy,
+                    nvl(sum(case when ld.qty_accept is null then ld.copy else 0 end), 0) as intransit_copy
                 from
                     letter_detail ld
                 join
                     letter l on l.letter_id = ld.letter_id
                 where
                     l.branch_id = $currentBranchId
-                    and (ld.qty_accept < 1 or ld.qty_accept is null)
+                    and nvl(l.status, '-') <> 'DRAFT'
                     and replace(ld.isbn, '-', '') = '$code'
                 )
             ";
@@ -145,34 +154,99 @@ class AddDeliveryFormController extends Controller
             'code' => $code,
             'branch_id' => $currentBranchId
         ]);
-        if ($quantities) {
-            $checkOnLetterDetailPerpusnas = (int) ($quantities->PERPUSNAS_LETTER_DETAIL ?? 0);
-            $checkOnCollectionPerpusnas = (int) ($quantities->PERPUSNAS_COLLECTION ?? 0);
+        $perpusnas = $this->resolveHandoverQuota(
+            $quotaPerpusnas,
+            (int) ($quantities->PERPUSNAS_ACCEPTED ?? 0),
+            (int) ($quantities->PERPUSNAS_INTRANSIT ?? 0),
+            (int) ($quantities->PERPUSNAS_COLLECTION ?? 0),
+            $data->received_date_kckr ?? null
+        );
 
-            if ($checkOnLetterDetailPerpusnas > 0) {
-                $qtyPerpusnas = $checkOnLetterDetailPerpusnas >= 2 ? 0 : 1;
-            } elseif ($checkOnCollectionPerpusnas > 0) {
-                $qtyPerpusnas = $checkOnCollectionPerpusnas >= 2 ? 0 : 1;
-            }
-
-            $checkOnLetterDetailProvince = (int) ($quantities->PROVINCE_LETTER_DETAIL ?? 0);
-            $checkOnCollectionProvince = (int) ($quantities->PROVINCE_COLLECTION ?? 0);
-
-            if ($checkOnLetterDetailProvince > 0) {
-                $qtyProvince = $checkOnLetterDetailProvince >= 1 ? 0 : 1;
-            } elseif ($checkOnCollectionProvince > 0) {
-                $qtyProvince = $checkOnCollectionProvince >= 1 ? 0 : 1;
-            }
-        }
+        $province = $this->resolveHandoverQuota(
+            $quotaProvince,
+            (int) ($quantities->PROVINCE_ACCEPTED ?? 0),
+            (int) ($quantities->PROVINCE_INTRANSIT ?? 0),
+            (int) ($quantities->PROVINCE_COLLECTION ?? 0),
+            $data->received_date_prov ?? null
+        );
 
         return response()->json([
             'data' => $data,
             'fileCover' => $this->generateFileCoverHtml($linkCover, $code, $title),
-            'qtyPerpusnas' => $qtyPerpusnas,
-            'qtyProvince' => $qtyProvince,
+            'qtyPerpusnas' => $perpusnas['quota'],
+            'qtyProvince' => $province['quota'],
+            'perpusnas' => $perpusnas,
+            'province' => $province,
             'publishDate' => $publishDate,
             'existsData' => $quantities ? 1 : 0,
         ]);
+    }
+
+    /**
+     * Menentukan sisa eksemplar yang masih harus dikirim ke satu tujuan.
+     *
+     * Jejak lokal (letter_detail, lalu collections) dipakai lebih dulu karena
+     * membawa jumlah eksemplar. Tanggal terima dari API ISBN hanya dipakai saat
+     * tidak ada jejak lokal sama sekali - ini menambal riwayat pengiriman yang
+     * hilang, dengan konsekuensi jumlahnya tidak diketahui sehingga dianggap lunas.
+     */
+    private function resolveHandoverQuota($quota, $accepted, $intransit, $catalog, $receivedDate)
+    {
+        $receivedDate = $this->formatReceivedDate($receivedDate);
+        $letterDetail = $accepted + $intransit;
+
+        if ($letterDetail > 0) {
+            $basis = 'count';
+            $total = $letterDetail;
+            $totalIfLost = $accepted;
+        } elseif ($catalog > 0) {
+            $basis = 'count';
+            $total = $catalog;
+            $totalIfLost = $catalog;
+        } else {
+            $basis = $receivedDate ? 'date' : 'none';
+            $total = 0;
+            $totalIfLost = 0;
+        }
+
+        if ($basis == 'count') {
+            $remaining = max($quota - $total, 0);
+            $remainingIfLost = max($quota - $totalIfLost, 0);
+        } elseif ($basis == 'date') {
+            $remaining = 0;
+            $remainingIfLost = 0;
+        } else {
+            $remaining = $quota;
+            $remainingIfLost = $quota;
+        }
+
+        return [
+            'quota' => $remaining,
+            // Sisa kuota bila kiriman yang belum diterima dianggap tidak sampai
+            'quotaIfLost' => $remainingIfLost,
+            'accepted' => $accepted,
+            'intransit' => $intransit,
+            'catalog' => $catalog,
+            'basis' => $basis,
+            'date' => $receivedDate,
+            // Kuota habis semata-mata karena kiriman yang masih di jalan
+            'soft' => $remaining < 1 && $basis == 'count' && $accepted < 1 && $catalog < 1 && $intransit > 0,
+        ];
+    }
+
+    private function formatReceivedDate($value)
+    {
+        $value = trim((string) $value);
+
+        if ($value == '' || str_starts_with($value, '0000-00-00')) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->isoFormat('D MMMM Y');
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     private function generateFileCoverHtml($linkCover, $code, $title)
@@ -292,6 +366,16 @@ class AddDeliveryFormController extends Controller
             ]);
         }
 
+        $sendToPerpusnas = in_array($request->destination, [1, 3]) && $this->hasItemsForCopyType($request, 2);
+        $sendToProvince = in_array($request->destination, [2, 3]) && $this->hasItemsForCopyType($request, 1);
+
+        if (!$sendToPerpusnas && !$sendToProvince) {
+            return response()->json([
+                'code' => 400,
+                'error' => ['Tidak ada eksemplar yang perlu dikirim untuk tujuan yang dipilih. Koleksi yang kuotanya sudah terpenuhi tidak dikirim ulang.'],
+            ]);
+        }
+
         try {
             $now = now()->format('Y-m-d H:i:s');
             $auditData = $this->buildAuditData($now, $request);
@@ -350,7 +434,117 @@ class AddDeliveryFormController extends Controller
             $messages = array_merge($messages, $additionalRules['messages']);
         }
 
+        $collectionRules = $this->getCollectionValidationRules($request);
+        $rules = array_merge($rules, $collectionRules['rules']);
+        $messages = array_merge($messages, $collectionRules['messages']);
+
         return ['rules' => $rules, 'messages' => $messages];
+    }
+
+    /**
+     * Validasi per baris koleksi. Aturannya dibangun per indeks (bukan pakai
+     * wildcard) supaya pesan kesalahan bisa menyebut baris keberapa yang kosong.
+     */
+    private function getCollectionValidationRules(Request $request)
+    {
+        $rules = [];
+        $messages = [];
+
+        if ($request->has('ci') && is_array($request->ci)) {
+            foreach (array_values($request->ci) as $key => $ci) {
+                $row = $key + 1;
+
+                $rules["ci_publish_date.$key"] = 'required|date';
+                $messages["ci_publish_date.$key.required"] = "Tanggal terbit koleksi ISBN baris $row tidak boleh kosong";
+                $messages["ci_publish_date.$key.date"] = "Tanggal terbit koleksi ISBN baris $row tidak valid";
+
+                $rules["ci_sinopsis.$key"] = 'required|string';
+                $messages["ci_sinopsis.$key.required"] = "Sinopsis koleksi ISBN baris $row tidak boleh kosong";
+
+                $rules["ci_price.$key"] = ['required', $this->priceRule("Harga jual koleksi ISBN baris $row")];
+                $messages["ci_price.$key.required"] = "Harga jual koleksi ISBN baris $row tidak boleh kosong";
+            }
+        }
+
+        if ($request->has('cni') && is_array($request->cni)) {
+            foreach (array_values($request->cni) as $key => $cni) {
+                $row = $key + 1;
+
+                $rules["cni_title.$key"] = 'required|string';
+                $messages["cni_title.$key.required"] = "Judul koleksi non-ISBN baris $row tidak boleh kosong";
+
+                $rules["cni_author.$key"] = 'required|string';
+                $messages["cni_author.$key.required"] = "Kepengarangan koleksi non-ISBN baris $row tidak boleh kosong";
+
+                $rules["cni_year.$key"] = 'required|digits:4';
+                $messages["cni_year.$key.required"] = "Tahun terbit koleksi non-ISBN baris $row tidak boleh kosong";
+                $messages["cni_year.$key.digits"] = "Tahun terbit koleksi non-ISBN baris $row harus 4 digit";
+
+                $rules["cni_type.$key"] = 'required|string';
+                $messages["cni_type.$key.required"] = "Jenis koleksi non-ISBN baris $row tidak boleh kosong";
+
+                $rules["cni_price.$key"] = ['required', $this->priceRule("Harga jual koleksi non-ISBN baris $row")];
+                $messages["cni_price.$key.required"] = "Harga jual koleksi non-ISBN baris $row tidak boleh kosong";
+            }
+        }
+
+        if ($request->has('cp') && is_array($request->cp)) {
+            $row = 0;
+
+            foreach ($request->cp as $cpIndex => $cpValue) {
+                $row++;
+
+                if (empty($request->cp_catalog_id[$cpIndex]) && empty($request->cp_manual_title[$cpIndex])) {
+                    $rules["cp_manual_title.$cpIndex"] = 'required|string';
+                    $messages["cp_manual_title.$cpIndex.required"] = "Judul terbitan berkala baris $row tidak boleh kosong";
+                }
+
+                $editions = $request->cpe[$cpIndex] ?? [];
+
+                if (!is_array($editions) || empty($editions)) {
+                    $rules["cpe.$cpIndex"] = 'required|array';
+                    $messages["cpe.$cpIndex.required"] = "Terbitan berkala baris $row harus memiliki minimal satu edisi";
+
+                    continue;
+                }
+
+                foreach (array_keys($editions) as $editionKey) {
+                    $edition = $row . '.' . ($editionKey + 1);
+
+                    $rules["cpe_edition.$cpIndex.$editionKey"] = 'required|string';
+                    $messages["cpe_edition.$cpIndex.$editionKey.required"] = "Edisi serial terbitan berkala $edition tidak boleh kosong";
+
+                    $rules["cpe_first_ttes.$cpIndex.$editionKey"] = 'required';
+                    $messages["cpe_first_ttes.$cpIndex.$editionKey.required"] = "TTES awal terbitan berkala $edition tidak boleh kosong";
+
+                    $rules["cpe_end_ttes.$cpIndex.$editionKey"] = 'required';
+                    $messages["cpe_end_ttes.$cpIndex.$editionKey.required"] = "TTES akhir terbitan berkala $edition tidak boleh kosong";
+                }
+            }
+        }
+
+        return ['rules' => $rules, 'messages' => $messages];
+    }
+
+    /**
+     * Harga dikirim dengan pemisah ribuan dari input, jadi divalidasi setelah
+     * pemisahnya dibuang.
+     */
+    private function priceRule($label)
+    {
+        return function ($attribute, $value, $fail) use ($label) {
+            $clean = str_replace([',', '.'], '', (string) $value);
+
+            if (!is_numeric($clean)) {
+                $fail("$label harus berupa angka");
+
+                return;
+            }
+
+            if ((int) $clean < self::MIN_PRICE) {
+                $fail("$label minimal Rp " . number_format(self::MIN_PRICE, 0, ',', '.'));
+            }
+        };
     }
 
     private function getExpeditionValidationRules($destination)
@@ -402,11 +596,11 @@ class AddDeliveryFormController extends Controller
 
     private function handleSelfDelivery(Request $request, $baseLetterData, $auditData)
     {
-        if ($request->destination == 1 || $request->destination == 3) {
+        if (($request->destination == 1 || $request->destination == 3) && $this->hasItemsForCopyType($request, 2)) {
             $this->createSelfDeliveryLetter($request, $baseLetterData, $auditData, 37, 2);
         }
 
-        if ($request->destination == 2 || $request->destination == 3) {
+        if (($request->destination == 2 || $request->destination == 3) && $this->hasItemsForCopyType($request, 1)) {
             $this->createSelfDeliveryLetter($request, $baseLetterData, $auditData, Main::getBranch()->ID ?? null, 1);
         }
     }
@@ -453,7 +647,7 @@ class AddDeliveryFormController extends Controller
             throw new \Exception('Gagal mendapatkan data origin lokasi pengiriman');
         }
 
-        if ($request->perpusnas_delivery && in_array($request->destination, [1, 3])) {
+        if ($request->perpusnas_delivery && in_array($request->destination, [1, 3]) && $this->hasItemsForCopyType($request, 2)) {
             $branch = Main::getBranch(37);
 
             if (!$branch) {
@@ -480,7 +674,7 @@ class AddDeliveryFormController extends Controller
             );
         }
 
-        if ($request->province_delivery && in_array($request->destination, [2, 3])) {
+        if ($request->province_delivery && in_array($request->destination, [2, 3]) && $this->hasItemsForCopyType($request, 1)) {
             $branch = Main::getBranch();
 
             if (!$branch) {
@@ -625,11 +819,11 @@ class AddDeliveryFormController extends Controller
 
     private function handleManualDelivery(Request $request, $baseLetterData, $auditData)
     {
-        if (in_array($request->destination, [1, 3])) {
+        if (in_array($request->destination, [1, 3]) && $this->hasItemsForCopyType($request, 2)) {
             $this->createManualDeliveryLetter($request, $baseLetterData, $auditData, 37, 2);
         }
 
-        if (in_array($request->destination, [2, 3])) {
+        if (in_array($request->destination, [2, 3]) && $this->hasItemsForCopyType($request, 1)) {
             $this->createManualDeliveryLetter($request, $baseLetterData, $auditData, Main::getBranch()->ID ?? null, 1);
         }
     }
@@ -680,6 +874,58 @@ class AddDeliveryFormController extends Controller
         ];
     }
 
+    /**
+     * Mengecek apakah ada eksemplar yang benar-benar akan dikirim ke satu tujuan,
+     * supaya surat tanpa isi tidak pernah dibuat. Koleksi non-ISBN dan terbitan
+     * berkala selalu mengirim minimal satu eksemplar, hanya koleksi ISBN yang
+     * jumlahnya bisa nol karena kuotanya sudah terpenuhi.
+     */
+    private function hasItemsForCopyType(Request $request, $copyType)
+    {
+        if ($request->has('ci') && is_array($request->ci) && !empty($request->ci)) {
+            $codes = is_array($request->ci_code) ? array_values($request->ci_code) : [];
+            $quantityField = $copyType == 2 ? $request->ci_qty_perpusnas : $request->ci_qty_province;
+            $quantities = is_array($quantityField) ? array_values($quantityField) : [];
+
+            foreach (array_values($request->ci) as $key => $ci) {
+                if (empty($codes[$key])) {
+                    continue;
+                }
+
+                if ((int) ($quantities[$key] ?? 0) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        if ($request->has('cni') && is_array($request->cni) && !empty($request->cni)) {
+            $titles = is_array($request->cni_title) ? array_values($request->cni_title) : [];
+
+            foreach ($titles as $title) {
+                if (!empty($title)) {
+                    return true;
+                }
+            }
+        }
+
+        if ($request->has('cp') && is_array($request->cp) && !empty($request->cp)) {
+            foreach ($request->cp as $cpIndex => $cpValue) {
+                $catalogTitle = $request->cp_manual_title[$cpIndex] ?? null;
+                $catalogId = $request->cp_catalog_id[$cpIndex] ?? null;
+
+                if (empty($catalogTitle) && empty($catalogId)) {
+                    continue;
+                }
+
+                if (!empty($request->cpe[$cpIndex]) && is_array($request->cpe[$cpIndex])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private function processCIItems(Request $request, $letter, $copyType)
     {
         $totalPackage = 0;
@@ -696,6 +942,8 @@ class AddDeliveryFormController extends Controller
         $ciQtyPerpusnasArray = $request->has('ci_qty_perpusnas') && is_array($request->ci_qty_perpusnas) ? array_values($request->ci_qty_perpusnas) : [];
         $ciQtyProvinceArray = $request->has('ci_qty_province') && is_array($request->ci_qty_province) ? array_values($request->ci_qty_province) : [];
         $ciPublishDateArray = $request->has('ci_publish_date') && is_array($request->ci_publish_date) ? array_values($request->ci_publish_date) : [];
+        $ciSinopsisArray = $request->has('ci_sinopsis') && is_array($request->ci_sinopsis) ? array_values($request->ci_sinopsis) : [];
+        $ciPriceArray = $request->has('ci_price') && is_array($request->ci_price) ? array_values($request->ci_price) : [];
 
         foreach ($ciArray as $key => $ci) {
             $code = isset($ciCodeArray[$key]) ? $ciCodeArray[$key] : null;
@@ -718,6 +966,15 @@ class AddDeliveryFormController extends Controller
                 $qtyPerpusnas = isset($ciQtyPerpusnasArray[$key]) ? (int)$ciQtyPerpusnasArray[$key] : 0;
                 $qtyProvince = isset($ciQtyProvinceArray[$key]) ? (int)$ciQtyProvinceArray[$key] : 0;
                 $publishDate = isset($ciPublishDateArray[$key]) ? $ciPublishDateArray[$key] : null;
+                $sinopsis = isset($ciSinopsisArray[$key]) ? trim((string) $ciSinopsisArray[$key]) : '';
+                $price = isset($ciPriceArray[$key]) ? str_replace([',', '.'], '', $ciPriceArray[$key]) : 0;
+                $copy = $copyType == 2 ? $qtyPerpusnas : $qtyProvince;
+
+                // Kuota tujuan ini sudah terpenuhi, tidak ada yang dikirim
+                if ($copy < 1) {
+                    continue;
+                }
+
                 $catalog = null;
 
                 if ($isbn->is_kdt_valid == 1) {
@@ -729,8 +986,9 @@ class AddDeliveryFormController extends Controller
 
                 $letterDetailData = [
                     'title' => $isbn->title ?? null,
-                    'copy' => $copyType == 2 ? $qtyPerpusnas : $qtyProvince,
+                    'copy' => $copy,
                     'quantity' => 1,
+                    'price' => is_numeric($price) ? $price : 0,
                     'letter_id' => $letter->LETTER_ID ?? null,
                     'author' => $isbn->kepeng ?? null,
                     'publisher' => $isbn->nama_penerbit ?? null,
@@ -743,7 +1001,7 @@ class AddDeliveryFormController extends Controller
                     'province_id' => $isbn->province_id ?? null,
                     'kab_id' => $catalog->CITY_ID ?? null,
                     'deskripsifisik' => $catalog->DESCRIPTION ?? null,
-                    'sinopsis' => $isbn->sinopsis ?? null,
+                    'sinopsis' => $sinopsis != '' ? $sinopsis : ($isbn->sinopsis ?? null),
                     'cleaning_note' => $isbn->keterangan ?? null,
                     'jenis_media' => $isbn->jenis_media ?? null,
                     'collection_type_id' => 2,
@@ -765,7 +1023,7 @@ class AddDeliveryFormController extends Controller
 
                 $collection[] = [
                     'product_name' => $isbn->title ?? 'Untitled',
-                    'qty' => $copyType == 2 ? $qtyPerpusnas : $qtyProvince,
+                    'qty' => $copy,
                 ];
             } catch (\Exception $e) {
                 throw $e;

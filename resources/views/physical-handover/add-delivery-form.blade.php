@@ -127,13 +127,14 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="text-center text-nowrap" width="80">Cover</th>
-                                <th class="text-nowrap">Tgl Terbit</th>
+                                <th class="text-nowrap">Tgl Terbit <span class="text-danger">*</span></th>
                                 <th class="text-nowrap">Judul</th>
                                 <th class="text-nowrap">Kepengarangan</th>
                                 <th class="text-nowrap">Pelaksana Serah</th>
                                 <th class="text-nowrap">Tahun Terbit</th>
                                 <th class="text-nowrap">Identifier</th>
-                                <th class="text-nowrap">Sinopsis</th>
+                                <th class="text-nowrap">Sinopsis <span class="text-danger">*</span></th>
+                                <th class="text-nowrap">Harga Jual <span class="text-danger">*</span></th>
                                 <th class="text-nowrap">Jumlah Eks Perpusnas</th>
                                 <th class="text-nowrap">Jumlah Eks Provinsi</th>
                                 <th class="text-center text-nowrap" width="80">Aksi</th>
@@ -141,7 +142,7 @@
                         </thead>
                         <tbody id="data-collection-isbn">
                             <tr id="empty-isbn-row">
-                                <td colspan="11" class="text-center text-muted py-4">
+                                <td colspan="12" class="text-center text-muted py-4">
                                     <i class="ph-books ph-3x d-block mb-2 opacity-50"></i>
                                     Belum ada data ISBN
                                 </td>
@@ -439,6 +440,8 @@
                 formData.isbn_collections.push({
                     code: row.find('input[name="ci_code[]"]').val(),
                     publish_date: row.find('input[name="ci_publish_date[]"]').val(),
+                    sinopsis: row.find('textarea[name="ci_sinopsis[]"]').val(),
+                    price: row.find('input[name="ci_price[]"]').val(),
                     qty_perpusnas: row.find('input[name="ci_qty_perpusnas[]"]').val(),
                     qty_province: row.find('input[name="ci_qty_province[]"]').val(),
                 });
@@ -588,7 +591,7 @@
                         var safeTitle = $('<div>').text(data.title ?? '-').html();
                         var safeKepeng = $('<div>').text(data.kepeng ?? '-').html();
                         var safePenerbit = $('<div>').text(data.nama_penerbit ?? '-').html();
-                        var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
+                        var safeSinopsis = $('<div>').text(item.sinopsis ?? data.sinopsis ?? '').html();
                         var safeISBN = $('<div>').text(data.isbn ?? '-').html();
 
                         $('#data-collection-isbn').prepend(`
@@ -604,17 +607,17 @@
                                 <td class="align-middle text-wrap">${safePenerbit}</td>
                                 <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
                                 <td class="align-middle text-nowrap">${safeISBN}</td>
-                                <td class="align-middle text-wrap">
-                                    <div class="readmore-block">${safeSinopsis}</div>
+                                <td class="align-middle">
+                                    <textarea class="form-control form-control-sm" name="ci_sinopsis[]" rows="3" style="min-width: 260px;" placeholder="Lengkapi sinopsis">${safeSinopsis}</textarea>
                                 </td>
                                 <td class="align-middle">
-                                    <input type="hidden" name="ci_qty_perpusnas[]" value="${item.qty_perpusnas ?? response.qtyPerpusnas}">
-                                    ${item.qty_perpusnas ?? response.qtyPerpusnas}
+                                    <div class="input-group input-group-sm" style="min-width: 150px;">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="text" class="form-control" name="ci_price[]" placeholder="0" value="${item.price || ''}">
+                                    </div>
                                 </td>
-                                <td class="align-middle">
-                                    <input type="hidden" name="ci_qty_province[]" value="${item.qty_province ?? response.qtyProvince}">
-                                    ${item.qty_province ?? response.qtyProvince}
-                                </td>
+                                <td class="align-middle">${handoverQtyCell('ci_qty_perpusnas', item.qty_perpusnas ?? response.qtyPerpusnas)}</td>
+                                <td class="align-middle">${handoverQtyCell('ci_qty_province', item.qty_province ?? response.qtyProvince)}</td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
                                         <i class="ph-trash"></i>
@@ -626,7 +629,7 @@
                 });
 
                 Promise.allSettled(fetchPromises).then(() => {
-                    readmoreJS();
+                    $('input[name="ci_price[]"]').number(true);
                 });
             }
 
@@ -1285,8 +1288,6 @@
                     }
                 });
 
-                readmoreJS();
-
                 if (isDuplicate) {
                     swalInit.fire({
                         title: 'ISBN Sudah Ditambahkan',
@@ -1307,68 +1308,189 @@
                     return;
                 }*/
 
-                $('#empty-isbn-row').remove();
+                const perpusnas = response.perpusnas || {};
+                const province = response.province || {};
 
-                var safeTitle = $('<div>').text(data.title ?? '-').html();
-                var safeKepeng = $('<div>').text(data.kepeng ?? '-').html();
-                var safePenerbit = $('<div>').text(data.nama_penerbit ?? '-').html();
-                var safeSinopsis = $('<div>').text(data.sinopsis ?? '-').html();
-                var safeISBN = $('<div>').text(data.isbn ?? '-').html();
+                var qtyPerpusnas = parseInt(perpusnas.quota ?? response.qtyPerpusnas ?? 0, 10) || 0;
+                var qtyProvince = parseInt(province.quota ?? response.qtyProvince ?? 0, 10) || 0;
 
-                $('#data-collection-isbn').prepend(`
-                    <tr class="animate__animated animate__fadeIn">
-                        <input type="hidden" name="ci[]" value="1">
-                        <input type="hidden" name="ci_code[]" value="${safeISBN}">
-                        <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
-                        <td class="align-middle" nowrap>
-                            <input type="date" class="form-control form-control-sm" name="ci_publish_date[]" value="${response.publishDate}">
-                        </td>
-                        <td class="align-middle text-wrap">${safeTitle}</td>
-                        <td class="align-middle text-wrap">${safeKepeng}</td>
-                        <td class="align-middle text-wrap">${safePenerbit}</td>
-                        <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
-                        <td class="align-middle text-nowrap">${safeISBN}</td>
-                        <td class="align-middle text-wrap">
-                            <div class="readmore-block">
-                                ${safeSinopsis}
-                            </div>
-                        </td>
-                        <td class="align-middle">
-                            <input type="hidden" name="ci_qty_perpusnas[]" value="${response.qtyPerpusnas}">
-                            ${response.qtyPerpusnas}
-                        </td>
-                        <td class="align-middle">
-                            <input type="hidden" name="ci_qty_province[]" value="${response.qtyProvince}">
-                            ${response.qtyProvince}
-                        </td>
-                        <td class="text-center align-middle">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
-                                <i class="ph-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
+                var evidence = [
+                    handoverEvidence(perpusnas, 'Perpusnas'),
+                    handoverEvidence(province, 'Provinsi')
+                ].filter(Boolean);
 
-                $('#search_isbn').val('').focus();
+                var remaining = [];
 
-                readmoreJS();
-                autoSaveForm();
-
-                if (data.is_kdt_valid == 1) {
-                    swalInit.fire({
-                        title: 'Berhasil Ditambahkan',
-                        html: `ISBN telah tervalidasi dengan KDT.<br>Koleksi otomatis dikaitkan dengan Katalog ID: <strong>${data.catalog_id}</strong>`,
-                        icon: 'success',
-                    });
-                } else {
-                    notification('success', 'ISBN berhasil ditambahkan');
+                if (qtyPerpusnas > 0) {
+                    remaining.push(`<strong>${qtyPerpusnas} eks</strong> ke <strong>Perpusnas</strong>`);
                 }
+
+                if (qtyProvince > 0) {
+                    remaining.push(`<strong>${qtyProvince} eks</strong> ke <strong>Provinsi</strong>`);
+                }
+
+                // Kedua tujuan sudah terpenuhi, tidak ada yang perlu dikirim lagi
+                if (qtyPerpusnas < 1 && qtyProvince < 1) {
+                    // Kuota hanya habis karena kiriman yang belum sampai, beri jalan keluar
+                    if (perpusnas.soft || province.soft) {
+                        swalInit.fire({
+                            title: 'Masih Dalam Pengiriman',
+                            html: `${evidence.join('<br>')}<br><br>Kiriman tersebut belum diterima. Tambahkan koleksi ini hanya jika kiriman sebelumnya dipastikan tidak sampai.`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Tetap Tambahkan',
+                            cancelButtonText: 'Batal'
+                        }).then(function (result) {
+                            if (!result.isConfirmed) {
+                                $('#search_isbn').val('').focus();
+
+                                return;
+                            }
+
+                            addCollectionISBN(
+                                response,
+                                data,
+                                parseInt(perpusnas.quotaIfLost ?? 0, 10) || 0,
+                                parseInt(province.quotaIfLost ?? 0, 10) || 0,
+                                null
+                            );
+                        });
+
+                        return;
+                    }
+
+                    swalInit.fire({
+                        title: 'Koleksi Sudah Diserahkan',
+                        html: `${evidence.join('<br>')}<br><br>Koleksi tidak perlu dikirimkan lagi sehingga tidak ditambahkan ke tabel.`,
+                        icon: 'warning'
+                    });
+
+                    $('#search_isbn').val('').focus();
+
+                    return;
+                }
+
+                // Sebagian sudah diserahkan, sisanya masih perlu dikirim
+                var partialAlert = null;
+
+                if (evidence.length > 0) {
+                    partialAlert = {
+                        title: 'Sebagian Sudah Diserahkan',
+                        html: `${evidence.join('<br>')}<br><br>Kirimkan ${remaining.join(' dan ')}.`,
+                        icon: 'info'
+                    };
+                }
+
+                addCollectionISBN(response, data, qtyPerpusnas, qtyProvince, partialAlert);
             },
             error: function(response) {
                 onLoading('close', 'body');
                 responseError(response);
             }
         });
+    }
+
+    // Menyusun kalimat bukti penyerahan untuk satu tujuan.
+    // Jejak berjumlah memakai angka eksemplar, jejak dari API ISBN memakai tanggal
+    // karena jumlahnya memang tidak diketahui.
+    function handoverEvidence(info, label) {
+        if (!info || typeof info !== 'object') {
+            return '';
+        }
+
+        if (info.basis === 'date' && info.date) {
+            return `Tercatat sudah diserahkan ke <strong>${label}</strong> pada <strong>${info.date}</strong>.`;
+        }
+
+        var accepted = parseInt(info.accepted ?? 0, 10) || 0;
+        var intransit = parseInt(info.intransit ?? 0, 10) || 0;
+        var catalog = parseInt(info.catalog ?? 0, 10) || 0;
+        var parts = [];
+
+        if (accepted > 0) {
+            parts.push(`<strong>${accepted} eks</strong> sudah diterima`);
+        }
+
+        if (accepted < 1 && intransit < 1 && catalog > 0) {
+            parts.push(`<strong>${catalog} eks</strong> sudah tercatat di katalog`);
+        }
+
+        if (intransit > 0) {
+            parts.push(`<strong>${intransit} eks</strong> masih dalam pengiriman`);
+        }
+
+        if (parts.length < 1) {
+            return '';
+        }
+
+        return `Ke <strong>${label}</strong>: ${parts.join(', ')}.`;
+    }
+
+    // Kuota 0 berarti tidak perlu dikirim, bukan "kirim nol eksemplar"
+    function handoverQtyCell(name, qty) {
+        var value = parseInt(qty ?? 0, 10) || 0;
+        var label = value > 0 ? value : '<span class="badge bg-secondary">Sudah diserahkan</span>';
+
+        return `<input type="hidden" name="${name}[]" value="${value}">${label}`;
+    }
+
+    function addCollectionISBN(response, data, qtyPerpusnas, qtyProvince, alertAfter) {
+        $('#empty-isbn-row').remove();
+
+        var safeTitle = $('<div>').text(data.title ?? '-').html();
+        var safeKepeng = $('<div>').text(data.kepeng ?? '-').html();
+        var safePenerbit = $('<div>').text(data.nama_penerbit ?? '-').html();
+        var safeSinopsis = $('<div>').text(data.sinopsis ?? '').html();
+        var safeISBN = $('<div>').text(data.isbn ?? '-').html();
+
+        $('#data-collection-isbn').prepend(`
+            <tr class="animate__animated animate__fadeIn">
+                <input type="hidden" name="ci[]" value="1">
+                <input type="hidden" name="ci_code[]" value="${safeISBN}">
+                <td class="text-center align-middle">${response.fileCover ?? '<span class="text-muted">-</span>'}</td>
+                <td class="align-middle" nowrap>
+                    <input type="date" class="form-control form-control-sm" name="ci_publish_date[]" value="${response.publishDate}">
+                </td>
+                <td class="align-middle text-wrap">${safeTitle}</td>
+                <td class="align-middle text-wrap">${safeKepeng}</td>
+                <td class="align-middle text-wrap">${safePenerbit}</td>
+                <td class="align-middle">${data.tahun_terbit ?? '-'}</td>
+                <td class="align-middle text-nowrap">${safeISBN}</td>
+                <td class="align-middle">
+                    <textarea class="form-control form-control-sm" name="ci_sinopsis[]" rows="3" style="min-width: 260px;" placeholder="Lengkapi sinopsis">${safeSinopsis}</textarea>
+                </td>
+                <td class="align-middle">
+                    <div class="input-group input-group-sm" style="min-width: 150px;">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" class="form-control" name="ci_price[]" placeholder="0">
+                    </div>
+                </td>
+                <td class="align-middle">${handoverQtyCell('ci_qty_perpusnas', qtyPerpusnas)}</td>
+                <td class="align-middle">${handoverQtyCell('ci_qty_province', qtyProvince)}</td>
+                <td class="text-center align-middle">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
+                        <i class="ph-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+
+        $('#search_isbn').val('').focus();
+
+        $('input[name="ci_price[]"]').number(true);
+        autoSaveForm();
+
+        if (alertAfter) {
+            swalInit.fire(alertAfter);
+        } else if (data.is_kdt_valid == 1) {
+            swalInit.fire({
+                title: 'Berhasil Ditambahkan',
+                html: `ISBN telah tervalidasi dengan KDT.<br>Koleksi otomatis dikaitkan dengan Katalog ID: <strong>${data.catalog_id}</strong>`,
+                icon: 'success',
+            });
+        } else {
+            notification('success', 'ISBN berhasil ditambahkan');
+        }
     }
 
     function removeItem(param) {
