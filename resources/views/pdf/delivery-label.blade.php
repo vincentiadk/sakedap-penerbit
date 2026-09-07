@@ -617,35 +617,35 @@
 
                             <td class="col-identifier">
 
-                                @if($ld->ISBN)
+                                @if($ld->ISBN ?? null)
 
                                     ISBN:
                                     {{ $ld->ISBN }}
 
-                                    @if($ld->NOMORPANGGILJILID)
+                                    @if($ld->NOMORPANGGILJILID ?? null)
                                         {{ $ld->NOMORPANGGILJILID }}
                                     @endif
 
 
-                                @elseif($ld->QRCBN)
+                                @elseif($ld->QRCBN ?? null)
 
                                     QRCBN:
                                     {{ $ld->QRCBN }}
 
 
-                                @elseif($ld->ISSN)
+                                @elseif($ld->ISSN ?? null)
 
                                     ISSN:
                                     {{ $ld->ISSN }}
 
 
-                                @elseif($ld->ISMN)
+                                @elseif($ld->ISMN ?? null)
 
                                     ISMN:
                                     {{ $ld->ISMN }}
 
 
-                                @elseif($ld->ISRC)
+                                @elseif($ld->ISRC ?? null)
 
                                     ISRC:
                                     {{ $ld->ISRC }}
